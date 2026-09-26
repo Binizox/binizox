@@ -50,6 +50,10 @@ def e2e_base_url() -> str:
 def cleanup_e2e_test_resources(e2e_base_url: str):
     """在 E2E 会话前后清理测试对话、临时智能体和知识库。"""
 
+    if os.getenv("ASTERDESK_E2E_KEEP_ARTIFACTS") == "1":
+        yield
+        return
+
     if not CLEANUP_USERNAME or not CLEANUP_PASSWORD:
         yield
         return

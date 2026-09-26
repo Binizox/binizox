@@ -62,6 +62,7 @@ RUN groupadd --gid 1000 yuxi \
     && useradd --uid 1000 --gid 1000 --create-home yuxi \
     && mkdir -p /app/runtime /home/yuxi/nltk_data /home/yuxi/.cache/rapidocr/models \
     && chown -R 1000:1000 /app/runtime /home/yuxi \
+    && sed -i 's/\r$//' /usr/local/bin/yuxi-entrypoint \
     && chmod 0755 /usr/local/bin/yuxi-entrypoint
 
 ENV HOME=/home/yuxi \

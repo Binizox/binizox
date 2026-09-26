@@ -21,6 +21,19 @@ _SKILLS_ROOT = Path(__file__).resolve().parent
 
 BUILTIN_SKILLS: list[BuiltinSkillSpec] = [
     BuiltinSkillSpec(
+        slug="asterdesk-evidence",
+        source_dir=_SKILLS_ROOT / "asterdesk-evidence",
+        description="AsterDesk 第二阶段服务端权限过滤的文档证据检索。",
+        version="2.0.0",
+        tool_dependencies=("search_asterdesk_evidence",),
+    ),
+    BuiltinSkillSpec(
+        slug="asterdesk-it-policy",
+        source_dir=_SKILLS_ROOT / "asterdesk-it-policy",
+        description="AsterDesk 第一阶段用于验证带来源企业政策问答的虚构 IT 政策。",
+        version="1.0.0",
+    ),
+    BuiltinSkillSpec(
         slug="image-gen",
         source_dir=_SKILLS_ROOT / "image-gen",
         description="在 Agent 沙盒中生成图片并保存到 outputs，默认支持 Qwen-Image，也可接入其它图片生成接口。",

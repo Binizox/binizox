@@ -3,7 +3,7 @@
 from yuxi.config.runtime import knowledge_capability_enabled
 
 # 触发各模块的 @tool 装饰器执行，自动注册工具
-from . import buildin, debug
+from . import asterdesk, buildin, debug
 
 # 工具获取函数
 from .registry import (
@@ -34,4 +34,5 @@ __all__ = [
     # 触发各模块的 @tool 装饰器执行，自动注册工具
     "buildin",
     "debug",
+    "asterdesk",
 ]
