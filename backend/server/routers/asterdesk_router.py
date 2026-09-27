@@ -5,7 +5,8 @@ from __future__ import annotations
 import json
 import os
 
-from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, Query, UploadFile
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from server.utils.auth_middleware import get_admin_user, get_required_user
@@ -26,6 +27,8 @@ from yuxi.services.asterdesk_action_service import (
     ActionRequestError,
     decide_action_request,
     get_action_request,
+    list_action_requests,
+    record_action_dispatch,
 )
 from yuxi.services.asterdesk_action_worker import enqueue_asterdesk_action
 
@@ -138,6 +141,28 @@ async def read_action_request(
         _raise_action_http(exc)
 
 
+@asterdesk.get("/actions")
+async def read_action_requests(
+    status: str = Query(default="pending", max_length=128),
+    limit: int = Query(default=50, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+    current_user: User = Depends(get_required_user),
+) -> dict:
+    allowed = {"pending", "approved", "rejected", "expired"}
+    statuses = tuple(value.strip() for value in status.split(",") if value.strip())
+    if any(value not in allowed for value in statuses):
+        raise HTTPException(status_code=422, detail="不支持的申请状态筛选")
+    try:
+        return await list_action_requests(
+            user=current_user,
+            statuses=statuses,
+            limit=limit,
+            offset=offset,
+        )
+    except ActionRequestError as exc:
+        _raise_action_http(exc)
+
+
 @asterdesk.post("/actions/{action_request_id}/decision")
 async def decide_action(
     action_request_id: str,
@@ -149,16 +174,39 @@ async def decide_action(
 
     try:
         inject_after_success = failure_injection == "after-external-success"
-        if inject_after_success and os.getenv("ASTERDESK_ENABLE_FAILURE_INJECTION", "0") != "1":
+        inject_enqueue_failure = failure_injection == "enqueue-failure"
+        if (inject_after_success or inject_enqueue_failure) and os.getenv(
+            "ASTERDESK_ENABLE_FAILURE_INJECTION", "0"
+        ) != "1":
             raise HTTPException(status_code=403, detail="故障注入仅在隔离测试环境开放")
         action, replayed = await decide_action_request(
             action_request_id=action_request_id,
             approver=current_user,
             decision=body,
         )
-        await enqueue_asterdesk_action(
-            action_request_id,
-            fail_after_external_success=inject_after_success,
+        try:
+            if inject_enqueue_failure:
+                raise ConnectionError("isolated enqueue failure injection")
+            await enqueue_asterdesk_action(
+                action_request_id,
+                fail_after_external_success=inject_after_success,
+            )
+        except Exception as exc:
+            await record_action_dispatch(
+                action_request_id=action_request_id,
+                event_type="dispatch.deferred",
+                actor_id="approval-api",
+                details={"error_type": type(exc).__name__},
+            )
+            return JSONResponse(
+                status_code=202,
+                content={"action": action, "replayed": replayed, "dispatch": "deferred"},
+            )
+        await record_action_dispatch(
+            action_request_id=action_request_id,
+            event_type="dispatch.enqueued",
+            actor_id="approval-api",
+            details={"failure_injection": "after-external-success" if inject_after_success else None},
         )
         return {"action": action, "replayed": replayed}
     except ActionRequestError as exc:

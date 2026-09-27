@@ -53,7 +53,22 @@ async def recover_asterdesk_actions() -> list[str]:
     async with pg_manager.get_async_session_context() as db:
         ids = await AsterDeskActionRepository(db).list_recoverable_ids()
     for action_id in ids:
-        await enqueue_asterdesk_action(action_id, dispatch_id=f"recovery-{uuid.uuid4().hex}")
+        try:
+            await enqueue_asterdesk_action(action_id, dispatch_id=f"recovery-{uuid.uuid4().hex}")
+            async with pg_manager.get_async_session_context() as db:
+                await AsterDeskActionRepository(db).add_audit(
+                    action_id,
+                    "dispatch.recovered",
+                    actor_type="dispatcher",
+                    actor_id="asterdesk-reconciliation",
+                    details={},
+                )
+        except Exception as exc:
+            logger.warning(
+                "Action recovery dispatch deferred: action={} type={}",
+                action_id,
+                type(exc).__name__,
+            )
     return ids
 
 
@@ -68,8 +83,8 @@ async def _claim(action_request_id: str, worker_id: str) -> tuple[str, int | Non
             return "missing", None
         if action.resume_run_id:
             return "resumed", None
-        if action.status == "rejected":
-            return "rejected", None
+        if action.status in {"rejected", "expired"}:
+            return action.status, None
         if action.status != "approved":
             return "pending_approval", None
         if action.execution_status == "succeeded":
@@ -84,6 +99,32 @@ async def _claim(action_request_id: str, worker_id: str) -> tuple[str, int | Non
             return "leased", None
 
         attempt_no = await repo.next_attempt_no(action.id)
+        prior = await repo.get_running_attempt(action.id)
+        recovery_reason = "initial_dispatch"
+        if action.execution_status == "unknown":
+            recovery_reason = "retry_unknown_result"
+        elif prior is not None:
+            recovery_reason = f"takeover_attempt:{prior.attempt_no}"
+            prior.status = "superseded"
+            prior.finished_at = now
+            prior.error_code = "execution_lease_expired"
+            prior.error_message = "执行 lease 到期，由新 attempt 接管"
+            prior.recovery_reason = "execution_lease_expired"
+            prior.superseded_by_attempt_no = attempt_no
+            await repo.add_audit(
+                action.id,
+                "execution.attempt.superseded",
+                actor_type="worker",
+                actor_id=worker_id,
+                details={
+                    "attempt_no": prior.attempt_no,
+                    "superseded_by_attempt_no": attempt_no,
+                    "reason": "execution_lease_expired",
+                    "external_reference_id": prior.external_reference_id,
+                },
+            )
+        elif action.execution_status == "executing":
+            recovery_reason = "orphaned_execution_lease"
         action.execution_status = "executing"
         action.execution_worker_id = worker_id
         action.execution_lease_expires_at = now + timedelta(seconds=ACTION_LEASE_SECONDS)
@@ -96,6 +137,7 @@ async def _claim(action_request_id: str, worker_id: str) -> tuple[str, int | Non
                 worker_id=worker_id,
                 idempotency_key=action.idempotency_key,
                 status="running",
+                recovery_reason=recovery_reason,
             )
         )
         await repo.add_audit(
@@ -103,9 +145,41 @@ async def _claim(action_request_id: str, worker_id: str) -> tuple[str, int | Non
             "execution.attempt.started",
             actor_type="worker",
             actor_id=worker_id,
-            details={"attempt_no": attempt_no, "idempotency_key": action.idempotency_key},
+            details={
+                "attempt_no": attempt_no,
+                "idempotency_key": action.idempotency_key,
+                "recovery_reason": recovery_reason,
+            },
         )
         return "execute", attempt_no
+
+
+async def _record_external_observation(
+    action_request_id: str,
+    attempt_no: int,
+    result: dict[str, Any],
+) -> None:
+    """在 action 终态前持久化外部结果观察事实。"""
+
+    async with pg_manager.get_async_session_context() as db:
+        repo = AsterDeskActionRepository(db)
+        attempt = await repo.get_attempt(action_request_id, attempt_no)
+        if attempt is None:
+            return
+        external_reference_id = str(result.get("grant_id") or "") or None
+        attempt.external_reference_id = external_reference_id
+        attempt.external_observed_at = utc_now()
+        await repo.add_audit(
+            action_request_id,
+            "execution.external.observed",
+            actor_type="worker",
+            actor_id=attempt.worker_id,
+            details={
+                "attempt_no": attempt_no,
+                "external_reference_id": external_reference_id,
+                "observation_source": result.get("_asterdesk_observation_source", "unknown"),
+            },
+        )
 
 
 async def _finish_attempt(
@@ -125,6 +199,15 @@ async def _finish_attempt(
             return
         if action.execution_status == "succeeded":
             return
+        if attempt.status != "running" or action.execution_worker_id != attempt.worker_id:
+            await repo.add_audit(
+                action.id,
+                "execution.attempt.late_result_ignored",
+                actor_type="worker",
+                actor_id=attempt.worker_id,
+                details={"attempt_no": attempt_no, "attempt_status": attempt.status},
+            )
+            return
         attempt.status = status
         attempt.finished_at = utc_now()
         attempt.error_code = error_code
@@ -134,9 +217,12 @@ async def _finish_attempt(
         action.execution_error_code = error_code
         action.execution_error_message = error_message
         if status == "succeeded":
+            persisted_result = {
+                key: value for key, value in (result or {}).items() if not key.startswith("_asterdesk_")
+            }
             action.execution_status = "succeeded"
-            action.external_result = result or {}
-            action.external_reference_id = str((result or {}).get("grant_id") or "") or None
+            action.external_result = persisted_result
+            action.external_reference_id = str(persisted_result.get("grant_id") or "") or None
             attempt.external_reference_id = action.external_reference_id
         elif status in {"rejected", "conflict"}:
             action.execution_status = "rejected"
@@ -184,7 +270,7 @@ async def _resume_original_run(action_request_id: str) -> str | None:
                 origin_metadata=parent.origin_metadata or {},
             )
         except HTTPException as exc:
-            logger.warning("Action resume deferred: action=%s detail=%s", action.id, exc.detail)
+            logger.warning("Action resume deferred: action={} detail={}", action.id, exc.detail)
             raise RetryJob() from exc
         resume_run_id = str(response["run_id"])
 
@@ -216,7 +302,7 @@ async def process_asterdesk_action(
         return
     if disposition == "leased":
         raise RetryJob()
-    if disposition in {"rejected", "succeeded", "execution_terminal"}:
+    if disposition in {"rejected", "expired", "succeeded", "execution_terminal"}:
         await _resume_original_run(action_request_id)
         return
     if attempt_no is None:
@@ -224,6 +310,7 @@ async def process_asterdesk_action(
 
     try:
         result = await execute_approved_vpn_action(action_request_id)
+        await _record_external_observation(action_request_id, attempt_no, result)
         failure_injection_enabled = os.getenv("ASTERDESK_ENABLE_FAILURE_INJECTION", "0") == "1"
         if fail_after_external_success and failure_injection_enabled and int(ctx.get("job_try", 1)) == 1:
             # 故障注入点：外部已经提交，本地尚未写入 succeeded。

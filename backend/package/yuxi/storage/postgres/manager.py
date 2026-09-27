@@ -23,7 +23,7 @@ from yuxi.utils import logger
 from yuxi.utils.singleton import SingletonMeta
 
 AGENT_RUN_TERMINAL_STATUS_SQL = ", ".join(f"'{status}'" for status in AGENT_RUN_TERMINAL_STATUSES)
-BUSINESS_SCHEMA_VERSION = 3
+BUSINESS_SCHEMA_VERSION = 4
 KNOWLEDGE_SCHEMA_VERSION = 1
 SCHEMA_VERSION_TABLE = "yuxi_schema_migrations"
 AGENT_RUN_LEASE_SCHEMA_STATEMENTS = (
@@ -878,6 +878,9 @@ class PostgresManager(metaclass=SingletonMeta):
                 idempotency_key VARCHAR(128) NOT NULL,
                 status VARCHAR(32) NOT NULL,
                 external_reference_id VARCHAR(128),
+                external_observed_at TIMESTAMPTZ,
+                superseded_by_attempt_no INTEGER,
+                recovery_reason VARCHAR(128),
                 error_code VARCHAR(64),
                 error_message TEXT,
                 started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -898,6 +901,18 @@ class PostgresManager(metaclass=SingletonMeta):
             )
             """,
             "CREATE INDEX IF NOT EXISTS ix_asterdesk_action_applicant ON asterdesk_action_requests(applicant_uid)",
+            (
+                "ALTER TABLE IF EXISTS asterdesk_action_execution_attempts "
+                "ADD COLUMN IF NOT EXISTS external_observed_at TIMESTAMPTZ"
+            ),
+            (
+                "ALTER TABLE IF EXISTS asterdesk_action_execution_attempts "
+                "ADD COLUMN IF NOT EXISTS superseded_by_attempt_no INTEGER"
+            ),
+            (
+                "ALTER TABLE IF EXISTS asterdesk_action_execution_attempts "
+                "ADD COLUMN IF NOT EXISTS recovery_reason VARCHAR(128)"
+            ),
             "CREATE INDEX IF NOT EXISTS ix_asterdesk_action_tenant ON asterdesk_action_requests(tenant_id)",
             "CREATE INDEX IF NOT EXISTS ix_asterdesk_action_status ON asterdesk_action_requests(status)",
             (

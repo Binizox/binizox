@@ -135,6 +135,7 @@ class ActionStatus(StrEnum):
     PENDING = "pending"
     APPROVED = "approved"
     REJECTED = "rejected"
+    EXPIRED = "expired"
 
 
 class ActionExecutionStatus(StrEnum):

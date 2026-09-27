@@ -1402,3 +1402,51 @@ def test_retry_requires_new_manifest_fingerprint_to_match_write_once_fact():
     run_worker._require_persisted_manifest_match(persisted, recorded=False, fingerprint="a" * 64)
     with pytest.raises(RuntimeError, match="运行资产已在重试前变化"):
         run_worker._require_persisted_manifest_match(persisted, recorded=False, fingerprint="b" * 64)
+
+
+@pytest.mark.asyncio
+async def test_worker_schema_check_retries_temporary_postgres_recovery(monkeypatch: pytest.MonkeyPatch):
+    """WAL recovery 窗口结束后 worker 在同一进程内继续启动。"""
+
+    class CannotConnectNowError(Exception):
+        pass
+
+    calls = 0
+    sleeps: list[float] = []
+
+    async def require_schema(*, include_knowledge: bool):
+        nonlocal calls
+        assert include_knowledge is True
+        calls += 1
+        if calls < 3:
+            raise CannotConnectNowError("database system is in recovery mode")
+
+    async def no_wait(delay: float):
+        sleeps.append(delay)
+
+    monkeypatch.setattr(run_worker.pg_manager, "require_current_schema", require_schema)
+    monkeypatch.setattr(run_worker.asyncio, "sleep", no_wait)
+    monkeypatch.setattr(run_worker.time, "monotonic", lambda: 0.0)
+    monkeypatch.setattr(run_worker, "WORKER_STARTUP_DB_RETRY_SECONDS", 30.0)
+    monkeypatch.setattr(run_worker, "WORKER_STARTUP_DB_RETRY_MAX_DELAY_SECONDS", 2.0)
+
+    await run_worker._require_current_schema_with_retry()
+
+    assert calls == 3
+    assert sleeps == [0.5, 1.0]
+
+
+@pytest.mark.asyncio
+async def test_worker_schema_check_does_not_retry_incompatible_schema(monkeypatch: pytest.MonkeyPatch):
+    """Schema 错误必须快速失败，不能伪装成临时连接故障。"""
+
+    require_schema = AsyncMock(side_effect=RuntimeError("Database schema migration is incomplete"))
+    sleep = AsyncMock()
+    monkeypatch.setattr(run_worker.pg_manager, "require_current_schema", require_schema)
+    monkeypatch.setattr(run_worker.asyncio, "sleep", sleep)
+
+    with pytest.raises(RuntimeError, match="schema migration is incomplete"):
+        await run_worker._require_current_schema_with_retry()
+
+    require_schema.assert_awaited_once()
+    sleep.assert_not_awaited()

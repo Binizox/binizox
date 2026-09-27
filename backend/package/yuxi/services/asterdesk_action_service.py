@@ -23,6 +23,7 @@ from yuxi.utils.hash_utils import hash_id
 VPN_TOOL_NAME = "request_vpn_access"
 VPN_TARGET_SYSTEM = "vpn-simulator"
 VPN_PERMISSION_SCOPES = frozenset({"vpn_standard", "vpn_privileged"})
+VPN_APPROVER_ROLES = frozenset({"admin", "superadmin"})
 
 
 class ActionRequestError(RuntimeError):
@@ -74,6 +75,18 @@ def normalize_vpn_parameters(
 def parameter_digest(parameters: dict[str, Any]) -> str:
     payload = json.dumps(parameters, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def approval_denial_reason(record: ActionRequest, approver: User) -> tuple[str, str] | None:
+    """返回审批授权失败代码和可展示原因。"""
+
+    if str(approver.uid) == record.applicant_uid:
+        return "self_approval_forbidden", "申请人不能审批自己的申请"
+    if approver.role not in VPN_APPROVER_ROLES:
+        return "approver_role_required", "需要管理员审批权限"
+    if approver.department_id is None or str(approver.department_id) != record.tenant_id:
+        return "approver_tenant_mismatch", "审批人不属于申请租户"
+    return None
 
 
 def _serialize_action(record: ActionRequest) -> dict[str, Any]:
@@ -215,69 +228,138 @@ async def decide_action_request(
 ) -> tuple[dict[str, Any], bool]:
     """原子写入唯一审批决定与待执行意图。"""
 
+    denial: tuple[type[ActionRequestError], str] | None = None
+    result: tuple[dict[str, Any], bool] | None = None
     async with pg_manager.get_async_session_context() as db:
         repo = AsterDeskActionRepository(db)
         record = await repo.get(action_request_id, for_update=True)
         if record is None:
             raise ActionNotFound("操作申请不存在")
-        if str(approver.uid) == record.applicant_uid:
-            raise ActionPermissionDenied("申请人不能审批自己的申请")
-        if approver.role not in {"admin", "superadmin"}:
-            raise ActionPermissionDenied("需要管理员审批权限")
-        if approver.role != "superadmin" and str(approver.department_id) != record.tenant_id:
-            raise ActionPermissionDenied("审批人不属于申请租户")
-        if decision.parameter_digest != record.parameter_digest:
-            raise ActionConflict("审批参数摘要与申请快照不一致")
 
-        persisted = await repo.get_decision(action_request_id)
-        if record.status != "pending" or persisted is not None:
-            if (
-                persisted is not None
-                and persisted.approver_uid == str(approver.uid)
-                and persisted.decision == decision.decision
-                and persisted.parameter_digest == decision.parameter_digest
-            ):
-                return _serialize_action(record), True
-            raise ActionConflict("该申请已经产生审批决定")
-
-        now = utc_now()
-        record.status = decision.decision
-        record.decision_by_uid = str(approver.uid)
-        record.decision_reason = decision.reason
-        record.decided_at = now
-        record.execution_status = "pending" if decision.decision == "approved" else "not_requested"
-        await repo.add_decision(
-            ApprovalDecision(
-                action_request_id=record.id,
-                decision=decision.decision,
-                approver_uid=str(approver.uid),
-                approver_role=str(approver.role),
-                parameter_digest=record.parameter_digest,
-                reason=decision.reason,
-                decided_at=now,
+        permission_denial = approval_denial_reason(record, approver)
+        if permission_denial:
+            reason_code, reason = permission_denial
+            await repo.add_audit(
+                record.id,
+                "approval.denied",
+                actor_type="approver",
+                actor_id=str(approver.uid),
+                details={"reason_code": reason_code, "requested_decision": decision.decision},
             )
-        )
-        await repo.add_audit(
-            record.id,
-            f"approval.{decision.decision}",
-            actor_type="approver",
-            actor_id=str(approver.uid),
-            details={
-                "parameter_digest": record.parameter_digest,
-                "reason": decision.reason,
-                "execution_intent": record.execution_status,
-            },
-        )
-        await db.refresh(record)
-        return _serialize_action(record), False
+            denial = (ActionPermissionDenied, reason)
+        elif record.status == "pending" and record.valid_until <= date.today():
+            record.status = "expired"
+            record.execution_status = "not_requested"
+            await repo.add_audit(
+                record.id,
+                "approval.denied",
+                actor_type="approver",
+                actor_id=str(approver.uid),
+                details={"reason_code": "requested_validity_expired", "requested_decision": decision.decision},
+            )
+            denial = (ActionConflict, "申请有效期已到，不能审批")
+        elif decision.parameter_digest != record.parameter_digest:
+            await repo.add_audit(
+                record.id,
+                "approval.denied",
+                actor_type="approver",
+                actor_id=str(approver.uid),
+                details={"reason_code": "parameter_digest_mismatch", "requested_decision": decision.decision},
+            )
+            denial = (ActionConflict, "审批参数摘要与申请快照不一致")
+        elif decision.decision == "rejected" and not (decision.reason or "").strip():
+            await repo.add_audit(
+                record.id,
+                "approval.denied",
+                actor_type="approver",
+                actor_id=str(approver.uid),
+                details={"reason_code": "rejection_reason_required", "requested_decision": decision.decision},
+            )
+            denial = (ActionRequestError, "拒绝申请时必须填写原因")
+        else:
+            persisted = await repo.get_decision(action_request_id)
+            if record.status != "pending" or persisted is not None:
+                if (
+                    persisted is not None
+                    and persisted.approver_uid == str(approver.uid)
+                    and persisted.decision == decision.decision
+                    and persisted.parameter_digest == decision.parameter_digest
+                ):
+                    result = (_serialize_action(record), True)
+                else:
+                    await repo.add_audit(
+                        record.id,
+                        "approval.denied",
+                        actor_type="approver",
+                        actor_id=str(approver.uid),
+                        details={"reason_code": "decision_already_exists", "requested_decision": decision.decision},
+                    )
+                    denial = (ActionConflict, "该申请已经产生审批决定")
+            else:
+                now = utc_now()
+                record.status = decision.decision
+                record.decision_by_uid = str(approver.uid)
+                record.decision_reason = decision.reason
+                record.decided_at = now
+                record.execution_status = "pending" if decision.decision == "approved" else "not_requested"
+                await repo.add_decision(
+                    ApprovalDecision(
+                        action_request_id=record.id,
+                        decision=decision.decision,
+                        approver_uid=str(approver.uid),
+                        approver_role=str(approver.role),
+                        parameter_digest=record.parameter_digest,
+                        reason=decision.reason,
+                        decided_at=now,
+                    )
+                )
+                await repo.add_audit(
+                    record.id,
+                    f"approval.{decision.decision}",
+                    actor_type="approver",
+                    actor_id=str(approver.uid),
+                    details={
+                        "parameter_digest": record.parameter_digest,
+                        "reason": decision.reason,
+                        "execution_intent": record.execution_status,
+                    },
+                )
+                await db.refresh(record)
+                result = (_serialize_action(record), False)
+
+    if denial:
+        error_type, message = denial
+        raise error_type(message)
+    if result is None:
+        raise RuntimeError("审批事务没有产生结果")
+    return result
 
 
 def _can_view_action(user: User, action: ActionRequest) -> bool:
     if str(user.uid) == action.applicant_uid:
         return True
-    if user.role == "superadmin":
-        return True
-    return user.role == "admin" and str(user.department_id) == action.tenant_id
+    return user.role in VPN_APPROVER_ROLES and str(user.department_id) == action.tenant_id
+
+
+async def list_action_requests(
+    *,
+    user: User,
+    statuses: tuple[str, ...],
+    limit: int,
+    offset: int,
+) -> dict[str, Any]:
+    """返回当前审批人租户内的工作台列表。"""
+
+    if user.role not in VPN_APPROVER_ROLES or user.department_id is None:
+        raise ActionPermissionDenied("需要管理员审批权限")
+    async with pg_manager.get_async_session_context() as db:
+        rows, total = await AsterDeskActionRepository(db).list_actions(
+            tenant_id=str(user.department_id),
+            statuses=statuses,
+            limit=limit,
+            offset=offset,
+        )
+        return {"items": [_serialize_action(row) for row in rows], "total": total, "limit": limit, "offset": offset}
 
 
 async def get_action_request(*, action_request_id: str, user: User) -> dict[str, Any]:
@@ -298,6 +380,9 @@ async def get_action_request(*, action_request_id: str, user: User) -> dict[str,
                 "status": item.status,
                 "idempotency_key": item.idempotency_key,
                 "external_reference_id": item.external_reference_id,
+                "external_observed_at": item.external_observed_at,
+                "superseded_by_attempt_no": item.superseded_by_attempt_no,
+                "recovery_reason": item.recovery_reason,
                 "error_code": item.error_code,
                 "error_message": item.error_message,
                 "started_at": item.started_at,
@@ -316,6 +401,28 @@ async def get_action_request(*, action_request_id: str, user: User) -> dict[str,
             for item in audit
         ]
         return result
+
+
+async def record_action_dispatch(
+    *,
+    action_request_id: str,
+    event_type: str,
+    actor_id: str,
+    details: dict[str, Any] | None = None,
+) -> None:
+    """追加审批提交后的队列投递事实。"""
+
+    async with pg_manager.get_async_session_context() as db:
+        repo = AsterDeskActionRepository(db)
+        if await repo.get(action_request_id) is None:
+            raise ActionNotFound("操作申请不存在")
+        await repo.add_audit(
+            action_request_id,
+            event_type,
+            actor_type="dispatcher",
+            actor_id=actor_id,
+            details=details,
+        )
 
 
 async def get_action_for_tool(*, action_request_id: str, applicant_uid: str) -> dict[str, Any]:

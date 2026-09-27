@@ -73,6 +73,19 @@ const router = createRouter({
       ]
     },
     {
+      path: '/approvals',
+      name: 'approvals',
+      component: AppLayout,
+      children: [
+        {
+          path: '',
+          name: 'ApprovalWorkbench',
+          component: () => import('../views/ApprovalWorkbenchView.vue'),
+          meta: { keepAlive: false, requiresAuth: true, requiresAdmin: true }
+        }
+      ]
+    },
+    {
       path: '/dashboard',
       name: 'dashboard',
       component: AppLayout,

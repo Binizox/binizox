@@ -368,3 +368,57 @@ test('工具元数据 API 使用普通用户认证且普通用户可正常请求
     assert.equal(result.data[0].slug, 'web_search')
   })
 })
+
+test('审批工作台 API 编码筛选、详情和固定摘要决定', async () => {
+  await withServer(async (server) => {
+    storageValues.set('user_token', 'admin-token')
+    const requests = []
+    globalThis.fetch = async (url, options = {}) => {
+      requests.push({ url: String(url), options })
+      return new Response(JSON.stringify({ items: [], total: 0 }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' }
+      })
+    }
+
+    setActivePinia(createPinia())
+    const { useUserStore } = await server.ssrLoadModule('/src/stores/user.js')
+    const userStore = useUserStore()
+    userStore.token = 'admin-token'
+    userStore.userId = 1
+    userStore.userRole = 'admin'
+    const { asterdeskActionApi } = await server.ssrLoadModule('/src/apis/asterdesk_action_api.js')
+
+    await asterdeskActionApi.list({ status: 'pending,approved', limit: 20, offset: 40 })
+    await asterdeskActionApi.detail('vpn/action 1')
+    await asterdeskActionApi.decide('vpn/action 1', {
+      decision: 'approved',
+      reason: null,
+      parameter_digest: 'a'.repeat(64)
+    })
+
+    assert.equal(
+      requests[0].url,
+      '/api/asterdesk/actions?status=pending%2Capproved&limit=20&offset=40'
+    )
+    assert.equal(requests[1].url, '/api/asterdesk/actions/vpn%2Faction%201')
+    assert.equal(requests[2].url, '/api/asterdesk/actions/vpn%2Faction%201/decision')
+    assert.deepEqual(JSON.parse(requests[2].options.body), {
+      decision: 'approved',
+      reason: null,
+      parameter_digest: 'a'.repeat(64)
+    })
+  })
+})
+
+test('审批工作台不做乐观终态并在冲突或超时后回读详情', async () => {
+  const source = await import('node:fs/promises').then((fs) =>
+    fs.readFile(new URL('../../src/views/ApprovalWorkbenchView.vue', import.meta.url), 'utf8')
+  )
+
+  assert.equal(source.includes("await loadDetail(actionRequestId)"), true)
+  assert.equal(source.includes("error?.status === 409"), true)
+  assert.equal(source.includes("decisionBusy.value"), true)
+  assert.equal(source.includes('ASTERDESK_VPN_SIMULATOR_URL'), false)
+  assert.equal(source.includes('38091'), false)
+})

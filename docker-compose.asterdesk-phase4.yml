@@ -1,0 +1,107 @@
+services:
+  api:
+    volumes:
+      - ../../examples/phase2:/workspace-examples:ro
+    environment:
+      ASTERDESK_PARSER_URL: http://asterdesk-parser:8090
+      ASTERDESK_VPN_SIMULATOR_URL: http://asterdesk-vpn-simulator:8091
+      ASTERDESK_ENABLE_FAILURE_INJECTION: "1"
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?Set phase4 JWT_SECRET_KEY}
+      YUXI_INSTANCE_ID: ${YUXI_INSTANCE_ID:?Set phase4 YUXI_INSTANCE_ID}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:?Set phase4 MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:?Set phase4 MINIO_SECRET_KEY}
+      NO_PROXY: localhost,127.0.0.1,postgres,redis,minio,sandbox-provisioner,asterdesk-parser,asterdesk-vpn-simulator
+      no_proxy: localhost,127.0.0.1,postgres,redis,minio,sandbox-provisioner,asterdesk-parser,asterdesk-vpn-simulator
+    depends_on:
+      asterdesk-parser:
+        condition: service_healthy
+      asterdesk-vpn-simulator:
+        condition: service_healthy
+
+  worker:
+    environment:
+      ASTERDESK_PARSER_URL: http://asterdesk-parser:8090
+      ASTERDESK_VPN_SIMULATOR_URL: http://asterdesk-vpn-simulator:8091
+      ASTERDESK_ENABLE_FAILURE_INJECTION: "1"
+      ASTERDESK_ACTION_LEASE_SECONDS: "2"
+      RUN_RECONCILIATION_SECONDS: "5"
+      YUXI_WORKER_STARTUP_DB_RETRY_SECONDS: "300"
+      YUXI_WORKER_STARTUP_DB_RETRY_MAX_DELAY_SECONDS: "3"
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?Set phase4 JWT_SECRET_KEY}
+      YUXI_INSTANCE_ID: ${YUXI_INSTANCE_ID:?Set phase4 YUXI_INSTANCE_ID}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:?Set phase4 MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:?Set phase4 MINIO_SECRET_KEY}
+      NO_PROXY: localhost,127.0.0.1,postgres,redis,minio,sandbox-provisioner,asterdesk-parser,asterdesk-vpn-simulator
+      no_proxy: localhost,127.0.0.1,postgres,redis,minio,sandbox-provisioner,asterdesk-parser,asterdesk-vpn-simulator
+    depends_on:
+      asterdesk-parser:
+        condition: service_healthy
+      asterdesk-vpn-simulator:
+        condition: service_healthy
+
+  storage-migrator:
+    environment:
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?Set phase4 JWT_SECRET_KEY}
+      YUXI_INSTANCE_ID: ${YUXI_INSTANCE_ID:?Set phase4 YUXI_INSTANCE_ID}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:?Set phase4 MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:?Set phase4 MINIO_SECRET_KEY}
+    command:
+      - sh
+      - -lc
+      - >-
+        uv run --no-sync --no-dev python -m yuxi.storage_migration &&
+        chown -R 1000:1000 /app/user-data /app/skill-sources /app/skill-projections
+
+  asterdesk-parser:
+    build:
+      context: ../../services/parser-sidecar
+      dockerfile: Dockerfile
+    image: ${COMPOSE_PROJECT_NAME:-asterdesk-phase4}-parser:0.1.0
+    ports:
+      - "127.0.0.1:${ASTERDESK_PARSER_PORT:-48090}:8090"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8090/health').read()"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
+    restart: unless-stopped
+
+  asterdesk-vpn-simulator:
+    build:
+      context: ./services/vpn-simulator
+      dockerfile: Dockerfile
+    image: ${COMPOSE_PROJECT_NAME:-asterdesk-phase4}-vpn-simulator:1.0.0
+    volumes:
+      - type: bind
+        source: ${ASTERDESK_VPN_STATE_DIR:?Set ASTERDESK_VPN_STATE_DIR}
+        target: /data
+    ports:
+      - "127.0.0.1:${ASTERDESK_VPN_PORT:-48091}:8091"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8091/health').read()"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 5s
+    restart: unless-stopped
+
+  asterdesk-vpn-replay:
+    image: ${COMPOSE_PROJECT_NAME:-asterdesk-phase4}-api:${YUXI_VERSION:-0.7.2}
+    working_dir: /app
+    volumes:
+      - ./backend/test:/app/test:ro
+    command: ["python", "/app/test/support/asterdesk_vpn_replay_server.py", "--host", "0.0.0.0", "--port", "8768"]
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8768/health').read()"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 5s
+    restart: unless-stopped

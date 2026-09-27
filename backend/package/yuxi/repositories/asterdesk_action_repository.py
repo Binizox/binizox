@@ -67,6 +67,21 @@ class AsterDeskActionRepository:
             )
         ).scalar_one_or_none()
 
+    async def get_running_attempt(self, action_request_id: str) -> ActionExecutionAttempt | None:
+        """返回当前 action 尚未结算的 attempt。"""
+
+        return (
+            await self.db.execute(
+                select(ActionExecutionAttempt)
+                .where(
+                    ActionExecutionAttempt.action_request_id == action_request_id,
+                    ActionExecutionAttempt.status == "running",
+                )
+                .order_by(ActionExecutionAttempt.attempt_no.desc())
+                .limit(1)
+            )
+        ).scalar_one_or_none()
+
     async def list_attempts(self, action_request_id: str) -> list[ActionExecutionAttempt]:
         return list(
             (
@@ -113,10 +128,35 @@ class AsterDeskActionRepository:
             .all()
         )
 
+    async def list_actions(
+        self,
+        *,
+        tenant_id: str,
+        statuses: tuple[str, ...],
+        limit: int,
+        offset: int,
+    ) -> tuple[list[ActionRequest], int]:
+        """按审批租户返回工作台列表和总数。"""
+
+        filters = [ActionRequest.tenant_id == tenant_id]
+        if statuses:
+            filters.append(ActionRequest.status.in_(statuses))
+        total = int(await self.db.scalar(select(func.count()).select_from(ActionRequest).where(*filters)) or 0)
+        rows = (
+            await self.db.execute(
+                select(ActionRequest)
+                .where(*filters)
+                .order_by(ActionRequest.created_at.desc(), ActionRequest.id.desc())
+                .limit(limit)
+                .offset(offset)
+            )
+        ).scalars()
+        return list(rows.all()), total
+
     async def list_recoverable_ids(self) -> list[str]:
         result = await self.db.execute(
             select(ActionRequest.id).where(
-                ActionRequest.status.in_(("approved", "rejected")),
+                ActionRequest.status.in_(("approved", "rejected", "expired")),
                 ActionRequest.resume_run_id.is_(None),
                 ActionRequest.execution_status.in_(
                     ("not_requested", "pending", "unknown", "executing", "succeeded", "rejected", "failed")

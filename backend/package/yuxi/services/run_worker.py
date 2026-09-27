@@ -61,6 +61,19 @@ RUN_HEARTBEAT_SECONDS = 30
 SUPPORTED_RUN_TYPES = {"chat", "resume", "subagent"}
 WORKER_ID = f"worker-{uuid.uuid4().hex}"
 _RECONCILIATION_TASK_KEY = "agent_run_reconciliation_task"
+WORKER_STARTUP_DB_RETRY_SECONDS = float(os.getenv("YUXI_WORKER_STARTUP_DB_RETRY_SECONDS", "300"))
+WORKER_STARTUP_DB_RETRY_MAX_DELAY_SECONDS = float(
+    os.getenv("YUXI_WORKER_STARTUP_DB_RETRY_MAX_DELAY_SECONDS", "5")
+)
+_RETRYABLE_DATABASE_ERROR_NAMES = {
+    "CannotConnectNowError",
+    "ConnectionDoesNotExistError",
+    "ConnectionFailureError",
+    "ConnectionRefusedError",
+    "InterfaceError",
+    "OperationalError",
+    "PostgresConnectionError",
+}
 
 
 class RetryableRunError(RetryJob):
@@ -1419,6 +1432,56 @@ async def _publish_reconciliation_health() -> None:
     )
 
 
+def _is_retryable_database_startup_error(exc: BaseException) -> bool:
+    """识别启动期数据库暂不可用错误，schema 不兼容仍快速失败。"""
+
+    current: BaseException | None = exc
+    visited: set[int] = set()
+    while current is not None and id(current) not in visited:
+        visited.add(id(current))
+        if isinstance(current, ConnectionError | OSError | OperationalError):
+            return True
+        if type(current).__name__ in _RETRYABLE_DATABASE_ERROR_NAMES:
+            return True
+        current = current.__cause__ or current.__context__
+    return False
+
+
+async def _require_current_schema_with_retry() -> None:
+    """在 WAL recovery 等短暂窗口内退避，超时后交给容器重启策略。"""
+
+    if WORKER_STARTUP_DB_RETRY_SECONDS <= 0 or WORKER_STARTUP_DB_RETRY_MAX_DELAY_SECONDS <= 0:
+        raise ValueError("worker 数据库启动重试配置必须大于 0")
+    started = time.monotonic()
+    attempt = 0
+    while True:
+        attempt += 1
+        try:
+            await pg_manager.require_current_schema(include_knowledge=not lite_mode_enabled())
+            if attempt > 1:
+                logger.info(
+                    "Worker database startup recovered: attempts={} elapsed_seconds={:.3f}",
+                    attempt,
+                    time.monotonic() - started,
+                )
+            return
+        except Exception as exc:
+            elapsed = time.monotonic() - started
+            if not _is_retryable_database_startup_error(exc) or elapsed >= WORKER_STARTUP_DB_RETRY_SECONDS:
+                raise
+            delay = min(WORKER_STARTUP_DB_RETRY_MAX_DELAY_SECONDS, 0.5 * (2 ** min(attempt - 1, 4)))
+            delay = min(delay, max(0.0, WORKER_STARTUP_DB_RETRY_SECONDS - elapsed))
+            logger.warning(
+                "Worker database unavailable during startup: attempt={} elapsed_seconds={:.3f} "
+                "retry_in_seconds={:.3f} error_type={}",
+                attempt,
+                elapsed,
+                delay,
+                type(exc).__name__,
+            )
+            await asyncio.sleep(delay)
+
+
 async def _worker_startup(ctx):
     """初始化 worker 依赖。"""
 
@@ -1427,7 +1490,7 @@ async def _worker_startup(ctx):
     AuthUtils.require_security_secrets()
     ctx["worker_id"] = WORKER_ID
     pg_manager.initialize()
-    await pg_manager.require_current_schema(include_knowledge=not lite_mode_enabled())
+    await _require_current_schema_with_retry()
     async with pg_manager.get_async_session_context() as session:
         from yuxi.config.options import (
             ensure_options_in_db,
@@ -1442,7 +1505,7 @@ async def _worker_startup(ctx):
         await ensure_builtin_mcp_servers_in_db()
     except Exception as exc:
         logger.error(
-            "Optional worker component failed: component=builtin_mcp_servers, type=%s",
+            "Optional worker component failed: component=builtin_mcp_servers, type={}",
             type(exc).__name__,
         )
     async with pg_manager.get_async_session_context() as session:

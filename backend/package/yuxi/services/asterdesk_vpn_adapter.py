@@ -95,7 +95,9 @@ async def execute_approved_vpn_action(action_request_id: str) -> dict[str, Any]:
                 headers=headers,
             )
             if lookup.status_code == 200:
-                return lookup.json()
+                result = lookup.json()
+                result["_asterdesk_observation_source"] = "lookup"
+                return result
             if lookup.status_code != 404:
                 raise VpnAdapterUnknown(f"外部结果查询返回 HTTP {lookup.status_code}")
             response = await client.post(f"{base_url}/v1/grants", headers=headers, json=payload)
@@ -104,7 +106,9 @@ async def execute_approved_vpn_action(action_request_id: str) -> dict[str, Any]:
             if response.status_code == 422:
                 raise VpnAdapterRejected("模拟 VPN 系统拒绝执行")
             response.raise_for_status()
-            return response.json()
+            result = response.json()
+            result["_asterdesk_observation_source"] = "create_response"
+            return result
     except (httpx.TimeoutException, httpx.NetworkError, httpx.RemoteProtocolError) as exc:
         raise VpnAdapterUnknown(f"VPN 外部结果未知: {type(exc).__name__}") from exc
     except ValueError as exc:

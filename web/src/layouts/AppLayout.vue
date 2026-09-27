@@ -196,6 +196,15 @@ const mainList = computed(() => {
     activeIcon: LibraryBig
   })
 
+  if (userStore.isAdmin) {
+    items.push({
+      name: '审批工作台',
+      path: '/approvals',
+      icon: ClipboardList,
+      activeIcon: ClipboardList
+    })
+  }
+
   if (userStore.isSuperAdmin) {
     items.push({
       name: '数据总览',

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import time
 import uuid
 from pathlib import Path
 
@@ -121,6 +122,32 @@ async def _configure_agent(client: httpx.AsyncClient, headers: dict[str, str], u
     return slug
 
 
+async def _create_foreign_department_admin(
+    client: httpx.AsyncClient,
+    superadmin_headers: dict[str, str],
+) -> dict:
+    suffix = uuid.uuid4().hex[:8]
+    uid = f"p4admin{suffix}"
+    password = f"Pw!{uuid.uuid4().hex[:16]}"
+    created = await client.post(
+        "/api/departments",
+        json={
+            "name": f"Phase4 tenant {suffix}",
+            "description": "Phase 4 approval isolation",
+            "admin_uid": uid,
+            "admin_password": password,
+        },
+        headers=superadmin_headers,
+    )
+    assert created.status_code == 201, created.text
+    login = await client.post("/api/auth/token", data={"username": uid, "password": password})
+    assert login.status_code == 200, login.text
+    return {
+        "department": created.json(),
+        "headers": {"Authorization": f"Bearer {login.json()['access_token']}"},
+    }
+
+
 async def _start_application(
     client: httpx.AsyncClient,
     applicant: dict,
@@ -183,6 +210,22 @@ async def _wait_action(client: httpx.AsyncClient, headers: dict[str, str], actio
     pytest.fail(f"Action did not resume: {action_id}")
 
 
+async def _wait_audit_event(
+    client: httpx.AsyncClient,
+    headers: dict[str, str],
+    action_id: str,
+    event_type: str,
+) -> dict:
+    for _ in range(40):
+        response = await client.get(f"/api/asterdesk/actions/{action_id}", headers=headers)
+        assert response.status_code == 200, response.text
+        action = response.json()
+        if any(event["event_type"] == event_type for event in action["audit"]):
+            return action
+        await asyncio.sleep(0.5)
+    pytest.fail(f"Action audit event did not appear: {action_id} {event_type}")
+
+
 async def _decide(
     client: httpx.AsyncClient,
     headers: dict[str, str],
@@ -190,9 +233,9 @@ async def _decide(
     digest: str,
     decision: str,
     *,
-    inject_crash: bool = False,
+    failure_injection: str | None = None,
 ) -> httpx.Response:
-    extra = {"X-AsterDesk-Failure-Injection": "after-external-success"} if inject_crash else {}
+    extra = {"X-AsterDesk-Failure-Injection": failure_injection} if failure_injection else {}
     return await client.post(
         f"/api/asterdesk/actions/{action_id}/decision",
         json={"decision": decision, "reason": f"e2e-{decision}", "parameter_digest": digest},
@@ -214,9 +257,11 @@ async def test_vpn_approval_execution_and_recovery(
     me = await e2e_client.get("/api/auth/me", headers=e2e_headers)
     assert me.status_code == 200, me.text
     admin = me.json()
+    assert admin["role"] == "superadmin", admin
     department_id = int(admin["department_id"])
     applicant = await _create_user(e2e_client, e2e_headers, department_id)
     unauthorized = await _create_user(e2e_client, e2e_headers, department_id)
+    foreign_admin = await _create_foreign_department_admin(e2e_client, e2e_headers)
     await _seed_kb(str(admin["uid"]), department_id)
 
     policy = Path("/workspace-examples/remote-access-policy-v1.docx").read_bytes()
@@ -279,8 +324,32 @@ async def test_vpn_approval_execution_and_recovery(
     assert self_decision.status_code == 403
     unprivileged = await _decide(e2e_client, unauthorized["headers"], protected_id, protected_digest, "approved")
     assert unprivileged.status_code == 403
+    cross_tenant = await _decide(
+        e2e_client,
+        foreign_admin["headers"],
+        protected_id,
+        protected_digest,
+        "approved",
+    )
+    assert cross_tenant.status_code == 403
+    foreign_list = await e2e_client.get(
+        "/api/asterdesk/actions?status=pending,approved,rejected,expired",
+        headers=foreign_admin["headers"],
+    )
+    assert foreign_list.status_code == 200
+    assert all(item["tenant_id"] != str(department_id) for item in foreign_list.json()["items"])
     protected = await e2e_client.get(f"/api/asterdesk/actions/{protected_id}", headers=applicant["headers"])
     assert protected.json()["status"] == "pending"
+    denial_codes = {
+        event["details"].get("reason_code")
+        for event in protected.json()["audit"]
+        if event["event_type"] == "approval.denied"
+    }
+    assert {
+        "self_approval_forbidden",
+        "approver_role_required",
+        "approver_tenant_mismatch",
+    }.issubset(denial_codes)
 
     # 5/6. 并发重复批准只有一个决定；额外重复投递也只产生一个授权。
     protected_before = await _grant_count()
@@ -307,19 +376,72 @@ async def test_vpn_approval_execution_and_recovery(
         crash_id,
         crash_digest,
         "approved",
-        inject_crash=True,
+        failure_injection="after-external-success",
     )
     assert crash_approval.status_code == 200, crash_approval.text
     crash_done = await _wait_action(e2e_client, applicant["headers"], crash_id)
     assert crash_done["execution_status"] == "succeeded"
     assert await _grant_count() == crash_before + 1
     assert len(crash_done["execution_attempts"]) >= 2
+    assert all(item["status"] != "running" for item in crash_done["execution_attempts"])
+    assert crash_done["execution_attempts"][-2]["status"] == "superseded"
+    assert (
+        crash_done["execution_attempts"][-2]["superseded_by_attempt_no"]
+        == crash_done["execution_attempts"][-1]["attempt_no"]
+    )
+    assert crash_done["execution_attempts"][-1]["status"] == "succeeded"
     recovered_external_ids = {
         item["external_reference_id"]
         for item in crash_done["execution_attempts"]
         if item["external_reference_id"]
     }
     assert len(recovered_external_ids) == 1
+    assert any(event["event_type"] == "execution.external.observed" for event in crash_done["audit"])
+    assert any(event["event_type"] == "execution.attempt.superseded" for event in crash_done["audit"])
+
+    # 8. 审批事务提交后直接投递失败，由 5 秒 reconciliation 自动恢复。
+    _, deferred_id, deferred_digest = await _start_application(e2e_client, applicant, agent_slug, "dispatch-deferred")
+    deferred_started = time.monotonic()
+    deferred = await _decide(
+        e2e_client,
+        e2e_headers,
+        deferred_id,
+        deferred_digest,
+        "approved",
+        failure_injection="enqueue-failure",
+    )
+    assert deferred.status_code == 202, deferred.text
+    await _wait_audit_event(e2e_client, applicant["headers"], deferred_id, "dispatch.recovered")
+    deferred_dispatch_elapsed = time.monotonic() - deferred_started
+    deferred_done = await _wait_action(e2e_client, applicant["headers"], deferred_id)
+    deferred_completion_elapsed = time.monotonic() - deferred_started
+    assert deferred_done["execution_status"] == "succeeded"
+    assert deferred_dispatch_elapsed < 10
+    assert deferred_completion_elapsed < 35
+    assert any(event["event_type"] == "dispatch.deferred" for event in deferred_done["audit"])
+    assert any(event["event_type"] == "dispatch.recovered" for event in deferred_done["audit"])
+
+    # 已过期申请不可批准，状态和拒绝审计均可查询。
+    _, expired_id, expired_digest = await _start_application(e2e_client, applicant, agent_slug, "expired")
+    conn = await asyncpg.connect(postgres_dsn())
+    try:
+        await conn.execute(
+            "UPDATE asterdesk_action_requests SET valid_until=DATE '2020-01-01' WHERE id=$1",
+            expired_id,
+        )
+    finally:
+        await conn.close()
+    expired = await _decide(e2e_client, e2e_headers, expired_id, expired_digest, "approved")
+    assert expired.status_code == 409
+    expired_detail = await e2e_client.get(
+        f"/api/asterdesk/actions/{expired_id}", headers=applicant["headers"]
+    )
+    assert expired_detail.json()["status"] == "expired"
+    assert any(
+        event["event_type"] == "approval.denied"
+        and event["details"].get("reason_code") == "requested_validity_expired"
+        for event in expired_detail.json()["audit"]
+    )
 
     # 9. 无权用户得到零 Evidence，Agent 完成但不能创建 ActionRequest。
     thread = await e2e_client.post(
@@ -377,6 +499,8 @@ async def test_vpn_approval_execution_and_recovery(
                     "access_token": applicant["headers"]["Authorization"].removeprefix("Bearer "),
                     "external_reference_id": action["external_reference_id"],
                     "citation": f"{DOCUMENT_ID} v3.0",
+                    "dispatch_recovery_seconds": round(deferred_dispatch_elapsed, 3),
+                    "dispatch_completion_seconds": round(deferred_completion_elapsed, 3),
                 }
             ),
             encoding="utf-8",
