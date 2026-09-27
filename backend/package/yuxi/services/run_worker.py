@@ -23,6 +23,7 @@ from yuxi.services.agent_request_queue_service import (
     dispatch_next_request,
     recover_pending_dispatches,
 )
+from yuxi.services.asterdesk_action_worker import process_asterdesk_action, recover_asterdesk_actions
 from yuxi.services.agent_run_manifest_service import build_run_manifest_result, compute_manifest_fingerprint
 from yuxi.services.chat_service import get_agent_state_view, stream_agent_chat, stream_agent_resume
 from yuxi.services.input_message_service import restore_chat_input_message
@@ -592,7 +593,7 @@ def _is_last_try(ctx) -> bool:
 def _is_retryable_exception(exc: Exception) -> bool:
     if isinstance(exc, NonRetryableRunError):
         return False
-    return isinstance(exc, (RetryableRunError, OperationalError, ConnectionError, TimeoutError, asyncio.TimeoutError))
+    return isinstance(exc, RetryableRunError | OperationalError | ConnectionError | TimeoutError | asyncio.TimeoutError)
 
 
 def _worker_identity(ctx) -> str:
@@ -1399,6 +1400,7 @@ async def _reconcile_agent_run_leases_forever() -> None:
             if cleaned_ids:
                 logger.warning(f"Reconciled pending runtime cleanups: count={len(cleaned_ids)}")
             await recover_pending_dispatches()
+            await recover_asterdesk_actions()
             await _publish_reconciliation_health()
         except asyncio.CancelledError:
             raise
@@ -1450,6 +1452,7 @@ async def _worker_startup(ctx):
         logger.warning(f"Reconciled expired AgentRun leases at startup: count={len(reconciled_ids)}")
     await reconcile_pending_runtime_cleanups()
     await recover_pending_dispatches()
+    await recover_asterdesk_actions()
     await _publish_reconciliation_health()
     ctx[_RECONCILIATION_TASK_KEY] = asyncio.create_task(_reconcile_agent_run_leases_forever())
 
@@ -1469,8 +1472,8 @@ async def _worker_shutdown(ctx):
 
 
 class WorkerSettings:
-    functions = [process_agent_run]
-    max_tries = 2
+    functions = [process_agent_run, process_asterdesk_action]
+    max_tries = 3
     retry_jobs = True
     # 单任务最长执行时间（秒），可配置：超长图谱构建/深度检索场景需调大，
     # 避免长任务被 arq 取消并误标为 cancelled。

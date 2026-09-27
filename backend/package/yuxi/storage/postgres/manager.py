@@ -8,6 +8,7 @@ from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from psycopg_pool import AsyncConnectionPool
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from yuxi.storage.postgres import models_asterdesk as _asterdesk_models  # noqa: F401
 from yuxi.storage.postgres.models_business import (
     AGENT_RUN_SHAPE_CONSTRAINT_NAME,
     AGENT_RUN_SHAPE_CONSTRAINT_SQL,
@@ -22,7 +23,7 @@ from yuxi.utils import logger
 from yuxi.utils.singleton import SingletonMeta
 
 AGENT_RUN_TERMINAL_STATUS_SQL = ", ".join(f"'{status}'" for status in AGENT_RUN_TERMINAL_STATUSES)
-BUSINESS_SCHEMA_VERSION = 2
+BUSINESS_SCHEMA_VERSION = 3
 KNOWLEDGE_SCHEMA_VERSION = 1
 SCHEMA_VERSION_TABLE = "yuxi_schema_migrations"
 AGENT_RUN_LEASE_SCHEMA_STATEMENTS = (
@@ -823,6 +824,106 @@ class PostgresManager(metaclass=SingletonMeta):
         """确保业务 schema 包含后续新增字段（运行时 schema 演进）。"""
         self._check_initialized()
         stmts = [
+            """
+            CREATE TABLE IF NOT EXISTS asterdesk_action_requests (
+                id VARCHAR(64) PRIMARY KEY,
+                run_id VARCHAR(64) NOT NULL UNIQUE REFERENCES agent_runs(id) ON DELETE CASCADE,
+                applicant_uid VARCHAR(64) NOT NULL REFERENCES users(uid),
+                tenant_id VARCHAR(64) NOT NULL,
+                target_user_uid VARCHAR(64) NOT NULL REFERENCES users(uid),
+                target_system VARCHAR(64) NOT NULL,
+                permission_scope VARCHAR(128) NOT NULL,
+                valid_until DATE NOT NULL,
+                policy_evidence JSONB NOT NULL,
+                tool_name VARCHAR(128) NOT NULL,
+                normalized_parameters JSONB NOT NULL,
+                parameter_digest VARCHAR(64) NOT NULL,
+                idempotency_key VARCHAR(128) NOT NULL UNIQUE,
+                status VARCHAR(32) NOT NULL DEFAULT 'pending',
+                execution_status VARCHAR(32) NOT NULL DEFAULT 'not_requested',
+                decision_by_uid VARCHAR(64) REFERENCES users(uid),
+                decision_reason TEXT,
+                decided_at TIMESTAMPTZ,
+                external_reference_id VARCHAR(128),
+                external_result JSONB,
+                execution_error_code VARCHAR(64),
+                execution_error_message TEXT,
+                execution_worker_id VARCHAR(128),
+                execution_lease_expires_at TIMESTAMPTZ,
+                resume_run_id VARCHAR(64) UNIQUE REFERENCES agent_runs(id) ON DELETE SET NULL,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS asterdesk_approval_decisions (
+                id SERIAL PRIMARY KEY,
+                action_request_id VARCHAR(64) NOT NULL UNIQUE
+                    REFERENCES asterdesk_action_requests(id) ON DELETE CASCADE,
+                decision VARCHAR(16) NOT NULL,
+                approver_uid VARCHAR(64) NOT NULL REFERENCES users(uid),
+                approver_role VARCHAR(32) NOT NULL,
+                parameter_digest VARCHAR(64) NOT NULL,
+                reason TEXT,
+                decided_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS asterdesk_action_execution_attempts (
+                id SERIAL PRIMARY KEY,
+                action_request_id VARCHAR(64) NOT NULL
+                    REFERENCES asterdesk_action_requests(id) ON DELETE CASCADE,
+                attempt_no INTEGER NOT NULL,
+                worker_id VARCHAR(128) NOT NULL,
+                idempotency_key VARCHAR(128) NOT NULL,
+                status VARCHAR(32) NOT NULL,
+                external_reference_id VARCHAR(128),
+                error_code VARCHAR(64),
+                error_message TEXT,
+                started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                finished_at TIMESTAMPTZ,
+                CONSTRAINT uq_asterdesk_action_attempt UNIQUE (action_request_id, attempt_no)
+            )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS asterdesk_action_audit_events (
+                id SERIAL PRIMARY KEY,
+                action_request_id VARCHAR(64) NOT NULL
+                    REFERENCES asterdesk_action_requests(id) ON DELETE CASCADE,
+                event_type VARCHAR(64) NOT NULL,
+                actor_type VARCHAR(32) NOT NULL,
+                actor_id VARCHAR(128) NOT NULL,
+                details JSONB NOT NULL DEFAULT '{}'::jsonb,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            )
+            """,
+            "CREATE INDEX IF NOT EXISTS ix_asterdesk_action_applicant ON asterdesk_action_requests(applicant_uid)",
+            "CREATE INDEX IF NOT EXISTS ix_asterdesk_action_tenant ON asterdesk_action_requests(tenant_id)",
+            "CREATE INDEX IF NOT EXISTS ix_asterdesk_action_status ON asterdesk_action_requests(status)",
+            (
+                "CREATE INDEX IF NOT EXISTS ix_asterdesk_action_execution_status "
+                "ON asterdesk_action_requests(execution_status)"
+            ),
+            (
+                "CREATE INDEX IF NOT EXISTS ix_asterdesk_action_recovery "
+                "ON asterdesk_action_requests(status, execution_status, updated_at)"
+            ),
+            (
+                "CREATE INDEX IF NOT EXISTS ix_asterdesk_approval_action "
+                "ON asterdesk_approval_decisions(action_request_id)"
+            ),
+            (
+                "CREATE INDEX IF NOT EXISTS ix_asterdesk_attempt_action "
+                "ON asterdesk_action_execution_attempts(action_request_id)"
+            ),
+            (
+                "CREATE INDEX IF NOT EXISTS ix_asterdesk_audit_action "
+                "ON asterdesk_action_audit_events(action_request_id)"
+            ),
+            (
+                "CREATE INDEX IF NOT EXISTS ix_asterdesk_audit_type "
+                "ON asterdesk_action_audit_events(event_type)"
+            ),
             "ALTER TABLE IF EXISTS skills ADD COLUMN IF NOT EXISTS tool_dependencies JSONB DEFAULT '[]'::jsonb",
             "ALTER TABLE IF EXISTS skills ADD COLUMN IF NOT EXISTS mcp_dependencies JSONB DEFAULT '[]'::jsonb",
             "ALTER TABLE IF EXISTS skills ADD COLUMN IF NOT EXISTS skill_dependencies JSONB DEFAULT '[]'::jsonb",

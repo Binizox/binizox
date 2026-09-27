@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import json
+import os
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, UploadFile
 from pydantic import BaseModel, Field
 
 from server.utils.auth_middleware import get_admin_user, get_required_user
 from yuxi.asterdesk.contracts import DocumentPermission, SearchRequest
+from yuxi.asterdesk.contracts import ApprovalDecision as ApprovalDecisionContract
 from yuxi.asterdesk.document_service import (
     AsterDeskConflict,
     AsterDeskDocumentError,
@@ -17,6 +19,15 @@ from yuxi.asterdesk.document_service import (
     document_service,
 )
 from yuxi.storage.postgres.models_business import User
+from yuxi.services.asterdesk_action_service import (
+    ActionConflict,
+    ActionNotFound,
+    ActionPermissionDenied,
+    ActionRequestError,
+    decide_action_request,
+    get_action_request,
+)
+from yuxi.services.asterdesk_action_worker import enqueue_asterdesk_action
 
 asterdesk = APIRouter(prefix="/asterdesk", tags=["AsterDesk"])
 
@@ -35,6 +46,16 @@ def _raise_http(exc: AsterDeskDocumentError) -> None:
     if isinstance(exc, AsterDeskPermissionDenied):
         raise HTTPException(status_code=403, detail=str(exc)) from exc
     if isinstance(exc, AsterDeskConflict):
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+def _raise_action_http(exc: ActionRequestError) -> None:
+    if isinstance(exc, ActionNotFound):
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    if isinstance(exc, ActionPermissionDenied):
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
+    if isinstance(exc, ActionConflict):
         raise HTTPException(status_code=409, detail=str(exc)) from exc
     raise HTTPException(status_code=422, detail=str(exc)) from exc
 
@@ -104,3 +125,41 @@ async def search(body: SearchBody, current_user: User = Depends(get_required_use
         return {"evidence": [item.model_dump(mode="json") for item in evidence]}
     except AsterDeskDocumentError as exc:
         _raise_http(exc)
+
+
+@asterdesk.get("/actions/{action_request_id}")
+async def read_action_request(
+    action_request_id: str,
+    current_user: User = Depends(get_required_user),
+) -> dict:
+    try:
+        return await get_action_request(action_request_id=action_request_id, user=current_user)
+    except ActionRequestError as exc:
+        _raise_action_http(exc)
+
+
+@asterdesk.post("/actions/{action_request_id}/decision")
+async def decide_action(
+    action_request_id: str,
+    body: ApprovalDecisionContract,
+    current_user: User = Depends(get_required_user),
+    failure_injection: str | None = Header(default=None, alias="X-AsterDesk-Failure-Injection"),
+) -> dict:
+    """提交唯一审批决定；事务提交后投递执行/恢复任务。"""
+
+    try:
+        inject_after_success = failure_injection == "after-external-success"
+        if inject_after_success and os.getenv("ASTERDESK_ENABLE_FAILURE_INJECTION", "0") != "1":
+            raise HTTPException(status_code=403, detail="故障注入仅在隔离测试环境开放")
+        action, replayed = await decide_action_request(
+            action_request_id=action_request_id,
+            approver=current_user,
+            decision=body,
+        )
+        await enqueue_asterdesk_action(
+            action_request_id,
+            fail_after_external_success=inject_after_success,
+        )
+        return {"action": action, "replayed": replayed}
+    except ActionRequestError as exc:
+        _raise_action_http(exc)

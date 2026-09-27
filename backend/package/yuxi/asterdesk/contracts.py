@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import date, datetime
 from enum import StrEnum
 from typing import Any, Literal
 
@@ -128,6 +129,63 @@ class Evidence(BaseModel):
     citation: str = Field(min_length=1)
 
 
+class ActionStatus(StrEnum):
+    """审批决定状态；执行结果由独立字段表达。"""
+
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+
+
+class ActionExecutionStatus(StrEnum):
+    """批准后的外部执行状态。"""
+
+    NOT_REQUESTED = "not_requested"
+    PENDING = "pending"
+    EXECUTING = "executing"
+    SUCCEEDED = "succeeded"
+    UNKNOWN = "unknown"
+    FAILED = "failed"
+    REJECTED = "rejected"
+
+
+class ActionRequest(BaseModel):
+    """绑定固定参数、政策证据和原 AgentRun 的操作申请。"""
+
+    action_request_id: str = Field(min_length=1)
+    run_id: str = Field(min_length=1)
+    applicant_uid: str = Field(min_length=1)
+    tenant_id: str = Field(min_length=1)
+    target_user_uid: str = Field(min_length=1)
+    target_system: str = Field(min_length=1)
+    permission_scope: str = Field(min_length=1)
+    valid_until: date
+    policy_evidence: list[Evidence] = Field(min_length=1)
+    tool_name: str = Field(min_length=1)
+    normalized_parameters: dict[str, Any]
+    parameter_digest: str = Field(min_length=64, max_length=64)
+    idempotency_key: str = Field(min_length=1, max_length=128)
+    status: ActionStatus
+    execution_status: ActionExecutionStatus
+    decision_by_uid: str | None = None
+    decision_reason: str | None = None
+    external_reference_id: str | None = None
+    external_result: dict[str, Any] | None = None
+    execution_error_code: str | None = None
+    execution_error_message: str | None = None
+    resume_run_id: str | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+
+
+class ApprovalDecision(BaseModel):
+    """审批 API 的决定及其固定参数摘要。"""
+
+    decision: Literal["approved", "rejected"]
+    reason: str | None = Field(default=None, max_length=2000)
+    parameter_digest: str = Field(min_length=64, max_length=64)
+
+
 class ToolSpec(BaseModel):
     """工具能力及其授权、审批和超时要求。"""
 
@@ -145,12 +203,14 @@ class ToolInvocation(BaseModel):
     tool_name: str = Field(min_length=1)
     arguments: dict[str, Any]
     idempotency_key: str = Field(min_length=1, max_length=256)
+    action_request_id: str | None = None
+    parameter_digest: str | None = Field(default=None, min_length=64, max_length=64)
 
 
 class ToolResult(BaseModel):
     """工具执行器返回并可供审计的结果。"""
 
-    status: Literal["succeeded", "failed", "timed_out", "rejected"]
+    status: Literal["succeeded", "failed", "timed_out", "unknown", "rejected", "conflict"]
     output: Any | None = None
     error: str | None = None
     external_reference_id: str | None = None

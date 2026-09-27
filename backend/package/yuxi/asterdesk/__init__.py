@@ -1,6 +1,8 @@
 """AsterDesk 在 Yuxi 主工程上的领域边界。"""
 
 from .contracts import (
+    ActionRequest,
+    ApprovalDecision,
     DocumentRef,
     Evidence,
     ParsedDocument,
@@ -12,6 +14,8 @@ from .contracts import (
 )
 
 __all__ = [
+    "ActionRequest",
+    "ApprovalDecision",
     "DocumentRef",
     "Evidence",
     "ParsedDocument",

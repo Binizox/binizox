@@ -149,6 +149,7 @@ class AsterDeskDocumentRepository:
         *,
         user: User,
         knowledge_base_ids: list[str],
+        chunk_ids: list[str] | None = None,
     ) -> list[tuple[KnowledgeFile, KnowledgeChunk]]:
         """先确定可见文档，再读取片段，避免未授权正文越过 repository 边界。"""
 
@@ -183,13 +184,15 @@ class AsterDeskDocumentRepository:
             if not visible_files:
                 return []
 
+            chunk_query = select(KnowledgeChunk).where(KnowledgeChunk.file_id.in_(visible_files))
+            if chunk_ids is not None:
+                normalized_chunk_ids = sorted({item.strip() for item in chunk_ids if item.strip()})
+                if not normalized_chunk_ids:
+                    return []
+                chunk_query = chunk_query.where(KnowledgeChunk.chunk_id.in_(normalized_chunk_ids))
             chunks = list(
                 (
-                    await session.execute(
-                        select(KnowledgeChunk)
-                        .where(KnowledgeChunk.file_id.in_(visible_files))
-                        .order_by(KnowledgeChunk.file_id, KnowledgeChunk.chunk_index)
-                    )
+                    await session.execute(chunk_query.order_by(KnowledgeChunk.file_id, KnowledgeChunk.chunk_index))
                 )
                 .scalars()
                 .all()

@@ -21,6 +21,13 @@ _SKILLS_ROOT = Path(__file__).resolve().parent
 
 BUILTIN_SKILLS: list[BuiltinSkillSpec] = [
     BuiltinSkillSpec(
+        slug="asterdesk-vpn-access",
+        source_dir=_SKILLS_ROOT / "asterdesk-vpn-access",
+        description="AsterDesk 第三阶段 VPN 权限申请、业务审批和可恢复执行。",
+        version="3.0.0",
+        tool_dependencies=("search_asterdesk_evidence", "request_vpn_access", "ask_user_question"),
+    ),
+    BuiltinSkillSpec(
         slug="asterdesk-evidence",
         source_dir=_SKILLS_ROOT / "asterdesk-evidence",
         description="AsterDesk 第二阶段服务端权限过滤的文档证据检索。",

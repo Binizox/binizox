@@ -368,31 +368,53 @@ class AsterDeskDocumentService:
             score = _score(request.query, chunk.content)
             if score <= 0:
                 continue
-            metadata = asterdesk_metadata(chunk)
-            location = metadata.get("location") or {"block_index": int(chunk.chunk_index)}
-            title = metadata.get("title") or record.filename
-            page = location.get("page")
-            heading_path = list(metadata.get("heading_path") or [])
-            anchor = f"p.{page}" if page else f"block {location.get('block_index', chunk.chunk_index)}"
-            if heading_path:
-                anchor = f"{anchor}, {' > '.join(heading_path)}"
-            evidence = Evidence(
-                text=chunk.content,
-                chunk_id=chunk.chunk_id,
-                document_id=str(metadata["document_id"]),
-                document_version=str(metadata["version"]),
-                knowledge_base_id=chunk.kb_id,
-                title=str(title),
-                heading_path=heading_path,
-                location=location,
-                score=score,
-                citation=(
-                    f"[{title} {metadata['document_id']} v{metadata['version']}, {anchor}, chunk {chunk.chunk_id}]"
-                ),
-            )
+            evidence = self._build_evidence(record, chunk, score=score)
             ranked.append((score, evidence))
         ranked.sort(key=lambda item: (-item[0], item[1].chunk_id))
         return [evidence for _, evidence in ranked[: request.top_k]]
+
+    async def get_evidence_by_chunk_ids(
+        self,
+        *,
+        user: User,
+        knowledge_base_ids: list[str],
+        chunk_ids: list[str],
+    ) -> list[Evidence]:
+        """在同一 ACL 边界内重读 Agent 提交的 Evidence 标识。"""
+
+        requested = {item.strip() for item in chunk_ids if item.strip()}
+        candidates = await self.repository.list_visible_active_chunks(
+            user=user,
+            knowledge_base_ids=knowledge_base_ids,
+            chunk_ids=list(requested),
+        )
+        evidence = [self._build_evidence(record, chunk, score=1.0) for record, chunk in candidates]
+        if {item.chunk_id for item in evidence} != requested:
+            raise AsterDeskPermissionDenied("政策 Evidence 不存在、未发布或当前用户无权访问")
+        return evidence
+
+    @staticmethod
+    def _build_evidence(record: KnowledgeFile, chunk, *, score: float) -> Evidence:
+        metadata = asterdesk_metadata(chunk)
+        location = metadata.get("location") or {"block_index": int(chunk.chunk_index)}
+        title = metadata.get("title") or record.filename
+        page = location.get("page")
+        heading_path = list(metadata.get("heading_path") or [])
+        anchor = f"p.{page}" if page else f"block {location.get('block_index', chunk.chunk_index)}"
+        if heading_path:
+            anchor = f"{anchor}, {' > '.join(heading_path)}"
+        return Evidence(
+            text=chunk.content,
+            chunk_id=chunk.chunk_id,
+            document_id=str(metadata["document_id"]),
+            document_version=str(metadata["version"]),
+            knowledge_base_id=chunk.kb_id,
+            title=str(title),
+            heading_path=heading_path,
+            location=location,
+            score=score,
+            citation=f"[{title} {metadata['document_id']} v{metadata['version']}, {anchor}, chunk {chunk.chunk_id}]",
+        )
 
 
 document_service = AsterDeskDocumentService()
