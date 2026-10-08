@@ -72,7 +72,12 @@ def _build_cors_options(origins: list[str] | None = None) -> dict[str, object]:
     }
 
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(
+    title="Binizox API",
+    description="本地优先的个人知识与自动化 Agent API",
+    version="0.1.0-dev",
+    lifespan=lifespan,
+)
 # 所有业务接口统一挂载到 /api，具体分组在 server.routers 中集中注册。
 app.include_router(router, prefix="/api")
 

@@ -20,6 +20,7 @@ export * from './auth_api' // 认证与用户管理 API
 export * from './project_api' // Project API
 export * from './workspace_api' // Workspace API
 export * from './asterdesk_action_api' // AsterDesk 审批工作台 API
+export * from './binizox_api' // Binizox 个人 Agent 状态 API
 
 // 导出基础工具函数
 export {

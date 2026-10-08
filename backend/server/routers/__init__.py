@@ -6,6 +6,7 @@ from server.routers.agent_invocation_channel_router import agent_invocation_chan
 from server.routers.agent_invocation_eval_router import agent_invocation_eval_router
 from server.routers.agent_router import agent_router
 from server.routers.asterdesk_router import asterdesk
+from server.routers.binizox_router import binizox
 from server.routers.auth_dept_router import department
 from server.routers.auth_router import auth
 from server.routers.chat_router import chat
@@ -31,6 +32,7 @@ router.include_router(system)  # /api/system/* 系统状态与全局配置
 router.include_router(auth)  # /api/auth/* 登录、用户信息与 CLI 浏览器登录授权
 router.include_router(agent_router)  # /api/agent/* 智能体管理与运行态
 router.include_router(asterdesk)  # /api/asterdesk/* 文档证据链
+router.include_router(binizox)  # /api/binizox/* 个人 Agent 与集成状态
 router.include_router(agent_invocation_call_router)  # /api/agent-invocation/agent-call/*
 router.include_router(agent_invocation_channel_router)  # /api/agent-invocation/channel/*
 router.include_router(agent_invocation_eval_router)  # /api/agent-invocation/eval/*

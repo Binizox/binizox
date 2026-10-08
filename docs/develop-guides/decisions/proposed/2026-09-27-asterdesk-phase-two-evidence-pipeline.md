@@ -37,14 +37,16 @@ Owner：backend/package/yuxi/asterdesk/document_service.py
 
 ## 验收标准
 
-| 验收主张 | 失败面 | 语义 Owner | 直接证据 | 负向案例 |
-|---|---|---|---|---|
-| PDF/DOCX 输出正文、标题路径、页码和表格 | 只看 HTTP 200 | parser sidecar | sidecar contract tests 与样例 JSON | 损坏文件返回结构化错误 |
-| 未完成文档不进入检索 | 半成品泄露 | document repository | 状态过滤集成测试 | `parse_failed` 返回零 Evidence |
-| 权限在检索服务执行 | 前端隐藏不构成授权 | search repository | 两个用户对同一查询的 E2E | 无权限用户零 Evidence |
-| 重复提交和版本更新保持唯一活动版本 | 重复片段或版本串线 | document service | 幂等与版本测试 | 同版本不同内容返回冲突 |
-| Agent 引用只来自本次 Evidence | 模型编造来源 | Agent evidence tool | worker/Run E2E 与持久化回读 | 工具零结果时不得输出受限内容 |
-| API 重启后终态和引用可查询 | 只存在于 SSE | Yuxi Run repository | 重启 API 后回读 Run | 输出消息不存在则失败 |
+| 验收主张 | 失败面 | 语义 Owner | 直接证据 / 命令 | 负向案例 | 当前结果 |
+|---|---|---|---|---|---|
+| PDF/DOCX 输出正文、标题路径、页码和表格 | 只看 HTTP 200 | parser sidecar | sidecar contract tests 与样例 JSON | 损坏文件返回结构化错误 | Inspected |
+| 未完成文档不进入检索 | 半成品泄露 | document repository | 状态过滤集成测试 | `parse_failed` 返回零 Evidence | Inspected |
+| 权限在检索服务执行 | 前端隐藏不构成授权 | search repository | 两个用户对同一查询的 E2E | 无权限用户零 Evidence | Inspected |
+| 重复提交和版本更新保持唯一活动版本 | 重复片段或版本串线 | document service | 幂等与版本测试 | 同版本不同内容返回冲突 | Inspected |
+| Agent 引用只来自本次 Evidence | 模型编造来源 | Agent evidence tool | worker/Run E2E 与持久化回读 | 工具零结果时不得输出受限内容 | Inspected |
+| API 重启后终态和引用可查询 | 只存在于 SSE | Yuxi Run repository | 重启 API 后回读 Run | 输出消息不存在则失败 | Inspected |
+
+上述六项的“Inspected”表示本次仅核对了历史 Phase 2 记录与代码，未在当前 Binizox 本地环境重跑完整入库和鉴权 E2E。
 
 ## 风险
 

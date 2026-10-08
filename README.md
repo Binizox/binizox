@@ -1,3 +1,54 @@
+# Binizox
+
+Binizox 是以 Yuxi 为基座的本地优先个人知识与自动化 Agent。第一版保留 Vue、FastAPI、PostgreSQL、Redis、MinIO、ARQ worker、LangGraph checkpoint、SSE、Skills、MCP 和解析 sidecar，并新增一个受限、可幂等重放的个人工具服务。
+
+当前最小闭环是：个人文档入库与检索 → 带来源回答 → Agent 提议保存笔记 → Vue 展示工具参数并等待确认 → worker 调用独立工具服务 → 在个人工作区生成 Markdown → Run 继续并持久化结果。
+
+登录后侧栏的 **Binizox 总览** 会显示这条运行链、个人工具服务状态和六个固定上游的真实接入范围。它只展示 FastAPI 返回的能力事实，不会把候选项目描述成已集成。
+
+## Binizox 本地开发
+
+Python 代码优先在 Conda 环境中运行，PostgreSQL、Redis、MinIO 可单独运行在 Docker。Yuxi 与固定 parser sidecar 的 FastAPI 版本约束不同，因此使用 `binizox-dev`（API、worker、tool runner）和 `binizox-parser`（解析服务）两个明确环境，避免隐式降级依赖。
+
+```powershell
+Set-Location D:\Download\Binizox
+
+# 创建 Conda 环境并安装轻量个人工具服务
+.\scripts\conda-bootstrap.ps1
+
+# 需要运行完整 Yuxi/Binizox API 与 worker 时
+.\scripts\conda-bootstrap.ps1 -InstallPlatform
+
+# 在不同终端启动本地服务
+.\scripts\dev-tool-runner.ps1
+.\scripts\dev-parser.ps1
+.\scripts\dev-api.ps1
+.\scripts\dev-worker.ps1
+.\scripts\dev-web.ps1
+```
+
+基础设施启动前，将 `.env.binizox.example` 复制为被 Git 忽略的 `.env.binizox.local` 并填写本地开发值，然后执行：
+
+```powershell
+.\scripts\dev-infra-up.ps1
+.\scripts\dev-smoke.ps1
+```
+
+上游使用边界见 [Binizox 上游清单](docs/BINIZOX_UPSTREAMS.md)，架构与实施状态见 [Binizox 设计](docs/BINIZOX_DESIGN.md)，本机已经执行的测试和剩余验证见 [Binizox 验收记录](docs/BINIZOX_ACCEPTANCE.md)。`upstreams/` 保存六个固定研究快照但不进入主工程 import 路径，也不提交整套上游源码。
+
+## 当前实现边界
+
+- Yuxi 是唯一 Agent 主循环；不会同时启动 DeerFlow 或 LibreChat 的第二套 Agent/UI。
+- RAGFlow 最小 PDF 解析函数和 DeerFlow Skill frontmatter 是已经运行过的源码复用。
+- WeKnora、LibreChat、DeepSeek Harness 当前仍是固定研究快照和适配候选，不能描述为已经集成。
+- `save_binizox_note` 已加入 Yuxi 的 Human-in-the-loop 中间件；默认模式下，工具调用在实际写文件前由现有 Vue 对话框确认。
+- `binizox-personal-agent` 已注册为内置 Skill，并通过 Yuxi 现有 Skill 门控按需开放检索与保存笔记工具。
+- 第一版工具服务只写 `.md`/`.txt`，限制在专用工作区，不删除、不覆盖不同内容的已有文件。
+
+---
+
+以下保留 Yuxi 上游说明，便于继续追溯基座能力和原始文档。
+
 ![Yuxi：可私有部署的多租户知识智能体平台](https://xerrors.oss-cn-shanghai.aliyuncs.com/posts/2026/08/20260818-151118-mac-1787037059154-8c08f48c.png)
 
 Yuxi 是一个可私有部署的多租户知识智能体平台。它把知识库检索、知识图谱、LangGraph 多智能体编排、MCP/Skills、沙盒工具和权限管理放进同一个工作区。

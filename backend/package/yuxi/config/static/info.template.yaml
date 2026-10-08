@@ -3,24 +3,24 @@
 
 # 组织信息
 organization:
-  name: "语析"               # 完整组织名称
+  name: "Binizox"            # 本地个人 Agent 名称
   logo: "/favicon.svg"       # Logo文件路径（放在 web/public 目录下）
   avatar: "/favicon.svg"      # 头像文件路径（放在 web/public 目录下）
   login_bg: "/login-bg.jpg"  # 登录背景图片路径（放在 web/public 目录下）
 
 # 项目信息
 branding:
-  name: "Yuxi"
-  title: "让团队知识可连接，让智能体可行动"     # 系统标题
-  subtitle: "知识库 × 知识图谱 × 智能体 Harness，开源且可私有部署"   # 副标题（subtitles 为空时使用）
+  name: "Binizox"
+  title: "让个人知识可检索，让日常工作可执行"     # 系统标题
+  subtitle: "本地知识 × Agent Run × 安全工具，把资料变成可追溯的行动"   # 副标题（subtitles 为空时使用）
   subtitles:
-    - "知识与智能体真正协同，每个回答都可溯源"
-    - "从回答问题到交付任务，工具与沙盒一站完成"
-    - "多租户、权限与模型治理，面向团队而非 Demo"
-    - "Docker Compose 一键部署，数据不出你的内网"
+    - "检索自己的文档，让回答带上可核对的来源"
+    - "从回答问题到保存笔记，操作先确认再执行"
+    - "Yuxi 负责运行主链，优质上游能力通过清晰边界接入"
+    - "Conda 快速开发，Docker 负责最终可重复部署"
 
 # 页脚信息
 footer:
-  copyright: "© 语析 2026 v{{YUXI_VERSION}}"
+  copyright: "© Binizox 2026 · 基于 Yuxi v{{YUXI_VERSION}}"
   user_agreement_url: "/protocols/user-agreement.template.html"
   privacy_policy_url: "/protocols/privacy-policy.template.html"

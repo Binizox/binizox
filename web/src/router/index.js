@@ -60,6 +60,19 @@ const router = createRouter({
       ]
     },
     {
+      path: '/binizox',
+      name: 'binizox',
+      component: AppLayout,
+      children: [
+        {
+          path: '',
+          name: 'BinizoxOverview',
+          component: () => import('../views/BinizoxOverviewView.vue'),
+          meta: { keepAlive: false, requiresAuth: true }
+        }
+      ]
+    },
+    {
       path: '/workspace',
       name: 'workspace',
       component: AppLayout,

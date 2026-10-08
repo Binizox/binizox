@@ -21,6 +21,13 @@ _SKILLS_ROOT = Path(__file__).resolve().parent
 
 BUILTIN_SKILLS: list[BuiltinSkillSpec] = [
     BuiltinSkillSpec(
+        slug="binizox-personal-agent",
+        source_dir=_SKILLS_ROOT / "binizox-personal-agent",
+        description="检索个人资料、生成带来源回答，并在用户确认后保存个人笔记。",
+        version="0.1.0",
+        tool_dependencies=("search_binizox_evidence", "save_binizox_note"),
+    ),
+    BuiltinSkillSpec(
         slug="asterdesk-vpn-access",
         source_dir=_SKILLS_ROOT / "asterdesk-vpn-access",
         description="AsterDesk 第三阶段 VPN 权限申请、业务审批和可恢复执行。",

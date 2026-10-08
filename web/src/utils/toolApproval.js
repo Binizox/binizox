@@ -66,6 +66,9 @@ export const getToolApprovalSummary = (request) => {
   if (name === 'write_file' || name === 'edit_file') {
     return String(args.file_path || args.path || formatToolApprovalArgs(args))
   }
+  if (name === 'save_binizox_note') {
+    return String(args.relative_path || formatToolApprovalArgs(args))
+  }
 
   return formatToolApprovalArgs(args).replace(/\s+/g, ' ').trim()
 }

@@ -253,7 +253,17 @@ jobs:
         self.assertTrue(any("类型必须是" in error for error in self._errors()))
 
     def test_decision_owner_symlink_cannot_escape_repository(self) -> None:
-        (self.root / "outside-owner").symlink_to("/etc/hosts")
+        with tempfile.NamedTemporaryFile(delete=False) as temporary_owner:
+            outside_owner = Path(temporary_owner.name)
+        self.addCleanup(outside_owner.unlink, missing_ok=True)
+        try:
+            (self.root / "outside-owner").symlink_to(outside_owner)
+        except OSError as exc:
+            # Windows 默认可能禁止非管理员创建符号链接。这是运行环境
+            # 能力限制，不应让其他 verifier 负向测试无法执行。
+            if getattr(exc, "winerror", None) == 1314:
+                self.skipTest("当前 Windows 账户没有创建符号链接的权限")
+            raise
         path = (
             self.root
             / "docs/develop-guides/decisions/implemented/2026-08-15-valid-decision.md"

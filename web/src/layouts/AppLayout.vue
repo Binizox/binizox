@@ -12,7 +12,8 @@ import {
   PanelLeft,
   PanelLeftOpen,
   MessageCirclePlus,
-  Search
+  Search,
+  Sparkles
 } from '@lucide/vue'
 
 import { useConfigStore } from '@/stores/config'
@@ -158,8 +159,9 @@ const activeConversationThreadId = computed(() => {
   return route.path.startsWith('/agent') ? currentThreadId.value : null
 })
 const organizationName = computed(() => {
-  return infoStore.organization.name || infoStore.branding.name || 'Yuxi'
+  return infoStore.organization.name || infoStore.branding.name || 'Binizox'
 })
+const organizationAvatar = computed(() => infoStore.organization.avatar || '/favicon.svg')
 
 // 下面是导航菜单部分，添加智能体项
 const mainList = computed(() => {
@@ -173,6 +175,13 @@ const mainList = computed(() => {
       exactActive: true
     }
   ]
+
+  items.push({
+    name: 'Binizox 总览',
+    path: '/binizox',
+    icon: Sparkles,
+    activeIcon: Sparkles
+  })
 
   items.push({
     name: '智能体',
@@ -376,7 +385,7 @@ provide('settingsModal', {
     <div class="header">
       <div class="sidebar-brand" @click.stop>
         <router-link v-if="!sidebarCollapsed" to="/" class="brand-link">
-          <img :src="infoStore.organization.avatar" class="brand-avatar" />
+          <img :src="organizationAvatar" class="brand-avatar" alt="" />
           <span class="brand-name">{{ organizationName }}</span>
         </router-link>
         <button
@@ -386,7 +395,7 @@ provide('settingsModal', {
           aria-label="展开侧边栏"
           @click="setSidebarCollapsed(false)"
         >
-          <img :src="infoStore.organization.avatar" class="brand-avatar brand-avatar-image" />
+          <img :src="organizationAvatar" class="brand-avatar brand-avatar-image" alt="" />
           <PanelLeftOpen class="brand-expand-icon" size="20" />
         </button>
         <div v-if="!sidebarCollapsed" class="sidebar-header-actions" aria-label="侧边栏操作">

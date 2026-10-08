@@ -265,7 +265,13 @@ class AsterDeskDocumentService:
             return _project(failed)
 
     async def _parse(self, document: DocumentRef, filename: str, data: bytes) -> ParsedDocument:
-        parser_url = os.getenv("ASTERDESK_PARSER_URL", "http://asterdesk-parser:8090").rstrip("/")
+        # Binizox 新环境使用自己的变量名；旧 AsterDesk Compose 仍可通过
+        # ASTERDESK_PARSER_URL 继续运行，避免为了品牌迁移破坏已有数据环境。
+        parser_url = (
+            os.getenv("BINIZOX_PARSER_URL")
+            or os.getenv("ASTERDESK_PARSER_URL")
+            or "http://asterdesk-parser:8090"
+        ).rstrip("/")
         try:
             async with httpx.AsyncClient(timeout=httpx.Timeout(60.0)) as client:
                 response = await client.post(

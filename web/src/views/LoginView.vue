@@ -307,14 +307,14 @@ const loginBgImage = computed(() => {
   return infoStore.organization?.login_bg || '/login-bg.jpg'
 })
 const brandLogo = computed(() => {
-  return infoStore.organization?.logo || ''
+  return infoStore.organization?.logo || '/favicon.svg'
 })
 const brandOrgName = computed(() => {
   return infoStore.organization?.name?.trim() || ''
 })
 const brandName = computed(() => {
   const orgName = brandOrgName.value
-  const brandNameRaw = infoStore.branding?.name?.trim() || 'Yuxi'
+  const brandNameRaw = infoStore.branding?.name?.trim() || 'Binizox'
 
   if (orgName && brandNameRaw && orgName !== brandNameRaw) {
     return brandNameRaw

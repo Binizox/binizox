@@ -1,0 +1,10 @@
+name: binizox-parser
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.12
+  - pip>=24
+  - pip:
+      - "pytest>=8,<9"
+      - "ruff>=0.12,<1"

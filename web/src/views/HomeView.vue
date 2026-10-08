@@ -107,11 +107,11 @@
       <header class="site-header">
         <div class="logo">
           <img
-            :src="infoStore.organization.logo"
-            :alt="infoStore.organization.name"
+            :src="infoStore.organization.logo || '/favicon.svg'"
+            :alt="infoStore.organization.name || 'Binizox'"
             class="logo-img"
           />
-          <span class="logo-text">{{ infoStore.organization.name }}</span>
+          <span class="logo-text">{{ infoStore.organization.name || 'Binizox' }}</span>
         </div>
         <div class="header-actions">
           <a

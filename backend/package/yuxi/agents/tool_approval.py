@@ -8,7 +8,7 @@ ToolApprovalMode = Literal["default", "always_trust"]
 DEFAULT_TOOL_APPROVAL_MODE: ToolApprovalMode = "default"
 TOOL_APPROVAL_MODES = frozenset({"default", "always_trust"})
 # 默认审批模式下需要拦截或对子 Agent 隐藏的敏感 backend 工具。
-SENSITIVE_BACKEND_TOOLS = frozenset({"write_file", "edit_file", "execute"})
+SENSITIVE_BACKEND_TOOLS = frozenset({"write_file", "edit_file", "execute", "save_binizox_note"})
 _ALLOWED_DECISIONS = ["approve", "reject"]
 
 
@@ -34,6 +34,8 @@ def create_tool_approval_middleware(
             "write_file": {"allowed_decisions": _ALLOWED_DECISIONS, "when": write_requires_approval},
             "edit_file": {"allowed_decisions": _ALLOWED_DECISIONS, "when": write_requires_approval},
             "execute": {"allowed_decisions": _ALLOWED_DECISIONS},
+            # 个人工作区写入必须在真正调用独立工具服务之前获得确认。
+            "save_binizox_note": {"allowed_decisions": _ALLOWED_DECISIONS},
         }
     )
 

@@ -8,7 +8,7 @@ Owner：backend/package/yuxi/services/asterdesk_action_worker.py
 
 VPN 操作在外部成功、本地终态提交前中断时会留下长期 `running` attempt，无法仅凭业务数据库解释谁接管、哪次执行观察到外部结果。Docker 冷启动时 worker 可能在 PostgreSQL WAL recovery 结束前完成一次失败启动，开发热重载父进程继续存活但不再消费。审批提交后 Redis 短暂不可用时，持久执行意图虽然可由周期扫描恢复，但 API、审计和用户界面不能清楚展示 deferred 与恢复结果。审批人也缺少可用的工作台入口。
 
-## 提案
+## 决策
 
 1. business schema 升为 v4。execution attempt 新增外部结果观察时间、接管原因和 `superseded_by_attempt_no`；过期 lease 被新 worker 接管时，旧 attempt 原子结算为 `superseded`，新 attempt 记录接管来源。外部响应在 action 终态前单独落审计，使故障注入后的每次状态可解释。
 2. worker 启动对 PostgreSQL 暂不可用错误采用总时长受限、单次退避有上限的重试；schema 不兼容和安全配置错误继续快速失败。恢复期间不发布 worker 健康租约，数据库可用后自动初始化并开始消费。
@@ -24,7 +24,7 @@ VPN 操作在外部成功、本地终态提交前中断时会留下长期 `runni
 - 前端直接重试审批 POST：请求可能已经提交，会增加并发噪声；工作台使用参数摘要幂等决定并回读最终事实。
 - 复用 superadmin 跨租户能力：不符合业务审批的租户隔离；superadmin 保留审批角色兼容，但也必须处于申请租户。
 
-## 验收标准
+## 验证
 
 | 验收主张 | 失败面 | 语义 Owner | 直接证据 / 命令 | 负向案例 | 当前结果 |
 |---|---|---|---|---|---|
@@ -35,7 +35,7 @@ VPN 操作在外部成功、本地终态提交前中断时会留下长期 `runni
 | Vue 能完成批准和拒绝并显示同一快照 | UI 乐观状态或参数漂移 | web API、ApprovalWorkbenchView 与后端详情 | lint/unit/build、真实浏览器 DOM 和数据库回读 | 重复点击、409、超时后回读 | Pass：真实浏览器批准一笔并执行成功、拒绝一笔且原因回显；模拟授权数 8→9，拒绝申请无 grant |
 | 前三阶段关键链路不回归 | 新迁移或 worker 修改破坏旧功能 | 现有 E2E 与隔离 Compose | Phase 1/2/3 关键 E2E | 无权 Evidence、版本与幂等重放 | Pass：Phase 1 `21.82s`、Phase 2 `39.14s`、Phase 3 `174.24s`；Phase 4 `215.71s` |
 
-## 风险
+## 后果
 
 - 扫描补偿的恢复上限由配置周期、Redis 可用性和执行时间共同决定，不等同于 exactly-once；外部副作用仍依赖幂等键和 GET-before-POST。
 - 外部结果观察审计在 action 终态前提交，必须保持参数摘要和外部引用最小化，不能记录政策正文或凭据。
