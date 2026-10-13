@@ -9,6 +9,9 @@ COPY --from=node:24-slim /usr/local/share /usr/local/share
 # 设置工作目录
 WORKDIR /app
 
+COPY LICENSE /usr/share/licenses/binizox/LICENSE
+COPY THIRD_PARTY_NOTICES.md /usr/share/licenses/binizox/THIRD_PARTY_NOTICES.md
+
 # 环境变量设置
 ENV TZ=Asia/Shanghai \
     UV_PROJECT_ENVIRONMENT="/usr/local" \
@@ -48,7 +51,7 @@ COPY backend/pyproject.toml /app/pyproject.toml
 COPY backend/.python-version /app/.python-version
 COPY backend/uv.lock /app/uv.lock
 
-# 先复制 package 目录，因为 pyproject.toml 中 yuxi = { path = "package", editable = true }
+# 先复制 package 目录，因为 pyproject.toml 中 binizox = { path = "package", editable = true }
 COPY backend/package /app/package
 
 # 如果网络还是不好，可以在后面添加 --index-url https://pypi.tuna.tsinghua.edu.cn/simple
@@ -56,19 +59,19 @@ RUN uv sync --no-cache --group test --no-dev --frozen
 
 # 复制 server 代码
 COPY backend/server /app/server
-COPY docker/api-entrypoint.sh /usr/local/bin/yuxi-entrypoint
+COPY docker/api-entrypoint.sh /usr/local/bin/binizox-entrypoint
 
-RUN groupadd --gid 1000 yuxi \
-    && useradd --uid 1000 --gid 1000 --create-home yuxi \
-    && mkdir -p /app/runtime /home/yuxi/nltk_data /home/yuxi/.cache/rapidocr/models \
-    && chown -R 1000:1000 /app/runtime /home/yuxi \
-    && sed -i 's/\r$//' /usr/local/bin/yuxi-entrypoint \
-    && chmod 0755 /usr/local/bin/yuxi-entrypoint
+RUN groupadd --gid 1000 binizox \
+    && useradd --uid 1000 --gid 1000 --create-home binizox \
+    && mkdir -p /app/runtime /home/binizox/nltk_data /home/binizox/.cache/rapidocr/models \
+    && chown -R 1000:1000 /app/runtime /home/binizox \
+    && sed -i 's/\r$//' /usr/local/bin/binizox-entrypoint \
+    && chmod 0755 /usr/local/bin/binizox-entrypoint
 
-ENV HOME=/home/yuxi \
-    NLTK_DATA=/home/yuxi/nltk_data \
-    RAPIDOCR_MODEL_DIR=/home/yuxi/.cache/rapidocr/models
+ENV HOME=/home/binizox \
+    NLTK_DATA=/home/binizox/nltk_data \
+    RAPIDOCR_MODEL_DIR=/home/binizox/.cache/rapidocr/models
 
 USER 1000:1000
 
-ENTRYPOINT ["/usr/local/bin/yuxi-entrypoint"]
+ENTRYPOINT ["/usr/local/bin/binizox-entrypoint"]

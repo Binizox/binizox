@@ -16,11 +16,11 @@
 
 ## 信息架构与事实 Owner
 
-Yuxi 采用 [Diátaxis](https://diataxis.fr/) 的四类文档思路。现有目录保持不变，但写作时要先判断页面属于哪一类：
+Binizox 采用 [Diátaxis](https://diataxis.fr/) 的四类文档思路。现有目录保持不变，但写作时要先判断页面属于哪一类：
 
 ### 四种页面，各自解决一种需要
 
-| 类型 | 读者正在做什么 | Yuxi 的主要位置 |
+| 类型 | 读者正在做什么 | Binizox 的主要位置 |
 | --- | --- | --- |
 | 教程 | 从明确起点按顺序完成一次任务 | `intro/` |
 | 操作指南 | 已经了解基本概念，解决一个具体问题 | `advanced/`、`agents/` |
@@ -144,4 +144,4 @@ cd docs && pnpm run build
 git diff --check
 ```
 
-外部资料只用于学习文档组织和表达方式。可参考 [Diátaxis](https://diataxis.fr/) 的文档分类，以及 [Write the Docs 入门指南](https://www.writethedocs.org/guide/writing/beginners-guide-to-docs/) 对读者、安装、使用和贡献路径的建议；Yuxi 的当前行为仍以仓库内事实 Owner 为准。
+外部资料只用于学习文档组织和表达方式。可参考 [Diátaxis](https://diataxis.fr/) 的文档分类，以及 [Write the Docs 入门指南](https://www.writethedocs.org/guide/writing/beginners-guide-to-docs/) 对读者、安装、使用和贡献路径的建议；Binizox 的当前行为仍以仓库内事实 Owner 为准。

@@ -4,8 +4,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from yuxi.agents.backends.sandbox.provider import sandbox_provisioner_token
-from yuxi.agents.backends.sandbox.provisioner_client import ProvisionerClient
+from binizox.agents.backends.sandbox.provider import sandbox_provisioner_token
+from binizox.agents.backends.sandbox.provisioner_client import ProvisionerClient
 
 
 def test_provisioner_client_sends_bearer_token(monkeypatch):
@@ -15,7 +15,7 @@ def test_provisioner_client_sends_bearer_token(monkeypatch):
         calls.append(kwargs)
         return SimpleNamespace(status_code=200, json=lambda: {"sandboxes": [], "count": 0})
 
-    monkeypatch.setattr("yuxi.agents.backends.sandbox.provisioner_client.httpx.request", fake_request)
+    monkeypatch.setattr("binizox.agents.backends.sandbox.provisioner_client.httpx.request", fake_request)
     client = ProvisionerClient(
         "http://sandbox-provisioner:8002",
         token="test-provisioner-token-that-is-long-enough",
@@ -43,7 +43,7 @@ def test_provisioner_client_can_disable_sandbox_environment(monkeypatch):
             json=lambda: {"sandbox_id": "sandbox-1", "sandbox_url": "http://sandbox"},
         )
 
-    monkeypatch.setattr("yuxi.agents.backends.sandbox.provisioner_client.httpx.request", fake_request)
+    monkeypatch.setattr("binizox.agents.backends.sandbox.provisioner_client.httpx.request", fake_request)
     client = ProvisionerClient(
         "http://sandbox-provisioner:8002",
         token="test-provisioner-token-that-is-long-enough",
@@ -75,7 +75,7 @@ def test_provisioner_client_sends_project_workdir_contract(monkeypatch):
             },
         )
 
-    monkeypatch.setattr("yuxi.agents.backends.sandbox.provisioner_client.httpx.request", fake_request)
+    monkeypatch.setattr("binizox.agents.backends.sandbox.provisioner_client.httpx.request", fake_request)
     client = ProvisionerClient(
         "http://sandbox-provisioner:8002",
         token="test-provisioner-token-that-is-long-enough",
@@ -97,7 +97,7 @@ def test_provisioner_client_delete_sends_expected_generation(monkeypatch):
         calls.append(kwargs)
         return SimpleNamespace(status_code=200)
 
-    monkeypatch.setattr("yuxi.agents.backends.sandbox.provisioner_client.httpx.request", fake_request)
+    monkeypatch.setattr("binizox.agents.backends.sandbox.provisioner_client.httpx.request", fake_request)
     client = ProvisionerClient(
         "http://sandbox-provisioner:8002",
         token="test-provisioner-token-that-is-long-enough",

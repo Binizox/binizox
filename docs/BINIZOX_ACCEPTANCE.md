@@ -1,74 +1,79 @@
-# Binizox v0.1 本地验收记录
+# Binizox 本地验收记录
 
-## 基线
+验收日期：2026-10-13
 
-- 仓库：`D:\Download\Binizox`
-- 分支：`codex/binizox-mvp`
-- Yuxi/AsterDesk 基线：`afea2c4bcacd760f8de36a90552218a94a8f0c72`（`asterdesk-phase4`）
-- Python：Conda `binizox-dev` / `binizox-parser`，均为 Python 3.12
-- 上游：六个研究快照均已核验到 `docs/BINIZOX_UPSTREAMS.md` 所列 commit
+仓库：`D:\Download\Binizox`
 
-原 `D:\Download\AsterDesk` 未被修改，Phase 1–5 运行目录和数据卷未删除或迁移。
+分支：`codex/binizox-mvp`
 
-## 已通过验证
+## 范围
 
-| 项目 | 命令 | 结果 |
+本轮完成独立 Binizox 命名空间、个人 Evidence/Skill/笔记工具链、旧企业 VPN 原型退出运行面、文档与 GitHub 仓库入口收敛。真实上游的名称、commit、许可证与版权声明仍保留；研究快照、运行目录、环境文件和数据库字节不进入 Git。
+
+原阶段数据以非破坏方式保存在 Git 忽略目录。当前 schema bootstrap 不再新建旧 action 表，也不执行 DROP。
+
+## 已通过
+
+| 验证 | 命令 | 结果 |
 |---|---|---|
-| Personal Tool Runner 单元测试 | `conda run -n binizox-dev pytest -q services/personal-tool-runner/test` | `4 passed` |
-| Parser sidecar 测试 | 设置 sidecar `PYTHONPATH` 后运行 `conda run -n binizox-parser pytest -q services/parser-sidecar/test` | `2 passed` |
-| Binizox 集成、Skill 注册、检索边界与健康接口 | `conda run -n binizox-dev pytest -q backend/test/unit/binizox/test_integrations_and_tool_policy.py` | `7 passed` |
-| Binizox 总览状态、API 边界、路由与导航 | `conda run -n binizox-dev corepack pnpm@11.24.0 --dir web run test:unit -- test/unit/binizox_overview.test.js` | `4 passed` |
-| 完整本地质量脚本 | `scripts/quality-check.ps1` | Ruff、`4 + 2 + 7` 个 Python 测试、工程契约 gate 及其负向测试、Vue lint、全量 Vue unit 和 build 全部通过 |
-| Vue lint | `pnpm run lint:check` | 通过 |
-| Vue 单元测试 | `pnpm run test:unit` | 既有 `166` 项与新增 `4` 项全部通过 |
-| Vue build | `pnpm run build` | 通过；只有已有的大 chunk 警告 |
-| Personal Tool Runner HTTP 冒烟 | `scripts/dev-smoke.ps1` | 健康检查、首次写入、同键重放、文件存在均通过 |
-| Compose 配置 | 合并 `docker-compose.yml` 与 `docker-compose.binizox.yml` 后执行 `config --quiet` | 通过 |
-| 工程契约 gate | `conda run -n binizox-dev python scripts/verify_engineering_contracts.py` | 通过：61 decisions / 5 workflows / 4 AGENTS / 113 docs / 27 routers / 260 web sources |
-| 工程契约负向测试 | `conda run -n binizox-dev python -m unittest scripts.test_verify_engineering_contracts` | `61 passed, 1 skipped`；跳过项为当前 Windows 账户无符号链接权限 |
-| 本地登录页品牌检查 | Vite 启动后使用本地浏览器访问 | 实际 DOM 显示 `Binizox` 及 `© 2026 Binizox` |
+| Evidence、Skill、个人集成及 replay 契约单测 | `python -m pytest backend/test/unit/evidence backend/test/unit/binizox -q` | 22 passed；replay 直接读取生产 Skill，并覆盖检索与个人笔记工具调用 |
+| Parser sidecar | 在 `services/parser-sidecar` 执行 `python -m pytest test -q` | 2 passed |
+| Personal Tool Runner | `python -m pytest services/personal-tool-runner/test -q` | 13 passed，2 skipped；覆盖至少 32 字符且不得复用其他安全密钥的内部凭据、用户隔离、同键并发、过期租约接管、旧 claim 拒绝结算、路径逃逸和有界读取；Windows 无 symlink/FIFO，Linux CI 保留两个负向用例 |
+| Windows 本地文件边界 | `pytest test_paths.py test_filesystem.py test_workdir.py` 及 Project/Memory 相关单测 | 14 passed、6 个 POSIX/symlink 用例 skipped；Project/Memory 29 passed；原生 Windows 可导入并使用逐级拒绝 symlink 的本地路径，Linux 生产仍使用 `dir_fd + O_NOFOLLOW` |
+| Compose 文件消费者边界 | `pytest ...test_docker_compose_service_boundaries.py -k "not ...POSIX-only..."` | 32 passed，2 deselected；两个仅适用于 POSIX shell 的既有用例未在 Windows 计入通过；开发与生产 Tool Runner 均受 storage-migrator 成功门控 |
+| Binizox CLI | `python -m pytest packages/binizox-cli/tests -q` | 110 passed，1 skipped；Windows 无 POSIX mode 位，不能用 `0600` 断言 NTFS ACL |
+| Vue lint | `corepack pnpm@11.24.0 --dir web lint:check` | passed |
+| Vue unit | `corepack pnpm@11.24.0 --dir web test:unit` | 168 passed |
+| Vue production build | `corepack pnpm@11.24.0 --dir web build` | passed；只有既有大 chunk 警告 |
+| 文档依赖与 build | `corepack pnpm@11.24.0 --dir docs install --frozen-lockfile`、`build` | passed；VitePress/Rolldown 输出非阻断兼容警告 |
+| 工程契约 | `python scripts/verify_engineering_contracts.py` | passed：59 decisions / 5 workflows / 4 AGENTS / 112 docs / 27 routers / 260 web sources |
+| 工程契约负向测试 | `python -m unittest scripts.test_verify_engineering_contracts` | 61 passed，1 skipped；Windows 无符号链接权限 |
+| Python 语法 | `python -m compileall` 覆盖 backend/server/CLI/parser/tool runner | passed |
+| Python 包与第三方许可证 | 分别构建 backend、CLI、Personal Tool Runner wheel 并读取 zip 内容 | passed；三个 wheel 都含 Binizox `LICENSE` 与保留 Yuxi MIT 版权的 `THIRD_PARTY_NOTICES.md`；DeerFlow NOTICE 与 MIT 全文继续随 backend wheel 分发 |
+| Compose 展开 | 分别对开发、Binizox override 与生产 Compose 执行 `docker compose config --quiet` | 三组退出码均为 0；生产检查临时复用被忽略的本地环境文件，检查后立即删除临时副本 |
+| 旧环境凭据迁移 | `pwsh -NoProfile -File scripts/test_migrate_binizox_local_state.ps1`，并对真实迁移执行重跑 | 隔离测试证明 token 缺失/复用时生成 32 字节随机值、不输出 secret、重复迁移保持 token 和数据；真实旧数据目录均为 `target-not-empty`，未覆盖 |
+| Git whitespace | `git diff --check` | passed |
+| 运行时旧命名扫描 | 搜索旧 import、API、worker、Skill、Vue 与服务注册 | 仅迁移脚本和 repository 旧数据读取键保留 |
 
-真实冒烟测试在 `.runtime/binizox/workspace/smoke/` 写入 Markdown。该目录和 SQLite 状态均被 Git 忽略。
+## 调用链审查
 
-## 尚未在本轮运行
+1. FastAPI 认证用户创建 Agent Run，请求和 Run 先写 PostgreSQL。
+2. 提交后派发服务把可执行 Run 投递到 Redis/ARQ；Redis 不是业务终态。
+3. worker 只注册 `process_agent_run`，领取后执行 LangGraph，并把 checkpoint、输出和终态写回 PostgreSQL。
+4. SSE 从 Run 事件流展示过程，断线后按游标恢复；最终结果仍从持久化 Run/result 读取。
+5. `search_binizox_evidence` 从 Run 身份得到用户和租户，先限制当前 Agent 可见知识库，再由 repository 过滤 `active` 文档和文档 ACL。
+6. Agent 只收到过滤后的 Evidence；citation 绑定文档 ID、版本、页码/块位置和 chunk ID。
+7. `save_binizox_note` 在 Human-in-the-loop 确认后，通过带内部凭据的 HTTP adapter 调用独立 Tool Runner；调用绑定用户、Run 与 tool call，固定幂等键避免重复写入。
+8. Tool Runner 原子取得短租约和唯一 claim token；同键活跃请求返回 `execution_in_progress`，只有过期租约可接管，失去 claim 的旧执行者不能写终态。已有文件只做 no-follow、非阻塞、定长二进制核对。
+9. Ubuntu system-test 已装配完整验收：Agent 先产生固定笔记参数并进入 `human_approval_required`，批准分支恢复 Run、查询 Tool Runner 持久执行记录并核对实际文件字节；拒绝分支核对无执行记录且无文件副作用。该流程已进入 CI，但本机因 Docker Engine 不可用尚未产生容器级通过结果。
 
-Docker Desktop 的 Linux Engine 未启动，访问 `npipe:////./pipe/dockerDesktopLinuxEngine` 失败。因此本轮没有启动最终全栈容器，也没有把“Compose 配置可解析”描述为“容器运行成功”。由于 API/认证不可用，登录后 `/binizox` 总览页的浅色、深色和 375px 窄屏视觉验收也未执行；这一项仅通过源码契约、lint 和 build，不计为真实页面验收。
+静态审查和目标测试没有发现字段断裂。`SearchRequest.user_id/tenant_id` 在服务端派生，sidecar 不能改写已授权文档身份，未完成或已 superseded 的文档不会进入检索候选。LITE 模式不导入或公布 Evidence 路由、工具与 Skill。
 
-完整 Yuxi 后端依赖较大，本轮没有执行 `conda-bootstrap.ps1 -InstallPlatform`，因此尚未在新仓库中完成需要模型配置、登录账号、PostgreSQL、Redis 和 MinIO 的真实 AgentRun E2E。相关串联代码、Skill、人工确认中间件注册和启动脚本已经落盘。
+## 未完成的动态验证
 
-`save_binizox_note` 的来源引用目前由 Skill 提示词和工具参数契约约束，还没有在服务端将其与“当前 Run 真实返回的 Evidence ID”做强绑定。因此它是当前最小闭环的明确限制，不应宣称为已完成引用防伪。
+Docker Desktop Linux Engine 未运行：连接 `npipe:////./pipe/dockerDesktopLinuxEngine` 失败。因此没有在本机执行本轮最终容器冷启动、真实 PostgreSQL/Redis/MinIO、API + worker + LangGraph + SSE 端到端。GitHub Ubuntu system-test 已配置确定性 OpenAI-compatible replay，不依赖真实模型额度，并会验证 Evidence ACL、Agent 引用、HITL 批准/拒绝以及 Tool Runner 文件事实；在远端工作流实际成功前，这些容器场景仍记为待验证。`docker compose config --quiet` 只能证明配置可解析，不能证明容器健康。
 
-## 用户可执行的最终验证
+本机 `wsl.exe` 未安装可启动的 Linux 发行版，因此 FIFO、symlink 与 POSIX mode/dir_fd 文件系统负向测试只完成了代码接线并交给 GitHub Ubuntu workflow，当前本机结果为 skipped，不能计入通过。Windows 本地分支已验证普通文件读写、原子替换、目录扫描和项目路径；它不替代 Linux 生产路径的 no-follow 测试。
+
+Conda 镜像一度读取超时，完整锁文件同步未完成；目标测试通过环境内 pip 补齐所需依赖。依赖完整服务器导入图的 LITE 单测因此未在本机完成，新增边界将由 GitHub system-tests 的 Linux 完整环境验证。正式复现建议在网络稳定后再次执行 `scripts/conda-bootstrap.ps1 -InstallPlatform`。
+
+`save_binizox_note` 的 citation 由 Skill 和工具参数约束，尚未在服务端强制绑定“本 Run 返回的 Evidence ID”；这是当前最小版明确限制。
+
+## 最终本机验证
 
 ```powershell
 Set-Location D:\Download\Binizox
-
-# 1. 首次准备完整环境
 .\scripts\conda-bootstrap.ps1 -InstallPlatform
 Copy-Item .env.binizox.example .env.binizox.local
-# 编辑本地文件，填写数据库、MinIO、认证及模型配置；不要提交。
+# 填写真实模型与基础设施参数，不要提交本地环境文件。
 
-# 2. 启动 Docker Desktop 后启动基础设施
 .\scripts\dev-infra-up.ps1
-
-# 3. 分别在终端启动
 .\scripts\dev-parser.ps1
 .\scripts\dev-tool-runner.ps1
 .\scripts\dev-api.ps1
 .\scripts\dev-worker.ps1
 .\scripts\dev-web.ps1
-
-# 4. 轻量 HTTP 验证
 .\scripts\dev-smoke.ps1
 ```
 
-进入 Vue 后创建/配置 Agent，启用 `binizox-personal-agent` Skill，上传 `examples/personal/personal-knowledge-workflow.md` 或示例 DOCX，完成索引后提问并要求保存笔记。预期 `save_binizox_note` 在真正写文件前弹出 Yuxi 既有工具确认框；批准后文件出现在 `.runtime/binizox/workspace`，拒绝时不写入。
-
-最终容器验证使用：
-
-```powershell
-# 完整 Compose 沿用 Yuxi 的 .env，首次需先按 README 快速启动章节创建并填写它。
-.\scripts\binizox-up.ps1
-```
-
-停止服务使用 `scripts/binizox-stop.ps1`。该脚本只执行 `stop`，不会删除卷。
+上传 `examples/evidence/personal-reference-v1.docx`，启用 `binizox-personal-agent` 后提问并要求保存笔记。预期回答引用实际 Evidence；写入前出现工具确认，批准后在个人工作区生成 Markdown，拒绝时无文件副作用。

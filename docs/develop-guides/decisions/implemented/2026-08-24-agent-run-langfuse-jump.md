@@ -2,7 +2,7 @@
 
 状态：implemented
 类型：feature
-Owner：backend/package/yuxi/services/agent_run_service.py
+Owner：backend/package/binizox/services/agent_run_service.py
 
 ## 问题
 

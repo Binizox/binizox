@@ -1,0 +1,41 @@
+from pathlib import Path
+
+import pytest
+from pydantic import ValidationError
+
+from binizox.evidence.contracts import ToolInvocation
+from binizox.evidence.skill_adapter import load_skill_manifest
+
+
+def test_tool_invocation_requires_non_empty_idempotency_key() -> None:
+    with pytest.raises(ValidationError):
+        ToolInvocation(run_id="run-1", tool_name="grant-access", arguments={}, idempotency_key="")
+
+
+def test_deerflow_frontmatter_adapter_loads_binizox_skill() -> None:
+    skill_file = (
+        Path(__file__).parents[3]
+        / "package"
+        / "binizox"
+        / "agents"
+        / "skills"
+        / "buildin"
+        / "binizox-personal-agent"
+        / "SKILL.md"
+    )
+
+    manifest = load_skill_manifest(skill_file, source="builtin://binizox-personal-agent")
+
+    assert manifest.name == "binizox-personal-agent"
+    assert manifest.version == "0.1.0"
+    assert manifest.required_tools == ["search_binizox_evidence", "save_binizox_note"]
+    assert manifest.required_permissions == ["knowledge:document:read", "workspace:note:write"]
+    assert manifest.visibility == "personal"
+
+
+def test_deerflow_frontmatter_adapter_rejects_missing_frontmatter(tmp_path: Path) -> None:
+    skill_file = tmp_path / "SKILL.md"
+    skill_file.write_text("# missing frontmatter\n", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="No YAML frontmatter found"):
+        load_skill_manifest(skill_file, source="test://invalid")

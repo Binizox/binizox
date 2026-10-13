@@ -2,7 +2,7 @@
 
 状态：implemented
 类型：feature
-Owner：backend/package/yuxi/services/project_service.py
+Owner：backend/package/binizox/services/project_service.py
 
 ## 问题
 
@@ -36,7 +36,7 @@ Project 持久化拥有名称与生命周期，Conversation 持久化拥有线�
 |---|---|---|---|---|
 | 当前用户可重命名 active selectable Project | Project repository/service 与 HTTP 依赖 | Project unit；真实 HTTP integration 回读名称 | 空白名称、跨用户、deleted Project 拒绝 | Passed |
 | 删除原子软删除 Project 与全部 Conversation | Project repository/service 与 PostgreSQL | 真实 HTTP integration 后重新查询 Project、Conversation 与列表 | 跨用户与重复删除返回 404 | Passed |
-| Project 删除不修改 Workdir 字节 | Project service 与 `yuxi.workspace` | integration 删除后回读哨兵目录 | linked Workdir 保持存在 | Passed |
+| Project 删除不修改 Workdir 字节 | Project service 与 `binizox.workspace` | integration 删除后回读哨兵目录 | linked Workdir 保持存在 | Passed |
 | 项目分组位于最近分组上方且两者同时展示，最近只包含其他对话 | Conversation 导航组件与 Project/Thread API | 前端 unit；Playwright DOM 顺序、分类结果、折叠动画与最终截图 | Project 加载中或失败、空 Project、implicit Conversation、deleted Project、长名称、置顶项跨页、键盘操作菜单 | Passed |
 | Project 删除与 Conversation 创建线性化 | Project 行锁与 Conversation 创建事务 | service guard unit；隔离 PostgreSQL 并发事务回读 | 创建持锁时删除等待，最终 Project 与新 Conversation 同为 deleted | Passed |
 | Schema 从 business v1 收敛到 v2 | storage-migrator 与 PostgreSQL schema version | 完整后端 unit 1565 passed；隔离数据库迁移与真实 API 启动 | 未知未来版本 fail-closed；迁移失败不提前记录版本 | Passed |

@@ -151,11 +151,11 @@
     </a-form>
     <template #footer>
       <div class="benchmark-modal-footer">
-        <div class="benchmark-help-text">
+        <div v-if="evaluationDocsUrl" class="benchmark-help-text">
           需要了解评估基准生成原理？查看
           <a
             class="benchmark-help-link"
-            href="https://xerrors.github.io/Yuxi/intro/evaluation.html"
+            :href="evaluationDocsUrl"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -185,8 +185,10 @@ import { CircleHelp, Database, Network } from '@lucide/vue'
 import { evaluationApi, graphBuildApi } from '@/apis/knowledge_api'
 import { useConfigStore } from '@/stores/config'
 import ModelSelectorComponent from '@/components/ModelSelectorComponent.vue'
+import { productDocumentationUrl } from '@/config/product'
 
 const configStore = useConfigStore()
+const evaluationDocsUrl = productDocumentationUrl('intro/evaluation.html')
 
 const props = defineProps({
   visible: {

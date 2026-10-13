@@ -5435,7 +5435,7 @@ wheels = [
 ]
 
 [[package]]
-name = "yuxi"
+name = "binizox"
 version = "0.7.2"
 source = { editable = "package" }
 dependencies = [
@@ -5590,14 +5590,14 @@ requires-dist = [
 ]
 
 [[package]]
-name = "yuxi-workspace"
+name = "binizox-workspace"
 version = "0.7.2"
 source = { virtual = "." }
 dependencies = [
     { name = "arq" },
     { name = "fastapi" },
     { name = "uvicorn", extra = ["standard"] },
-    { name = "yuxi" },
+    { name = "binizox" },
 ]
 
 [package.dev-dependencies]
@@ -5616,7 +5616,7 @@ requires-dist = [
     { name = "arq", specifier = ">=0.26.3" },
     { name = "fastapi", specifier = ">=0.121" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.34.2" },
-    { name = "yuxi", editable = "package" },
+    { name = "binizox", editable = "package" },
 ]
 
 [package.metadata.requires-dev]

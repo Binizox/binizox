@@ -6,7 +6,7 @@ Owner：docker/api.Dockerfile
 
 ## 问题
 
-API、storage migrator 与 execution Sandbox 以不同 POSIX 身份写入同一 UserWorkspace。当前实现因此在文件创建、目录创建、旧数据迁移和 Sandbox 启动处反复使用 `0o777`、`0o666`、`fchmod` 与 `chmod a+rwx` 修复跨身份可写性。这些补丁把部署身份约束扩散进 `yuxi.utils.paths`、`Workspace`、Workspace API 和 provisioner，并让每个新写入入口都必须重复维护权限与失败回滚。
+API、storage migrator 与 execution Sandbox 以不同 POSIX 身份写入同一 UserWorkspace。当前实现因此在文件创建、目录创建、旧数据迁移和 Sandbox 启动处反复使用 `0o777`、`0o666`、`fchmod` 与 `chmod a+rwx` 修复跨身份可写性。这些补丁把部署身份约束扩散进 `binizox.utils.paths`、`Workspace`、Workspace API 和 provisioner，并让每个新写入入口都必须重复维护权限与失败回滚。
 
 路径授权、root-to-leaf no-follow、普通文件检查和原子写入仍是 UserWorkspace 的安全边界，不属于本次删除对象。
 

@@ -3,17 +3,18 @@ FROM python:3.12-slim
 WORKDIR /app
 
 COPY pyproject.toml ./
+COPY LICENSE THIRD_PARTY_NOTICES.md ./
 COPY app ./app
 
 RUN pip install --no-cache-dir .
 
-RUN useradd --create-home --uid 10001 binizox \
-    && mkdir -p /data /workspace \
-    && chown -R binizox:binizox /data /workspace
+RUN useradd --create-home --uid 1000 binizox \
+    && mkdir -p /data /app/user-data \
+    && chown -R binizox:binizox /data /app/user-data
 
 USER binizox
 
-ENV BINIZOX_WORKSPACE_ROOT=/workspace
+ENV BINIZOX_WORKSPACE_ROOT=/app/user-data
 ENV BINIZOX_TOOL_STATE_PATH=/data/tool-runner.sqlite3
 
 EXPOSE 8091

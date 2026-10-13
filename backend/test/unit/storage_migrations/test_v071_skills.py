@@ -2,7 +2,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from yuxi.storage_migrations import v071_skills as migration
+from binizox.storage_migrations import v071_skills as migration
 
 
 class _Db:

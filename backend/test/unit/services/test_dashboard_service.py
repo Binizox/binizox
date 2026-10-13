@@ -8,8 +8,8 @@ import pytest_asyncio
 from sqlalchemy import event
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from yuxi.services.dashboard_service import DashboardService
-from yuxi.storage.postgres.models_business import (
+from binizox.services.dashboard_service import DashboardService
+from binizox.storage.postgres.models_business import (
     Agent,
     Base,
     Conversation,
@@ -20,7 +20,7 @@ from yuxi.storage.postgres.models_business import (
     ToolCall,
     User,
 )
-from yuxi.utils.datetime_utils import utc_now_naive
+from binizox.utils.datetime_utils import utc_now_naive
 
 pytestmark = [pytest.mark.asyncio, pytest.mark.unit]
 

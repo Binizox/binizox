@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 
 import pytest
 
-from yuxi.storage.postgres.manager import (
+from binizox.storage.postgres.manager import (
     BUSINESS_SCHEMA_VERSION,
     KNOWLEDGE_SCHEMA_VERSION,
     BusinessBase,

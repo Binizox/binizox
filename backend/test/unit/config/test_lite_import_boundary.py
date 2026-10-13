@@ -20,22 +20,30 @@ def test_lite_shipping_surface_excludes_knowledge_runtime_routes_skills_and_tool
     environment["LITE_MODE"] = "true"
     environment["PYTHONPATH"] = os.pathsep.join([str(backend_root), str(backend_root / "package")])
     script = """
+import os
 import sys
+if not hasattr(os, "O_DIRECTORY"):
+    os.O_DIRECTORY = 0
+if not hasattr(os, "O_NOFOLLOW"):
+    os.O_NOFOLLOW = 0
 import server.main
-from yuxi.agents.skills.buildin import BUILTIN_SKILLS
-from yuxi.agents.toolkits.service import get_tool_metadata
+from binizox.agents.skills.buildin import BUILTIN_SKILLS
+from binizox.agents.toolkits.service import get_tool_metadata
 
 forbidden = (
-    "yuxi.knowledge.runtime",
-    "yuxi.knowledge.parser.unified",
-    "yuxi.knowledge.chunking",
-    "yuxi.knowledge.implementations.milvus",
-    "yuxi.knowledge.eval",
-    "yuxi.repositories.knowledge_base_repository",
-    "yuxi.repositories.knowledge_file_repository",
-    "yuxi.services.knowledge_dashboard_service",
-    "yuxi.storage.neo4j",
+    "binizox.knowledge.runtime",
+    "binizox.knowledge.parser.unified",
+    "binizox.knowledge.chunking",
+    "binizox.knowledge.implementations.milvus",
+    "binizox.knowledge.eval",
+    "binizox.repositories.knowledge_base_repository",
+    "binizox.repositories.knowledge_file_repository",
+    "binizox.services.knowledge_dashboard_service",
+    "binizox.storage.neo4j",
     "server.routers.knowledge_dashboard_router",
+    "server.routers.evidence_router",
+    "binizox.evidence",
+    "binizox.agents.toolkits.binizox",
 )
 loaded = sorted(
     name
@@ -51,6 +59,7 @@ blocked_route_prefixes = (
     "/api/graph",
     "/api/dashboard/stats/knowledge",
     "/api/workspace/knowledge",
+    "/api/binizox/evidence",
 )
 knowledge_routes = sorted(
     path
@@ -63,12 +72,20 @@ if knowledge_routes:
 builtin_slugs = {spec.slug for spec in BUILTIN_SKILLS}
 if "knowledge-base" in builtin_slugs:
     raise SystemExit("LITE advertised builtin knowledge-base Skill")
+if "binizox-personal-agent" in builtin_slugs:
+    raise SystemExit("LITE advertised Evidence-dependent personal Agent Skill")
 
 knowledge_tools = sorted(
     item["slug"] for item in get_tool_metadata() if item.get("category") == "knowledge"
 )
 if knowledge_tools:
     raise SystemExit("LITE advertised knowledge tools: " + ", ".join(knowledge_tools))
+personal_evidence_tools = sorted(
+    item["slug"] for item in get_tool_metadata()
+    if item.get("slug") in {"search_binizox_evidence", "save_binizox_note"}
+)
+if personal_evidence_tools:
+    raise SystemExit("LITE advertised Evidence-dependent tools: " + ", ".join(personal_evidence_tools))
 """
 
     result = subprocess.run(
@@ -92,6 +109,11 @@ def test_full_shipping_surface_registers_knowledge_dashboard() -> None:
     environment.pop("LITE_MODE", None)
     environment["PYTHONPATH"] = os.pathsep.join([str(backend_root), str(backend_root / "package")])
     script = """
+import os
+if not hasattr(os, "O_DIRECTORY"):
+    os.O_DIRECTORY = 0
+if not hasattr(os, "O_NOFOLLOW"):
+    os.O_NOFOLLOW = 0
 import server.main
 
 paths = server.main.app.openapi()["paths"]

@@ -2,8 +2,8 @@
 
 from fastapi import APIRouter
 
-from yuxi.binizox.integrations import list_upstream_integrations
-from yuxi.binizox.tool_runner_client import get_personal_tool_runner_health
+from binizox.personal.integrations import list_upstream_integrations
+from binizox.personal.tool_runner_client import get_personal_tool_runner_health
 
 binizox = APIRouter(prefix="/binizox", tags=["Binizox"])
 

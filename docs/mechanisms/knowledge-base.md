@@ -4,10 +4,10 @@
 
 ## 能力边界
 
-Yuxi 通过 `KnowledgeBaseManager` 读取知识库配置、解析权限并选择 executor：
+Binizox 通过 `KnowledgeBaseManager` 读取知识库配置、解析权限并选择 executor：
 
 - `milvus` 是文档型知识库，支持上传、解析、分块、向量索引、预览和检索，也可以构建知识图谱；
-- `dify` 和 `notion` 是只读连接器，只保存外部连接信息并执行 Query，不承载 Yuxi 的上传、解析、索引、文件树和全文预览。
+- `dify` 和 `notion` 是只读连接器，只保存外部连接信息并执行 Query，不承载 Binizox 的上传、解析、索引、文件树和全文预览。
 
 前端按钮只反映 executor 的能力，最终判断由后端完成。只读连接器收到不支持的操作时会明确报错。
 
@@ -121,16 +121,16 @@ LITE 模式不注册知识库、图谱和评估重运行时，也不注册 `know
 
 ## 源码定位与验证
 
-- [知识库路由](https://github.com/xerrors/Yuxi/blob/main/backend/server/routers/knowledge_router.py)：权限、上传、任务和状态筛选
-- [KnowledgeBaseManager](https://github.com/xerrors/Yuxi/blob/main/backend/package/yuxi/knowledge/manager.py)：配置回源、可见性和 executor 调度
-- [知识库基类](https://github.com/xerrors/Yuxi/blob/main/backend/package/yuxi/knowledge/base.py)：文件状态和解析流程
-- [Milvus executor](https://github.com/xerrors/Yuxi/blob/main/backend/package/yuxi/knowledge/implementations/milvus.py)：分块、双写、检索和重索引
-- [只读连接器](https://github.com/xerrors/Yuxi/blob/main/backend/package/yuxi/knowledge/implementations/read_only_connectors.py)：Dify/Notion 能力边界
-- [Tasker](https://github.com/xerrors/Yuxi/blob/main/backend/package/yuxi/services/task_service.py)：任务持久化和重启结局
-- [知识库工具](https://github.com/xerrors/Yuxi/blob/main/backend/package/yuxi/agents/toolkits/kbs/tools.py)：Agent 目标校验和工具实现
-- [知识库 unit tests](https://github.com/xerrors/Yuxi/tree/main/backend/test/unit/knowledge)
-- [权限与路由 tests](https://github.com/xerrors/Yuxi/tree/main/backend/test/unit/routers)
-- [知识库 HTTP integration](https://github.com/xerrors/Yuxi/blob/main/backend/test/integration/api/test_knowledge_router.py)
-- [外部知识库 integration](https://github.com/xerrors/Yuxi/blob/main/backend/test/integration/api/test_knowledge_external_router.py)
+- [知识库路由](https://github.com/Binizox/binizox/blob/main/backend/server/routers/knowledge_router.py)：权限、上传、任务和状态筛选
+- [KnowledgeBaseManager](https://github.com/Binizox/binizox/blob/main/backend/package/binizox/knowledge/manager.py)：配置回源、可见性和 executor 调度
+- [知识库基类](https://github.com/Binizox/binizox/blob/main/backend/package/binizox/knowledge/base.py)：文件状态和解析流程
+- [Milvus executor](https://github.com/Binizox/binizox/blob/main/backend/package/binizox/knowledge/implementations/milvus.py)：分块、双写、检索和重索引
+- [只读连接器](https://github.com/Binizox/binizox/blob/main/backend/package/binizox/knowledge/implementations/read_only_connectors.py)：Dify/Notion 能力边界
+- [Tasker](https://github.com/Binizox/binizox/blob/main/backend/package/binizox/services/task_service.py)：任务持久化和重启结局
+- [知识库工具](https://github.com/Binizox/binizox/blob/main/backend/package/binizox/agents/toolkits/kbs/tools.py)：Agent 目标校验和工具实现
+- [知识库 unit tests](https://github.com/Binizox/binizox/tree/main/backend/test/unit/knowledge)
+- [权限与路由 tests](https://github.com/Binizox/binizox/tree/main/backend/test/unit/routers)
+- [知识库 HTTP integration](https://github.com/Binizox/binizox/blob/main/backend/test/integration/api/test_knowledge_router.py)
+- [外部知识库 integration](https://github.com/Binizox/binizox/blob/main/backend/test/integration/api/test_knowledge_external_router.py)
 
 修改状态、权限、存储或 Agent 工具链路时，至少运行对应 unit 和真实 HTTP integration；涉及外部存储时，从 PostgreSQL、MinIO、Milvus 或 Neo4j 回读最终结果。

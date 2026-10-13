@@ -2,9 +2,9 @@
 
 状态：implemented
 类型：simplification
-Owner：backend/package/yuxi/agents/skills/service.py
+Owner：backend/package/binizox/agents/skills/service.py
 
-Skill 持久目录配置由 `yuxi.config` 拥有；Prompt 与激活路径由
+Skill 持久目录配置由 `binizox.config` 拥有；Prompt 与激活路径由
 `agents/middlewares/skills.py` 拥有；Sandbox 只读挂载仍由 provisioner 拥有。
 
 ## 问题
@@ -15,10 +15,10 @@ Skill 持久目录配置由 `yuxi.config` 拥有；Prompt 与激活路径由
 
 ## 决策
 
-- `YUXI_SKILL_DATA_DIR/shared/<slug>` 只保存共享与内置 Skill；其元数据和授权由 PostgreSQL `skills` 表拥有。
+- `BINIZOX_SKILL_DATA_DIR/shared/<slug>` 只保存共享与内置 Skill；其元数据和授权由 PostgreSQL `skills` 表拥有。
 - 个人 Skill 始终保存在 UserWorkspace 的 `workspace/agents/skills/<slug>`，不进入 PostgreSQL，也不进入
-  `YUXI_SKILL_DATA_DIR`。个人 Skill 列表按请求直接扫描该目录，不维护 Redis metadata cache。
-- `YUXI_SKILL_PROJECTION_DIR/<safe-uid>` 只物化当前 uid 获授权的共享与内置 Skill，并只读暴露为
+  `BINIZOX_SKILL_DATA_DIR`。个人 Skill 列表按请求直接扫描该目录，不维护 Redis metadata cache。
+- `BINIZOX_SKILL_PROJECTION_DIR/<safe-uid>` 只物化当前 uid 获授权的共享与内置 Skill，并只读暴露为
   `/home/gem/skills`。个人 Skill 由既有 UserWorkspace mount 直接暴露为
   `/home/gem/user-data/agents/skills`。
 - Agent 选择只影响 Prompt 与工具激活；个人与共享 Skill 同 slug 时，逻辑解析仍由个人版本覆盖共享版本，
@@ -26,7 +26,7 @@ Skill 持久目录配置由 `yuxi.config` 拥有；Prompt 与激活路径由
 - API 与 worker 都是受信任的个人 Skill service consumer，并以固定 `1000:1000` 写 UserWorkspace；worker
   的写能力用于主 Agent `install_skill` 工具的原子安装。共享 Skill projection 继续只读，Sandbox 的普通
   Project 文件写入仍通过其受限 UserWorkspace 挂载与文件边界执行。
-- Skill 安装草稿属于进程可丢弃状态，使用 `YUXI_RUNTIME_DIR/skill_import_drafts`，不再进入持久卷。
+- Skill 安装草稿属于进程可丢弃状态，使用 `BINIZOX_RUNTIME_DIR/skill_import_drafts`，不再进入持久卷。
 - 一次性 `storage-migrator` 在 PostgreSQL advisory lock 下只迁移已识别的旧共享来源。迁移使用
   fd-relative `O_NOFOLLOW` 快照、校验 `SKILL.md` slug，并在目标冲突时拒绝切换。UserWorkspace 中的
   个人 Skill 原地保留，不参与共享 Skill 迁移判定，也不会被复制或删除。

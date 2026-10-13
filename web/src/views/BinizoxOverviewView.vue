@@ -43,7 +43,7 @@
       <div class="section-heading">
         <div>
           <h2 id="runtime-title">运行链路</h2>
-          <p>状态来自 Binizox FastAPI；数据库和 Run 终态仍由 Yuxi 主链持有。</p>
+          <p>状态来自 Binizox FastAPI；数据库和 Run 终态仍由 Binizox 主链持有。</p>
         </div>
         <button
           type="button"

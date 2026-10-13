@@ -1,6 +1,6 @@
 # Agent 运行时上下文
 
-本页解释 Yuxi 如何从持久化 Agent 配置构建一次运行，以及配置、权限、文件和 LangGraph state 在运行中分别负责什么。Agent 配置和扩展开发见[配置和开发智能体](../agents/agents-config.md)。
+本页解释 Binizox 如何从持久化 Agent 配置构建一次运行，以及配置、权限、文件和 LangGraph state 在运行中分别负责什么。Agent 配置和扩展开发见[配置和开发智能体](../agents/agents-config.md)。
 
 ## 运行入口
 
@@ -66,12 +66,12 @@ Viewer、附件和 artifact API 通过持久化 Workspace/Workdir 读取文件�
 
 ## 源码和验证入口
 
-- [Context 与资源归一化](https://github.com/xerrors/Yuxi/blob/main/backend/package/yuxi/agents/context.py)
-- [BaseAgent](https://github.com/xerrors/Yuxi/blob/main/backend/package/yuxi/agents/base.py)
-- [Chatbot graph](https://github.com/xerrors/Yuxi/blob/main/backend/package/yuxi/agents/buildin/chatbot/graph.py)
-- [SubAgent graph](https://github.com/xerrors/Yuxi/blob/main/backend/package/yuxi/agents/buildin/subagent/graph.py)
-- [Memory middleware](https://github.com/xerrors/Yuxi/blob/main/backend/package/yuxi/agents/middlewares/memory.py)
-- [运行时上下文 unit](https://github.com/xerrors/Yuxi/tree/main/backend/test/unit/agents)
-- [Agent 主链路 E2E](https://github.com/xerrors/Yuxi/tree/main/backend/test/e2e)
+- [Context 与资源归一化](https://github.com/Binizox/binizox/blob/main/backend/package/binizox/agents/context.py)
+- [BaseAgent](https://github.com/Binizox/binizox/blob/main/backend/package/binizox/agents/base.py)
+- [Chatbot graph](https://github.com/Binizox/binizox/blob/main/backend/package/binizox/agents/buildin/chatbot/graph.py)
+- [SubAgent graph](https://github.com/Binizox/binizox/blob/main/backend/package/binizox/agents/buildin/subagent/graph.py)
+- [Memory middleware](https://github.com/Binizox/binizox/blob/main/backend/package/binizox/agents/middlewares/memory.py)
+- [运行时上下文 unit](https://github.com/Binizox/binizox/tree/main/backend/test/unit/agents)
+- [Agent 主链路 E2E](https://github.com/Binizox/binizox/tree/main/backend/test/e2e)
 
 修改配置、权限、模型可见输入、文件作用域或恢复语义时，同时验证对应的 unit、integration 或 E2E，并回读最终 state、消息、文件或协议结果。

@@ -7,12 +7,12 @@ from fastapi import APIRouter, Body, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
-from yuxi import get_version
-from yuxi.config.options import invalidate_option_cache, system_options, update_option_value
-from yuxi.config.runtime import knowledge_capability_enabled
-from yuxi.services.readiness_service import get_readiness
-from yuxi.storage.postgres.models_business import User
-from yuxi.utils.logging_config import LOG_FILE, logger
+from binizox import get_version
+from binizox.config.options import invalidate_option_cache, system_options, update_option_value
+from binizox.config.runtime import knowledge_capability_enabled
+from binizox.services.readiness_service import get_readiness
+from binizox.storage.postgres.models_business import User
+from binizox.utils.logging_config import LOG_FILE, logger
 
 from server.utils.auth_middleware import get_admin_user, get_db, get_required_user
 
@@ -189,20 +189,20 @@ async def load_info_config():
     """加载信息配置文件"""
     try:
         # 配置文件路径
-        brand_file_path = os.environ.get("YUXI_BRAND_FILE_PATH", "package/yuxi/config/static/info.local.yaml")
+        brand_file_path = os.environ.get("BINIZOX_BRAND_FILE_PATH", "package/binizox/config/static/info.local.yaml")
         config_path = Path(brand_file_path)
 
         # 检查文件是否存在
         if not config_path.exists():
             logger.debug(f"The config file {config_path} does not exist, using default config")
-            config_path = Path("package/yuxi/config/static/info.template.yaml")
+            config_path = Path("package/binizox/config/static/info.template.yaml")
 
         # 异步读取配置文件
         async with aiofiles.open(config_path, encoding="utf-8") as file:
             content = await file.read()
 
         # 注入版本号占位符
-        content = content.replace("{{YUXI_VERSION}}", get_version())
+        content = content.replace("{{BINIZOX_VERSION}}", get_version())
 
         config = yaml.safe_load(content)
 
@@ -253,7 +253,7 @@ async def get_config_options(
 ):
     """返回系统定义的通用配置表单和值。"""
 
-    from yuxi.config.options import list_options, serialize_option
+    from binizox.config.options import list_options, serialize_option
 
     return {"options": [serialize_option(record) for record in await list_options(db)]}
 
@@ -267,7 +267,7 @@ async def put_config_option(
 ):
     """保存一个通用配置项的 JSON 值。"""
 
-    from yuxi.config.options import serialize_option, update_option_value
+    from binizox.config.options import serialize_option, update_option_value
 
     try:
         record = await update_option_value(db, key, payload.value, current_user.username)
@@ -290,7 +290,7 @@ async def get_ocr_engine_options(
 ):
     """返回所有代码支持的 OCR 方法和默认项。"""
 
-    from yuxi.services.ocr_service import get_ocr_options
+    from binizox.services.ocr_service import get_ocr_options
 
     return await get_ocr_options(db)
 
@@ -302,6 +302,6 @@ async def get_ocr_health(
 ):
     """供登录用户使用当前有效配置检查全部 OCR 方法。"""
 
-    from yuxi.services.ocr_service import check_all_ocr_health
+    from binizox.services.ocr_service import check_all_ocr_health
 
     return {"health": await check_all_ocr_health(db)}

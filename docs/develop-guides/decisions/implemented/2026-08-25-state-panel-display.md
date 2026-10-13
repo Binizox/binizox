@@ -18,7 +18,7 @@ Owner：web/src/components/AgentChatComponent.vue
 - 待办统一使用中性的空心圆和浅灰实心圆；进行中为空心圆内辅助色闪烁圆点，并在 reduced-motion 下停止动画；已取消项使用中性虚线圆并保留“已取消”的无障碍文案。附件与产物卡片使用较小文件图标，只保留单行名称。
 - artifact 下载继续返回原始文件；预览请求显式携带 `preview=true`，在既有授权检查后复用 Workspace 文件预览适配器，使 DOCX/PPTX 与文件树一样转换为 PDF，不建立第二套格式判断。
 
-其中状态面板展示由 `web/src/components/AgentChatComponent.vue` 拥有，交付物预览授权与响应由 `backend/package/yuxi/services/artifact_service.py` 拥有。Artifact 只把已授权字节交给预览适配器，runtime Office 缓存仍由 [`yuxi.workspace.preview`](./2026-08-21-preview-owner-separation.md) 拥有。
+其中状态面板展示由 `web/src/components/AgentChatComponent.vue` 拥有，交付物预览授权与响应由 `backend/package/binizox/services/artifact_service.py` 拥有。Artifact 只把已授权字节交给预览适配器，runtime Office 缓存仍由 [`binizox.workspace.preview`](./2026-08-21-preview-owner-separation.md) 拥有。
 
 ## 替代方案
 

@@ -10,15 +10,15 @@ from fastapi import APIRouter, Body, Depends, File, HTTPException, Query, Upload
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 from starlette.responses import StreamingResponse
-from yuxi.config.options import system_options
-from yuxi.knowledge.base import KBNameConflictError, KBNotFoundError
-from yuxi.knowledge.chunking.ragflow_like.presets import get_chunk_preset_options
-from yuxi.knowledge.graphs.milvus_graph_service import GRAPH_TASK_TYPE, MilvusGraphService
-from yuxi.knowledge.read_models import KnowledgeBaseDetail
-from yuxi.knowledge.parser.unified import SUPPORTED_FILE_EXTENSIONS, is_supported_file_extension
-from yuxi.knowledge.runtime import knowledge_base
-from yuxi.knowledge.utils import calculate_content_hash, is_minio_url, parse_minio_url
-from yuxi.knowledge.utils.mindmap_utils import (
+from binizox.config.options import system_options
+from binizox.knowledge.base import KBNameConflictError, KBNotFoundError
+from binizox.knowledge.chunking.ragflow_like.presets import get_chunk_preset_options
+from binizox.knowledge.graphs.milvus_graph_service import GRAPH_TASK_TYPE, MilvusGraphService
+from binizox.knowledge.read_models import KnowledgeBaseDetail
+from binizox.knowledge.parser.unified import SUPPORTED_FILE_EXTENSIONS, is_supported_file_extension
+from binizox.knowledge.runtime import knowledge_base
+from binizox.knowledge.utils import calculate_content_hash, is_minio_url, parse_minio_url
+from binizox.knowledge.utils.mindmap_utils import (
     batch_remove_files_from_mindmap,
     generate_database_mindmap,
     get_database_mindmap_data,
@@ -27,23 +27,23 @@ from yuxi.knowledge.utils.mindmap_utils import (
     get_mindmap_diff,
     remove_file_from_mindmap,
 )
-from yuxi.knowledge.utils.sample_question_utils import (
+from binizox.knowledge.utils.sample_question_utils import (
     generate_database_sample_questions,
     get_database_sample_questions,
 )
-from yuxi.knowledge.utils.url_fetcher import fetch_url_content
-from yuxi.permissions import (
+from binizox.knowledge.utils.url_fetcher import fetch_url_content
+from binizox.permissions import (
     ResourcePermission,
     resolve_knowledge_base_permission,
 )
-from yuxi.services.knowledge_folder_service import knowledge_folder_service
-from yuxi.services.ocr_service import parse_document
-from yuxi.services.task_service import TaskContext, tasker
-from yuxi.services.workspace_service import read_workspace_file_bytes
-from yuxi.storage.minio.client import MinIOClient, StorageError, aupload_file_to_minio, get_minio_client
-from yuxi.storage.postgres.models_business import User
-from yuxi.utils import logger
-from yuxi.utils.upload_utils import MAX_UPLOAD_SIZE_BYTES, read_upload_with_limit, write_upload_to_path
+from binizox.services.knowledge_folder_service import knowledge_folder_service
+from binizox.services.ocr_service import parse_document
+from binizox.services.task_service import TaskContext, tasker
+from binizox.services.workspace_service import read_workspace_file_bytes
+from binizox.storage.minio.client import MinIOClient, StorageError, aupload_file_to_minio, get_minio_client
+from binizox.storage.postgres.models_business import User
+from binizox.utils import logger
+from binizox.utils.upload_utils import MAX_UPLOAD_SIZE_BYTES, read_upload_with_limit, write_upload_to_path
 
 from server.utils.auth_middleware import get_admin_user, get_db, get_required_user
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -277,7 +277,7 @@ async def create_database(
         )
 
         # 需要重新加载所有智能体，因为工具刷新了
-        from yuxi.agents.buildin import agent_manager
+        from binizox.agents.buildin import agent_manager
 
         await agent_manager.reload_all()
 
@@ -455,7 +455,7 @@ async def delete_database(kb_id: str, current_user: User = Depends(require_knowl
         await knowledge_base.delete_database(kb_id)
 
         # 需要重新加载所有智能体，因为工具刷新了
-        from yuxi.agents.buildin import agent_manager
+        from binizox.agents.buildin import agent_manager
 
         await agent_manager.reload_all()
 
@@ -2277,7 +2277,7 @@ async def generate_description(
 
     根据知识库名称和现有描述，使用 LLM 生成适合作为智能体工具描述的内容。
     """
-    from yuxi.models import select_model
+    from binizox.models import select_model
 
     file_list = file_list or []
     logger.debug(f"Generating description for knowledge base: {name}, files: {len(file_list)}")

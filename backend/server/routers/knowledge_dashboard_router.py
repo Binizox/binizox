@@ -6,9 +6,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from server.utils.auth_middleware import get_superadmin_user
-from yuxi.services.knowledge_dashboard_service import get_knowledge_stats
-from yuxi.storage.postgres.models_business import User
-from yuxi.utils.logging_config import logger
+from binizox.services.knowledge_dashboard_service import get_knowledge_stats
+from binizox.storage.postgres.models_business import User
+from binizox.utils.logging_config import logger
 
 
 knowledge_dashboard = APIRouter(prefix="/dashboard", tags=["Dashboard"])

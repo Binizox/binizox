@@ -427,7 +427,7 @@ class LocalContainerProvisionerBackend:
         )
         self._user_data_container_path = Path("/app/user-data")
         self._skill_projections_container_path = Path("/app/skill-projections")
-        self._container_prefix = os.getenv("DOCKER_SANDBOX_PREFIX", "yuxi-sandbox")
+        self._container_prefix = os.getenv("DOCKER_SANDBOX_PREFIX", "binizox-sandbox")
         self._health_timeout_seconds = int(
             os.getenv("SANDBOX_HEALTH_TIMEOUT_SECONDS", "300")
         )
@@ -622,7 +622,7 @@ class LocalContainerProvisionerBackend:
     def _has_expected_network_ownership(network, sandbox_id: str) -> bool:
         labels = network.attrs.get("Labels") or {}
         return (
-            labels.get("managed-by") == "yuxi-sandbox-provisioner"
+            labels.get("managed-by") == "binizox-sandbox-provisioner"
             and labels.get("sandbox-id") == sandbox_id
         )
 
@@ -637,7 +637,7 @@ class LocalContainerProvisionerBackend:
                 network_name,
                 driver="bridge",
                 labels={
-                    "managed-by": "yuxi-sandbox-provisioner",
+                    "managed-by": "binizox-sandbox-provisioner",
                     "sandbox-id": sandbox_id,
                 },
             )
@@ -822,13 +822,13 @@ class LocalContainerProvisionerBackend:
                 "name": container_name,
                 "detach": True,
                 "labels": {
-                    "app": "yuxi-sandbox",
+                    "app": "binizox-sandbox",
                     "sandbox-id": sandbox_id,
                     "thread-id": safe_thread_id,
                     "uid": safe_uid,
                     "workdir-path": safe_workdir_path or "",
                     "storage-mode": "ephemeral" if ephemeral_storage else "persistent",
-                    "managed-by": "yuxi-sandbox-provisioner",
+                    "managed-by": "binizox-sandbox-provisioner",
                 },
                 "volumes": {},
                 "network": network_name,
@@ -972,7 +972,7 @@ class LocalContainerProvisionerBackend:
         containers = self._client.containers.list(
             all=True,
             filters={
-                "label": ["app=yuxi-sandbox", "managed-by=yuxi-sandbox-provisioner"]
+                "label": ["app=binizox-sandbox", "managed-by=binizox-sandbox-provisioner"]
             },
         )
         records: list[SandboxRecord] = []
@@ -1007,13 +1007,13 @@ class KubernetesProvisionerBackend:
         from kubernetes import client, config
 
         self._lock = threading.RLock()
-        self._namespace = os.getenv("K8S_NAMESPACE", "yuxi-know")
+        self._namespace = os.getenv("K8S_NAMESPACE", "binizox-know")
         self._sandbox_image = os.getenv(
             "SANDBOX_IMAGE",
             "enterprise-public-cn-beijing.cr.volces.com/vefaas-public/all-in-one-sandbox:latest",
         )
-        self._skill_pvc = os.getenv("SKILLS_PVC", "yuxi-skills")
-        self._user_data_pvc = os.getenv("USER_DATA_PVC", "yuxi-user-data")
+        self._skill_pvc = os.getenv("SKILLS_PVC", "binizox-skills")
+        self._user_data_pvc = os.getenv("USER_DATA_PVC", "binizox-user-data")
         self._node_host = os.getenv("NODE_HOST", "host.docker.internal")
         self._container_port = int(os.getenv("SANDBOX_CONTAINER_PORT", "8080"))
         self._sandbox_env = load_sandbox_env()
@@ -1076,8 +1076,8 @@ class KubernetesProvisionerBackend:
             metadata=self._client.V1ObjectMeta(
                 name=pod_name,
                 labels={
-                    "app": "yuxi-sandbox",
-                    "managed-by": "yuxi-sandbox-provisioner",
+                    "app": "binizox-sandbox",
+                    "managed-by": "binizox-sandbox-provisioner",
                     "sandbox-id": sandbox_id,
                 },
                 annotations={
@@ -1182,8 +1182,8 @@ class KubernetesProvisionerBackend:
             metadata=self._client.V1ObjectMeta(
                 name=service_name,
                 labels={
-                    "app": "yuxi-sandbox",
-                    "managed-by": "yuxi-sandbox-provisioner",
+                    "app": "binizox-sandbox",
+                    "managed-by": "binizox-sandbox-provisioner",
                     "sandbox-id": sandbox_id,
                 },
             ),
@@ -1463,7 +1463,7 @@ class KubernetesProvisionerBackend:
         pod_list = self._core_api.list_namespaced_pod(
             namespace=self._namespace,
             # 升级窗口内旧 Pod 尚无 managed-by 标签；inventory 必须仍能枚举并清理它们。
-            label_selector="app=yuxi-sandbox",
+            label_selector="app=binizox-sandbox",
         )
 
         records: list[SandboxRecord] = []
@@ -1666,7 +1666,7 @@ async def lifespan(app: FastAPI):
             await app.state.http_client.aclose()
 
 
-app = FastAPI(title="Yuxi Sandbox Provisioner", lifespan=lifespan)
+app = FastAPI(title="Binizox Sandbox Provisioner", lifespan=lifespan)
 
 
 def sandbox_response(record: SandboxRecord) -> SandboxResponse:

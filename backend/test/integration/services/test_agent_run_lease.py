@@ -17,12 +17,12 @@ from sqlalchemy import delete, select, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from yuxi.repositories.agent_run_repository import AgentRunRepository
-from yuxi.repositories.conversation_repository import ConversationRepository
-from yuxi.services import chat_service, run_worker
-from yuxi.storage.postgres.manager import AGENT_RUN_LEASE_SCHEMA_STATEMENTS, RUNTIME_SCOPE_SCHEMA_STATEMENTS
-from yuxi.storage.postgres.models_business import AgentRun, Conversation, Message, Project, SubagentThread, User
-from yuxi.utils.datetime_utils import utc_now_naive
+from binizox.repositories.agent_run_repository import AgentRunRepository
+from binizox.repositories.conversation_repository import ConversationRepository
+from binizox.services import chat_service, run_worker
+from binizox.storage.postgres.manager import AGENT_RUN_LEASE_SCHEMA_STATEMENTS, RUNTIME_SCOPE_SCHEMA_STATEMENTS
+from binizox.storage.postgres.models_business import AgentRun, Conversation, Message, Project, SubagentThread, User
+from binizox.utils.datetime_utils import utc_now_naive
 
 pytestmark = [pytest.mark.asyncio, pytest.mark.integration]
 
@@ -863,7 +863,7 @@ async def test_cancel_execution_tree_locks_root_before_descendants(lease_databas
     """取消执行树等待 root 时不能提前持有 child 行锁。"""
     _, session_factory = lease_database
     suffix = uuid.uuid4().hex
-    application_name = f"yuxi-lock-order-{suffix}"
+    application_name = f"binizox-lock-order-{suffix}"
     now = utc_now_naive()
     root_id, root_thread, _ = await _create_run(session_factory)
     async with session_factory() as db:

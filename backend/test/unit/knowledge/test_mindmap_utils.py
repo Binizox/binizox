@@ -3,7 +3,7 @@ from types import SimpleNamespace
 import pytest
 from fastapi import HTTPException
 
-from yuxi.knowledge.utils import mindmap_utils as mm
+from binizox.knowledge.utils import mindmap_utils as mm
 
 
 def make_kb(**overrides):
@@ -57,7 +57,7 @@ async def test_get_mindmap_diff_keeps_tracked_file_outside_first_page(monkeypatc
 
     monkeypatch.setattr(mm, "KnowledgeBaseRepository", lambda: kb_repo)
     monkeypatch.setattr(
-        "yuxi.repositories.knowledge_file_repository.KnowledgeFileRepository",
+        "binizox.repositories.knowledge_file_repository.KnowledgeFileRepository",
         FakeFileRepository,
     )
 
@@ -88,7 +88,7 @@ async def test_generate_database_mindmap_loads_selected_file_ids_directly(monkey
 
     monkeypatch.setattr(mm, "KnowledgeBaseRepository", lambda: kb_repo)
     monkeypatch.setattr(
-        "yuxi.repositories.knowledge_file_repository.KnowledgeFileRepository",
+        "binizox.repositories.knowledge_file_repository.KnowledgeFileRepository",
         FakeFileRepository,
     )
     monkeypatch.setattr(mm, "select_model", lambda model_spec: FakeModel())
@@ -126,7 +126,7 @@ async def test_generate_database_mindmap_includes_nested_files_when_root_is_empt
 
     monkeypatch.setattr(mm, "KnowledgeBaseRepository", lambda: kb_repo)
     monkeypatch.setattr(
-        "yuxi.repositories.knowledge_file_repository.KnowledgeFileRepository",
+        "binizox.repositories.knowledge_file_repository.KnowledgeFileRepository",
         FakeFileRepository,
     )
     monkeypatch.setattr(mm, "select_model", lambda model_spec: FakeModel())
@@ -153,7 +153,7 @@ async def test_generate_database_mindmap_rejects_missing_selected_files(monkeypa
 
     monkeypatch.setattr(mm, "KnowledgeBaseRepository", lambda: kb_repo)
     monkeypatch.setattr(
-        "yuxi.repositories.knowledge_file_repository.KnowledgeFileRepository",
+        "binizox.repositories.knowledge_file_repository.KnowledgeFileRepository",
         FakeFileRepository,
     )
 

@@ -1,6 +1,6 @@
 # 上下文压缩机制
 
-长对话和大段工具结果会占用模型上下文。Yuxi 使用两级压缩：先为当前请求临时瘦身（L1），仍然过大时再把较早历史保存为文件并生成摘要（L2）。配置入口见[智能体配置](../agents/agents-config.md)，中间件顺序见[中间件](../agents/middleware.md)。
+长对话和大段工具结果会占用模型上下文。Binizox 使用两级压缩：先为当前请求临时瘦身（L1），仍然过大时再把较早历史保存为文件并生成摘要（L2）。配置入口见[智能体配置](../agents/agents-config.md)，中间件顺序见[中间件](../agents/middleware.md)。
 
 ## 先记住三件事
 
@@ -25,7 +25,7 @@ flowchart TD
     State --> ModelSummary["摘要 + 最近原文 → 主模型"]
 ```
 
-入口阈值没有达到时，Yuxi 直接调用主模型。模型返回 `ContextOverflowError` 时，系统把它视为强制压缩信号，重新执行 L1，并在需要时进入 L2。
+入口阈值没有达到时，Binizox 直接调用主模型。模型返回 `ContextOverflowError` 时，系统把它视为强制压缩信号，重新执行 L1，并在需要时进入 L2。
 
 ## L1：临时精简
 
@@ -91,14 +91,14 @@ Summary 的触发使用近似 token 统计；主模型返回的 `usage_metadata`
 
 ## 源码和验证入口
 
-- [Summary middleware](https://github.com/xerrors/Yuxi/blob/main/backend/package/yuxi/agents/middlewares/summary.py)
-- [Agent 配置](https://github.com/xerrors/Yuxi/blob/main/backend/package/yuxi/agents/context.py)
-- [Chatbot graph](https://github.com/xerrors/Yuxi/blob/main/backend/package/yuxi/agents/buildin/chatbot/graph.py)
-- [SubAgent graph](https://github.com/xerrors/Yuxi/blob/main/backend/package/yuxi/agents/buildin/subagent/graph.py)
-- [SSE 和聊天服务](https://github.com/xerrors/Yuxi/blob/main/backend/package/yuxi/services/chat_service.py)
-- [Token usage](https://github.com/xerrors/Yuxi/blob/main/backend/package/yuxi/agents/middlewares/token_usage.py)
-- [Summary unit tests](https://github.com/xerrors/Yuxi/tree/main/backend/test/unit/middlewares)
-- [Summary graph configuration tests](https://github.com/xerrors/Yuxi/blob/main/backend/test/unit/agents/test_summary_graph_config.py)
-- [Real-model integration test](https://github.com/xerrors/Yuxi/blob/main/backend/test/integration/services/test_summary_middleware_real_model.py)
+- [Summary middleware](https://github.com/Binizox/binizox/blob/main/backend/package/binizox/agents/middlewares/summary.py)
+- [Agent 配置](https://github.com/Binizox/binizox/blob/main/backend/package/binizox/agents/context.py)
+- [Chatbot graph](https://github.com/Binizox/binizox/blob/main/backend/package/binizox/agents/buildin/chatbot/graph.py)
+- [SubAgent graph](https://github.com/Binizox/binizox/blob/main/backend/package/binizox/agents/buildin/subagent/graph.py)
+- [SSE 和聊天服务](https://github.com/Binizox/binizox/blob/main/backend/package/binizox/services/chat_service.py)
+- [Token usage](https://github.com/Binizox/binizox/blob/main/backend/package/binizox/agents/middlewares/token_usage.py)
+- [Summary unit tests](https://github.com/Binizox/binizox/tree/main/backend/test/unit/middlewares)
+- [Summary graph configuration tests](https://github.com/Binizox/binizox/blob/main/backend/test/unit/agents/test_summary_graph_config.py)
+- [Real-model integration test](https://github.com/Binizox/binizox/blob/main/backend/test/integration/services/test_summary_middleware_real_model.py)
 
 修改压缩逻辑时，至少验证低于入口、仅 L1、进入 L2、历史写入失败、摘要模型失败和 overflow 尾部裁剪；oracle 应读取消息视图、state update、文件或 SSE 协议结果。

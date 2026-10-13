@@ -13,9 +13,9 @@
 
 ## 已实际运行的复用
 
-- Yuxi：修改后复用主工程；Binizox 新增代码仍位于 `yuxi` Python 包中，以避免复制运行时。
-- RAGFlow：`services/parser-sidecar/app/vendor/ragflow_plain_pdf.py`，保留 Apache-2.0 来源和第三方通知。
-- DeerFlow：`backend/package/yuxi/asterdesk/_vendor/deerflow_skill_frontmatter.py`，保留 MIT 来源和 NOTICE。
+- Yuxi：修改后复用主工程；Binizox 已将自有运行时命名空间迁移为 `binizox`，同时保留 Yuxi commit 与 MIT 归属信息。
+- RAGFlow：`services/parser-sidecar/app/vendor/ragflow_plain_pdf.py`，第三方通知与 Apache-2.0 全文一并进入源码和 parser 镜像。
+- DeerFlow：`backend/package/binizox/evidence/_vendor/deerflow_skill_frontmatter.py`，NOTICE 与 MIT 全文随 Python 包分发。
 
 ## 尚未声称为集成
 

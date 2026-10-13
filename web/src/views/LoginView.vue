@@ -266,10 +266,8 @@
 
     <!-- 页面底部：版权信息等 -->
     <footer class="page-footer">
-      <div class="footer-links">
-        <a href="https://github.com/xerrors" target="_blank">联系我们</a>
-        <span class="divider">|</span>
-        <a href="https://github.com/xerrors/Yuxi" target="_blank">使用帮助</a>
+      <div v-if="repositoryUrl" class="footer-links">
+        <a :href="repositoryUrl" target="_blank" rel="noopener noreferrer">项目仓库</a>
       </div>
       <div class="copyright">
         &copy; {{ new Date().getFullYear() }} {{ brandName }}. All Rights Reserved.
@@ -295,12 +293,14 @@ import {
 } from '@lucide/vue'
 import { tryAutoStartOIDC, sanitizeRedirect } from '@/utils/oidcAutoStart'
 import { MIN_PASSWORD_LENGTH } from '@/utils/passwordValidation'
+import { PRODUCT_REPOSITORY_URL } from '@/config/product'
 
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
 const infoStore = useInfoStore()
 const agentStore = useAgentStore()
+const repositoryUrl = PRODUCT_REPOSITORY_URL
 
 // 品牌展示数据
 const loginBgImage = computed(() => {

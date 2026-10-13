@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
-from yuxi.knowledge.runtime import knowledge_base
-from yuxi.knowledge.base import KBNotFoundError
-from yuxi.knowledge.read_models import KnowledgeBaseSummary
-from yuxi.storage.postgres.models_business import User
-from yuxi.utils import logger
+from binizox.knowledge.runtime import knowledge_base
+from binizox.knowledge.base import KBNotFoundError
+from binizox.knowledge.read_models import KnowledgeBaseSummary
+from binizox.storage.postgres.models_business import User
+from binizox.utils import logger
 
 from server.utils.auth_middleware import get_required_user
 

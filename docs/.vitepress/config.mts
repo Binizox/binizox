@@ -1,29 +1,32 @@
 import { defineConfig } from 'vitepress'
 import markdownItTaskCheckbox from 'markdown-it-task-checkbox'
 
+const repositoryUrl = (
+  process.env.VITE_BINIZOX_REPOSITORY_URL || 'https://github.com/Binizox/binizox'
+).trim()
+const docsOrigin = (process.env.BINIZOX_DOCS_ORIGIN || '').trim()
+const docsBase = (process.env.BINIZOX_DOCS_BASE || '/').trim()
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
   lang: 'zh-CN',
-  title: "Yuxi",
-  description: "Yuxi 是一个可私有部署的多租户知识智能体平台，统一 RAG、知识图谱、LangGraph 多智能体、MCP/Skills、沙盒与权限管理。",
-  base: '/Yuxi/',
-  sitemap: {
-    hostname: 'https://xerrors.github.io/Yuxi/'
-  },
+  title: "Binizox",
+  description: "Binizox 是一个可私有部署的多租户知识智能体平台，统一 RAG、知识图谱、LangGraph 多智能体、MCP/Skills、沙盒与权限管理。",
+  base: docsBase,
+  ...(docsOrigin ? { sitemap: { hostname: docsOrigin } } : {}),
   head: [
-    ['link', { rel: 'icon', href: '/Yuxi/favicon.svg' }],
+    ['link', { rel: 'icon', href: '/favicon.svg' }],
     ['meta', { name: 'theme-color', content: '#023944' }],
-    ['meta', { name: 'keywords', content: 'Yuxi, AI Agent, RAG, knowledge graph, LangGraph, MCP, self-hosted, multi-agent, knowledge base' }],
+    ['meta', { name: 'keywords', content: 'Binizox, AI Agent, RAG, knowledge graph, LangGraph, MCP, self-hosted, multi-agent, knowledge base' }],
     ['meta', { property: 'og:type', content: 'website' }],
-    ['meta', { property: 'og:site_name', content: 'Yuxi' }],
-    ['meta', { property: 'og:title', content: 'Yuxi · 可私有部署的多租户知识智能体平台' }],
+    ['meta', { property: 'og:site_name', content: 'Binizox' }],
+    ['meta', { property: 'og:title', content: 'Binizox · 可私有部署的多租户知识智能体平台' }],
     ['meta', { property: 'og:description', content: '将 RAG、知识图谱、多智能体执行、MCP/Skills、沙盒与权限管理放进同一个工作台。' }],
     ['meta', { property: 'og:image', content: 'https://xerrors.oss-cn-shanghai.aliyuncs.com/posts/2026/08/20260818-151118-mac-1787037059154-8c08f48c.png' }],
     ['meta', { property: 'og:image:width', content: '1280' }],
     ['meta', { property: 'og:image:height', content: '640' }],
     ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
-    ['meta', { name: 'twitter:title', content: 'Yuxi · Self-hosted knowledge agent platform' }],
+    ['meta', { name: 'twitter:title', content: 'Binizox · Self-hosted knowledge agent platform' }],
     ['meta', { name: 'twitter:description', content: 'RAG, knowledge graphs, multi-agent execution, MCP/Skills, sandboxed artifacts, and access control in one workspace.' }],
     ['meta', { name: 'twitter:image', content: 'https://xerrors.oss-cn-shanghai.aliyuncs.com/posts/2026/08/20260818-151118-mac-1787037059154-8c08f48c.png' }]
   ],
@@ -43,14 +46,16 @@ export default defineConfig({
       { text: '快速开始', link: '/intro/quick-start' },
       { text: '智能体开发', link: '/agents/agents-config' },
       { text: '机制详解', link: '/mechanisms/' },
-      { text: 'English', link: 'https://github.com/xerrors/Yuxi/blob/main/README.en.md' }
+      ...(repositoryUrl
+        ? [{ text: 'English', link: `${repositoryUrl.replace(/\/$/, '')}/blob/main/README.en.md` }]
+        : [])
     ],
 
     sidebar: [
       {
         text: '简介',
         items: [
-          { text: '认识 Yuxi', link: '/intro/project-overview' },
+          { text: '认识 Binizox', link: '/intro/project-overview' },
           { text: '快速开始', link: '/intro/quick-start' },
           { text: '命令行工具', link: '/intro/cli' },
           { text: '模型配置', link: '/intro/model-config' },
@@ -112,7 +117,7 @@ export default defineConfig({
           { text: '版本变更记录', link: '/develop-guides/changelog' },
           { text: '界面设计规范', link: '/develop-guides/design' },
           { text: '测试规范', link: '/develop-guides/testing-guidelines' },
-          { text: 'Yuxi Spec Loop', link: '/develop-guides/spec-loop' },
+          { text: 'Binizox Spec Loop', link: '/develop-guides/spec-loop' },
           { text: '工程信任系统', link: '/develop-guides/engineering-trust' },
           { text: '工程决策记录', link: '/develop-guides/decisions/README' },
           { text: '工程事故复盘', link: '/develop-guides/postmortems/README' },
@@ -120,19 +125,21 @@ export default defineConfig({
       }
     ],
 
-    socialLinks: [
-      { icon: 'github', link: 'https://github.com/xerrors/Yuxi' }
-    ],
+    socialLinks: repositoryUrl ? [{ icon: 'github', link: repositoryUrl }] : [],
 
     footer: {
       message: '本项目基于 MIT License 开源，欢迎使用和贡献。',
-      copyright: 'Copyright © 2025-present Yuxi'
+      copyright: 'Copyright © 2025-present Binizox'
     },
 
-    editLink: {
-      pattern: 'https://github.com/xerrors/Yuxi/edit/main/docs/:path',
-      text: '在 GitHub 上编辑此页'
-    },
+    ...(repositoryUrl
+      ? {
+          editLink: {
+            pattern: `${repositoryUrl.replace(/\/$/, '')}/edit/main/docs/:path`,
+            text: '在 GitHub 上编辑此页'
+          }
+        }
+      : {}),
 
     lastUpdated: {
       text: '最后更新时间',

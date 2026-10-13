@@ -1,6 +1,6 @@
 # 配置沙盒与 provisioner
 
-Yuxi 通过 `sandbox-provisioner` 为 Agent 提供文件和命令执行环境。本页面向部署和运维人员，说明如何选择 Docker 或 Kubernetes、配置连接参数以及排查沙盒问题。
+Binizox 通过 `sandbox-provisioner` 为 Agent 提供文件和命令执行环境。本页面向部署和运维人员，说明如何选择 Docker 或 Kubernetes、配置连接参数以及排查沙盒问题。
 
 沙盒的身份、文件 Owner、虚拟路径和恢复语义见[沙盒与文件系统机制](../mechanisms/sandbox.md)。
 
@@ -115,11 +115,11 @@ services:
   sandbox-provisioner:
     environment:
       PROVISIONER_BACKEND: kubernetes
-      K8S_NAMESPACE: yuxi
+      K8S_NAMESPACE: binizox
       KUBECONFIG_PATH: /root/.kube/config
       NODE_HOST: 203.0.113.10
-      USER_DATA_PVC: yuxi-user-data
-      SKILLS_PVC: yuxi-skills
+      USER_DATA_PVC: binizox-user-data
+      SKILLS_PVC: binizox-skills
     volumes:
       - ~/.kube/config:/root/.kube/config:ro
 ```
@@ -133,7 +133,7 @@ services:
 1. provisioner 只读挂载的 `docker/sandbox_provisioner/sandbox.env` 全局变量；
 2. 当前用户为 Agent 配置的变量。
 
-开发和生产 Compose 都把该文件挂载到 provisioner 的 `/app/sandbox.env`。仓库当前默认文件只有 `CHECK_YUXI_SANDBOX_ENV_EXISTS=True`；如果需要全局变量，应在部署侧维护该文件并重新创建 provisioner。用户变量覆盖同名全局变量。两类变量都会对沙盒内代码可见，应按“不可信代码可以读取和外传”处理。只注入任务所需的低权限变量，禁止注入 provisioner token、数据库凭据、对象存储管理凭据和云平台管理员密钥。
+开发和生产 Compose 都把该文件挂载到 provisioner 的 `/app/sandbox.env`。仓库当前默认文件只有 `CHECK_BINIZOX_SANDBOX_ENV_EXISTS=True`；如果需要全局变量，应在部署侧维护该文件并重新创建 provisioner。用户变量覆盖同名全局变量。两类变量都会对沙盒内代码可见，应按“不可信代码可以读取和外传”处理。只注入任务所需的低权限变量，禁止注入 provisioner token、数据库凭据、对象存储管理凭据和云平台管理员密钥。
 
 远程 Skill 安装使用 `inherit_env=False` 的一次性 Sandbox，不继承全局或用户 Agent 环境，也不挂载持久用户目录。Kubernetes 沙盒默认关闭 ServiceAccount token 自动挂载。
 
@@ -173,6 +173,6 @@ docker compose logs --tail=100 sandbox-provisioner
 ## 相关入口
 
 - [沙盒机制详解](../mechanisms/sandbox.md)
-- [Docker Compose](https://github.com/xerrors/Yuxi/blob/main/docker-compose.yml)
-- [生产 Compose](https://github.com/xerrors/Yuxi/blob/main/docker-compose.prod.yml)
-- [provisioner 实现](https://github.com/xerrors/Yuxi/blob/main/docker/sandbox_provisioner/app.py)
+- [Docker Compose](https://github.com/Binizox/binizox/blob/main/docker-compose.yml)
+- [生产 Compose](https://github.com/Binizox/binizox/blob/main/docker-compose.prod.yml)
+- [provisioner 实现](https://github.com/Binizox/binizox/blob/main/docker/sandbox_provisioner/app.py)

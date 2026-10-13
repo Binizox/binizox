@@ -3,8 +3,8 @@ from types import SimpleNamespace
 import pytest
 from fastapi import HTTPException
 
-from yuxi.services import workdir_service as svc
-from yuxi.workspace.workdir import Workdir
+from binizox.services import workdir_service as svc
+from binizox.workspace.workdir import Workdir
 
 
 def test_workdir_access_resolves_only_scope_relative_paths():

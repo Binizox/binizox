@@ -1,6 +1,6 @@
 import datetime as dt
 
-from yuxi.utils.datetime_utils import UTC, format_utc_datetime
+from binizox.utils.datetime_utils import UTC, format_utc_datetime
 
 
 def test_format_utc_datetime_treats_naive_database_value_as_utc():

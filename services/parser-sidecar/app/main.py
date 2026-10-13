@@ -9,11 +9,7 @@ from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 
 from app.parser import parse_document
 
-MAX_DOCUMENT_BYTES = int(
-    os.getenv("BINIZOX_MAX_DOCUMENT_BYTES")
-    or os.getenv("ASTERDESK_MAX_DOCUMENT_BYTES")
-    or str(25 * 1024 * 1024)
-)
+MAX_DOCUMENT_BYTES = int(os.getenv("BINIZOX_MAX_DOCUMENT_BYTES", str(25 * 1024 * 1024)))
 
 app = FastAPI(title="Binizox Parser Sidecar", version="0.1.0")
 

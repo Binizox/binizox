@@ -1,6 +1,6 @@
 # 快速开始
 
-这份教程带你在本机启动一套 Yuxi，并完成第一次登录。走完流程后，你会有一个可以打开的 Web 界面和 API 文档；模型配置、知识库和生产部署分别在后续页面说明。
+这份教程带你在本机启动一套 Binizox，并完成第一次登录。走完流程后，你会有一个可以打开的 Web 界面和 API 文档；模型配置、知识库和生产部署分别在后续页面说明。
 
 ## 你需要准备什么
 
@@ -12,11 +12,11 @@
 
 ## 1. 获取代码
 
-仓库当前默认配置对应 `v0.7.2`。这个版本仍处于 Beta 阶段；用于重要数据前，请先阅读[生产部署与升级](../advanced/deployment.md)中的备份和迁移说明。
+当前仓库仍处于个人版早期阶段；用于重要数据前，请先阅读[生产部署与升级](../advanced/deployment.md)中的备份和迁移说明。
 
 ```bash
-git clone --branch v0.7.2 --depth 1 https://github.com/xerrors/Yuxi.git
-cd Yuxi
+git clone https://github.com/Binizox/binizox.git
+cd Binizox
 ```
 
 如果你要参与开发，可以改为克隆 `main`；开发分支的行为可能先于发布版本变化。
@@ -39,8 +39,8 @@ Windows PowerShell：
 
 - 必填的 `SILICONFLOW_API_KEY`。
 - 可选的网页搜索供应商和对应密钥（豆包或 Tavily）。
-- `JWT_SECRET_KEY`、`API_KEY_DERIVATION_SECRET` 和 `SANDBOX_PROVISIONER_TOKEN` 三个相互独立的随机密钥，每个至少 32 个字符。
-- `YUXI_INSTANCE_ID`，用于标识这套部署。
+- `JWT_SECRET_KEY`、`API_KEY_DERIVATION_SECRET`、`SANDBOX_PROVISIONER_TOKEN` 和 `BINIZOX_TOOL_RUNNER_TOKEN` 四个相互独立的随机密钥，每个至少 32 个字符。
+- `BINIZOX_INSTANCE_ID`，用于标识这套部署。
 
 脚本还会拉取开发环境需要的基础镜像。它不会把密钥打印到终端，Linux/macOS 下会把 `.env` 权限设为 `600`。已有 `.env` 时，脚本只补齐缺失项；升级时请保留原有密钥，尤其是 `JWT_SECRET_KEY` 和 `API_KEY_DERIVATION_SECRET`。
 
@@ -50,7 +50,7 @@ Windows PowerShell：
 cp .env.template .env
 ```
 
-然后在 `.env` 中填入模型 API Key 和三个独立的安全密钥。开发 Compose 会为部分基础服务提供默认值；生产部署不要沿用这些默认值。
+然后在 `.env` 中填入模型 API Key 和四个独立的安全密钥。开发 Compose 会为部分基础服务提供默认值；生产部署不要沿用这些默认值。
 
 ## 3. 启动服务
 
@@ -73,7 +73,7 @@ curl --fail http://localhost:5050/api/system/ready
 
 返回 JSON 且 `status` 为 `ready`，表示 API、PostgreSQL、Redis 和兼容 worker 已达到接流量条件。它只证明启动条件满足，不代替一次真实登录或对话验证。
 
-## 4. 打开 Yuxi
+## 4. 打开 Binizox
 
 | 入口 | 地址 |
 | --- | --- |

@@ -1,6 +1,6 @@
 """测试分块 token 上限保护：general parser 对超长 chunk 的硬切分。
 
-nlp.py / general.py 只依赖 re 和标准库，用 sys.modules 占位绕过 yuxi 包的
+nlp.py / general.py 只依赖 re 和标准库，用 sys.modules 占位绕过 binizox 包的
 重依赖链（langchain / pydantic / .env 配置等），实现纯单元测试。
 跑完后清理 sys.modules，避免污染其他测试。
 """
@@ -15,13 +15,13 @@ import pytest
 _PKG = Path(__file__).resolve().parents[2] / "package"
 
 _STUB_NAMES = [
-    "yuxi",
-    "yuxi.knowledge",
-    "yuxi.knowledge.chunking",
-    "yuxi.knowledge.chunking.ragflow_like",
-    "yuxi.knowledge.chunking.ragflow_like.parsers",
-    "yuxi.knowledge.chunking.ragflow_like.nlp",
-    "yuxi.knowledge.chunking.ragflow_like.parsers.general",
+    "binizox",
+    "binizox.knowledge",
+    "binizox.knowledge.chunking",
+    "binizox.knowledge.chunking.ragflow_like",
+    "binizox.knowledge.chunking.ragflow_like.parsers",
+    "binizox.knowledge.chunking.ragflow_like.nlp",
+    "binizox.knowledge.chunking.ragflow_like.parsers.general",
 ]
 
 # 由 _isolated_modules fixture 在运行时注入
@@ -45,14 +45,14 @@ def _isolated_modules():
         return mod
 
     _nlp = _load(
-        "yuxi.knowledge.chunking.ragflow_like.nlp",
-        "yuxi/knowledge/chunking/ragflow_like/nlp.py",
+        "binizox.knowledge.chunking.ragflow_like.nlp",
+        "binizox/knowledge/chunking/ragflow_like/nlp.py",
     )
-    sys.modules["yuxi.knowledge.chunking.ragflow_like"].nlp = _nlp  # type: ignore[attr-defined]
+    sys.modules["binizox.knowledge.chunking.ragflow_like"].nlp = _nlp  # type: ignore[attr-defined]
 
     _general = _load(
-        "yuxi.knowledge.chunking.ragflow_like.parsers.general",
-        "yuxi/knowledge/chunking/ragflow_like/parsers/general.py",
+        "binizox.knowledge.chunking.ragflow_like.parsers.general",
+        "binizox/knowledge/chunking/ragflow_like/parsers/general.py",
     )
 
     # 注入模块级变量供测试用例访问

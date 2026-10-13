@@ -7,9 +7,9 @@ import pytest
 from fastapi import HTTPException
 from langchain.messages import AIMessage, HumanMessage
 
-from yuxi.agents import context as agent_context
-from yuxi.workspace import paths as workspace_paths
-from yuxi.services import chat_service as svc
+from binizox.agents import context as agent_context
+from binizox.workspace import paths as workspace_paths
+from binizox.services import chat_service as svc
 
 
 def _empty_agent_context(_uid: str) -> str:
@@ -410,7 +410,7 @@ async def test_build_agent_input_context_excludes_memory_from_shared_context(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ):
-    monkeypatch.setenv("YUXI_USER_DATA_DIR", str(tmp_path / "threads"))
+    monkeypatch.setenv("BINIZOX_USER_DATA_DIR", str(tmp_path / "threads"))
     workspace_paths.ensure_user_workspace("user-1")
     agents_dir = tmp_path / "threads" / "shared" / "user-1" / "workspace" / "agents"
     (agents_dir / "AGENTS.md").write_text("行为约束", encoding="utf-8")

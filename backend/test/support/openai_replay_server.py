@@ -53,7 +53,7 @@ def _validate_request(authorization: str | None, request: dict) -> str | None:
 
 def _stream_payloads(model: str, messages: list[dict]) -> list[dict]:
     common = {
-        "id": "chatcmpl-yuxi-deterministic",
+        "id": "chatcmpl-binizox-deterministic",
         "object": "chat.completion.chunk",
         "created": int(time.time()),
         "model": model,

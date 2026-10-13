@@ -19,7 +19,7 @@ from test.live_api_cleanup import (  # noqa: E402
     cleanup_test_chat_resources,
     cleanup_pytest_knowledge_resources,
 )
-from yuxi.config.runtime import lite_mode_enabled  # noqa: E402
+from binizox.config.runtime import lite_mode_enabled  # noqa: E402
 
 load_dotenv(PROJECT_ROOT / ".env", override=False)
 load_dotenv(PROJECT_ROOT / "test/.env.test", override=False)
@@ -50,7 +50,7 @@ def e2e_base_url() -> str:
 def cleanup_e2e_test_resources(e2e_base_url: str):
     """在 E2E 会话前后清理测试对话、临时智能体和知识库。"""
 
-    if os.getenv("ASTERDESK_E2E_KEEP_ARTIFACTS") == "1":
+    if os.getenv("BINIZOX_E2E_KEEP_ARTIFACTS") == "1":
         yield
         return
 

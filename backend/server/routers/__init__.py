@@ -1,11 +1,10 @@
 from fastapi import APIRouter
-from yuxi.config.runtime import knowledge_capability_enabled
+from binizox.config.runtime import knowledge_capability_enabled
 
 from server.routers.agent_invocation_call_router import agent_invocation_call_router
 from server.routers.agent_invocation_channel_router import agent_invocation_channel_router
 from server.routers.agent_invocation_eval_router import agent_invocation_eval_router
 from server.routers.agent_router import agent_router
-from server.routers.asterdesk_router import asterdesk
 from server.routers.binizox_router import binizox
 from server.routers.auth_dept_router import department
 from server.routers.auth_router import auth
@@ -31,7 +30,6 @@ router = APIRouter()
 router.include_router(system)  # /api/system/* 系统状态与全局配置
 router.include_router(auth)  # /api/auth/* 登录、用户信息与 CLI 浏览器登录授权
 router.include_router(agent_router)  # /api/agent/* 智能体管理与运行态
-router.include_router(asterdesk)  # /api/asterdesk/* 文档证据链
 router.include_router(binizox)  # /api/binizox/* 个人 Agent 与集成状态
 router.include_router(agent_invocation_call_router)  # /api/agent-invocation/agent-call/*
 router.include_router(agent_invocation_channel_router)  # /api/agent-invocation/channel/*
@@ -54,6 +52,7 @@ router.include_router(workspace)  # /api/workspace/* 用户个人工作区
 router.include_router(mention_router)  # /api/mention/* 提及文件搜索接口
 
 if _KNOWLEDGE_ENABLED:
+    from server.routers.evidence_router import evidence_router
     from server.routers.external_kb_router import external_kb
     from server.routers.graph_router import graph
     from server.routers.knowledge_dashboard_router import knowledge_dashboard
@@ -61,6 +60,7 @@ if _KNOWLEDGE_ENABLED:
     from server.routers.knowledge_router import knowledge
 
     # 知识库与图谱能力依赖较重，LITE 模式下跳过这组接口。
+    router.include_router(evidence_router)  # /api/binizox/evidence/* 文档证据链
     router.include_router(knowledge_dashboard)  # /api/dashboard/stats/knowledge 知识域仪表盘
     router.include_router(external_kb)  # /api/knowledge/databases/external* CLI 与外部 Agent 调用
     router.include_router(knowledge)  # /api/knowledge/* 知识库管理与检索

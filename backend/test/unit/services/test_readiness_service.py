@@ -4,7 +4,7 @@ import asyncio
 
 import pytest
 
-from yuxi.services import readiness_service
+from binizox.services import readiness_service
 
 
 pytestmark = [pytest.mark.asyncio, pytest.mark.unit]

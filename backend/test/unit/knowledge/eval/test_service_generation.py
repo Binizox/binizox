@@ -2,8 +2,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from yuxi.knowledge.eval import service as eval_service_module
-from yuxi.knowledge.eval.service import EvaluationService, build_evaluation_run_name
+from binizox.knowledge.eval import service as eval_service_module
+from binizox.knowledge.eval.service import EvaluationService, build_evaluation_run_name
 
 
 class FakeEvaluationRepository:

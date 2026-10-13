@@ -7,17 +7,17 @@ from typing import Any
 
 import pytest
 
-from yuxi.models.chat import select_model
-from yuxi.models.embed import OtherEmbedding
-from yuxi.models.rerank import DashscopeReranker, OpenAIReranker
-from yuxi.models.providers.cache import ModelInfo
-from yuxi.models.providers.service import (
+from binizox.models.chat import select_model
+from binizox.models.embed import OtherEmbedding
+from binizox.models.rerank import DashscopeReranker, OpenAIReranker
+from binizox.models.providers.cache import ModelInfo
+from binizox.models.providers.service import (
     resolve_api_key,
     ensure_builtin_model_providers_in_db,
     get_model_provider_by_id,
 )
-from yuxi.storage.postgres.manager import pg_manager
-from yuxi.storage.postgres.models_business import ModelProvider
+from binizox.storage.postgres.manager import pg_manager
+from binizox.storage.postgres.models_business import ModelProvider
 
 pytestmark = [
     pytest.mark.asyncio(loop_scope="session"),
@@ -102,8 +102,8 @@ async def test_provider_db_chat_model_connectivity(monkeypatch: pytest.MonkeyPat
     def get_model_info(current: str):
         return info if current == model_spec else None
 
-    monkeypatch.setattr("yuxi.models.chat.model_cache.get_model_info", get_model_info)
-    monkeypatch.setattr("yuxi.agents.models.model_cache.get_model_info", get_model_info)
+    monkeypatch.setattr("binizox.models.chat.model_cache.get_model_info", get_model_info)
+    monkeypatch.setattr("binizox.agents.models.model_cache.get_model_info", get_model_info)
 
     model = select_model(model_spec, model_params=spec["parameters"])
     response = await model.call([{"role": "user", "content": "Say 1"}], stream=False)
@@ -138,7 +138,7 @@ async def test_provider_db_rerank_model_connectivity():
         base_url=spec["base_url"],
         parameters=spec["parameters"],
     )
-    scores = await reranker.acompute_score(("Yuxi knowledge base", ["Yuxi is a RAG platform.", "Unrelated text."]))
+    scores = await reranker.acompute_score(("Binizox knowledge base", ["Binizox is a RAG platform.", "Unrelated text."]))
     await reranker.aclose()
 
     assert len(scores) == 2

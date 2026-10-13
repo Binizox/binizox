@@ -4,7 +4,7 @@ import importlib.util
 from pathlib import Path
 from types import ModuleType
 
-from yuxi.agents.skills.buildin import BUILTIN_SKILLS
+from binizox.agents.skills.buildin import BUILTIN_SKILLS
 
 
 def _mysql_reporter_dir() -> Path:

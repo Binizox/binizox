@@ -10,9 +10,9 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
 import pytest
-import yuxi.services.run_worker as run_worker
+import binizox.services.run_worker as run_worker
 from arq.worker import RetryJob
-from yuxi.config import options as config_options
+from binizox.config import options as config_options
 
 
 @pytest.fixture(autouse=True)
@@ -1251,7 +1251,7 @@ async def test_worker_startup_ensures_builtin_mcp_servers(monkeypatch: pytest.Mo
     )
     monkeypatch.setattr(run_worker, "_publish_reconciliation_health", fake_publish_reconciliation_health)
     monkeypatch.setattr(run_worker, "_reconcile_agent_run_leases_forever", fake_reconciliation_loop)
-    options_module = importlib.import_module("yuxi.config.options")
+    options_module = importlib.import_module("binizox.config.options")
     monkeypatch.setattr(options_module, "ensure_options_in_db", fake_ensure_options_in_db)
 
     ctx = {}
@@ -1275,7 +1275,7 @@ async def test_worker_startup_ensures_builtin_mcp_servers(monkeypatch: pytest.Mo
 
 
 def test_worker_settings_publish_short_ttl_versioned_health_contract():
-    assert run_worker.WorkerSettings.health_check_key == "yuxi:worker:health:agent-run-v1"
+    assert run_worker.WorkerSettings.health_check_key == "binizox:worker:health:agent-run-v1"
     assert 0 < run_worker.WorkerSettings.health_check_interval <= 10
 
 
@@ -1284,7 +1284,7 @@ def test_worker_settings_reject_invalid_redis_dsn_instead_of_using_arq_default()
     env["REDIS_URL"] = "http://configured-redis.invalid:6379/0"
 
     completed = subprocess.run(
-        [sys.executable, "-c", "import yuxi.services.run_worker"],
+        [sys.executable, "-c", "import binizox.services.run_worker"],
         env=env,
         capture_output=True,
         text=True,
@@ -1353,7 +1353,7 @@ async def test_worker_shutdown_closes_queue_clients_before_postgres(monkeypatch:
     async def fake_close_postgres():
         calls.append("postgres")
 
-    monkeypatch.setattr("yuxi.services.run_queue_service.close_queue_clients", fake_close_queue_clients)
+    monkeypatch.setattr("binizox.services.run_queue_service.close_queue_clients", fake_close_queue_clients)
     monkeypatch.setattr(run_worker.pg_manager, "close", fake_close_postgres)
 
     await run_worker._worker_shutdown({run_worker._RECONCILIATION_TASK_KEY: reconciliation_task})

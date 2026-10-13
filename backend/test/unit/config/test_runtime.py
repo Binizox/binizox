@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from yuxi.config.runtime import knowledge_capability_enabled, lite_mode_enabled
+from binizox.config.runtime import knowledge_capability_enabled, lite_mode_enabled
 
 pytestmark = pytest.mark.unit
 

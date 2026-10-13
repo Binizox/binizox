@@ -7,7 +7,7 @@ updates:
     open-pull-requests-limit: 0
 
   - package-ecosystem: uv
-    directory: /packages/yuxi-cli
+    directory: /packages/binizox-cli
     schedule:
       interval: weekly
     open-pull-requests-limit: 0

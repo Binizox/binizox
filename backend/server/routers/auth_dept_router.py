@@ -10,12 +10,12 @@ from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from server.utils.auth_middleware import get_admin_user, get_db, get_superadmin_user
-from yuxi.repositories.department_repository import DepartmentRepository
-from yuxi.repositories.user_repository import UserRepository
-from yuxi.services.identity_admin_service import IdentityConflictError, create_department_with_admin
-from yuxi.services.operation_log_service import log_operation
-from yuxi.services.user_identity_service import is_valid_phone_number
-from yuxi.storage.postgres.models_business import User
+from binizox.repositories.department_repository import DepartmentRepository
+from binizox.repositories.user_repository import UserRepository
+from binizox.services.identity_admin_service import IdentityConflictError, create_department_with_admin
+from binizox.services.operation_log_service import log_operation
+from binizox.services.user_identity_service import is_valid_phone_number
+from binizox.storage.postgres.models_business import User
 
 # 创建路由器
 department = APIRouter(prefix="/departments", tags=["department"])

@@ -11,8 +11,8 @@ import pytest
 from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from yuxi.agents.skills import service as skill_service
-from yuxi.storage.postgres.models_business import Skill
+from binizox.agents.skills import service as skill_service
+from binizox.storage.postgres.models_business import Skill
 from test.live_api_cleanup import make_test_conversation_metadata, make_test_conversation_title
 
 pytestmark = [pytest.mark.asyncio, pytest.mark.integration]

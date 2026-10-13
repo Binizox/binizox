@@ -13,26 +13,26 @@ from sqlalchemy import select, text
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from yuxi.workspace.paths import ensure_bound_user_workdir
-from yuxi.repositories.conversation_repository import ConversationRepository
-from yuxi.storage_migrations.v071_workdirs import (
+from binizox.workspace.paths import ensure_bound_user_workdir
+from binizox.repositories.conversation_repository import ConversationRepository
+from binizox.storage_migrations.v071_workdirs import (
     cleanup_v071_thread_sources,
     import_v071_workdirs,
     read_v071_workdir_plan,
     rewrite_v071_workdir_paths,
     verify_workdir_bindings,
 )
-from yuxi.storage.postgres.manager import (
+from binizox.storage.postgres.manager import (
     V071_WORKDIR_CUTOVER_STATEMENTS,
     WORKDIR_PATH_SCHEMA_STATEMENTS,
 )
-from yuxi.storage.postgres.models_business import Base, Conversation, Project
+from binizox.storage.postgres.models_business import Base, Conversation, Project
 
 pytestmark = [pytest.mark.asyncio, pytest.mark.integration]
 
 
 async def test_conversations_share_workdir_only_through_project(monkeypatch, tmp_path: Path):
-    monkeypatch.setenv("YUXI_USER_DATA_DIR", str(tmp_path / "user-data"))
+    monkeypatch.setenv("BINIZOX_USER_DATA_DIR", str(tmp_path / "user-data"))
     engine = create_async_engine("sqlite+aiosqlite:///:memory:")
     async with engine.begin() as connection:
         await connection.run_sync(Base.metadata.create_all)
@@ -116,10 +116,10 @@ async def test_v071_thread_layout_migrates_files_empty_workdir_and_attachment_me
     punctuation_source.mkdir(parents=True)
     (punctuation_source / "result.txt").write_text("punctuation", encoding="utf-8")
     monkeypatch.setattr(
-        "yuxi.storage_migrations.v071_workdirs.get_legacy_storage_dir",
+        "binizox.storage_migrations.v071_workdirs.get_legacy_storage_dir",
         lambda: legacy_storage,
     )
-    monkeypatch.setenv("YUXI_USER_DATA_DIR", str(tmp_path / "user-data"))
+    monkeypatch.setenv("BINIZOX_USER_DATA_DIR", str(tmp_path / "user-data"))
 
     try:
         async with admin_engine.begin() as connection:

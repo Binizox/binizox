@@ -1,59 +1,18 @@
 services:
-  api:
-    environment:
-      BINIZOX_TOOL_RUNNER_URL: http://binizox-tool-runner:8091
-      BINIZOX_PARSER_URL: http://binizox-parser:8090
-      NO_PROXY: localhost,127.0.0.1,postgres,redis,minio,binizox-parser,binizox-tool-runner
-      no_proxy: localhost,127.0.0.1,postgres,redis,minio,binizox-parser,binizox-tool-runner
-    depends_on:
-      binizox-parser:
-        condition: service_healthy
-      binizox-tool-runner:
-        condition: service_healthy
-
-  worker:
-    environment:
-      BINIZOX_TOOL_RUNNER_URL: http://binizox-tool-runner:8091
-      BINIZOX_PARSER_URL: http://binizox-parser:8090
-      NO_PROXY: localhost,127.0.0.1,postgres,redis,minio,binizox-parser,binizox-tool-runner
-      no_proxy: localhost,127.0.0.1,postgres,redis,minio,binizox-parser,binizox-tool-runner
-    depends_on:
-      binizox-parser:
-        condition: service_healthy
-      binizox-tool-runner:
-        condition: service_healthy
-
-  binizox-parser:
-    build:
-      context: ./services/parser-sidecar
-      dockerfile: Dockerfile
-    image: binizox-parser:0.1.0
-    ports:
-      - "127.0.0.1:${BINIZOX_PARSER_PORT:-8090}:8090"
-    networks:
-      - app-network
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8090/health').read()"]
-      interval: 5s
-      timeout: 3s
-      retries: 20
-    restart: unless-stopped
-
-  binizox-tool-runner:
-    build:
-      context: ./services/personal-tool-runner
-      dockerfile: Dockerfile
-    image: binizox-personal-tool-runner:0.1.0
+  # 显式启用 test profile 时运行，为 Evidence E2E 提供确定性模型响应。
+  # Parser 与个人工具服务已进入默认、生产 Compose，此文件只保留测试扩展。
+  binizox-evidence-replay:
+    profiles: ["test"]
+    image: ${COMPOSE_PROJECT_NAME:-binizox}-api:${BINIZOX_VERSION:-0.7.2}
+    working_dir: /app
+    user: "1000:1000"
     volumes:
-      - ./.runtime/binizox/tool-runner:/data
-      - ./.runtime/binizox/workspace:/workspace
-    ports:
-      - "127.0.0.1:${BINIZOX_TOOL_RUNNER_PORT:-8091}:8091"
+      - ./backend/test:/app/test:ro
+    command: python test/support/binizox_evidence_replay_server.py --host 0.0.0.0 --port 8767
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8091/health').read()"]
-      interval: 5s
-      timeout: 3s
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8767/health').read()"]
+      interval: 3s
+      timeout: 2s
       retries: 20
-    restart: unless-stopped

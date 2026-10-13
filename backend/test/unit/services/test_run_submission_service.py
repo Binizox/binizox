@@ -5,8 +5,8 @@ from types import SimpleNamespace
 
 import pytest
 from fastapi import HTTPException
-from yuxi.services import run_submission_service as svc
-from yuxi.services.input_message_service import build_chat_input_message
+from binizox.services import run_submission_service as svc
+from binizox.services.input_message_service import build_chat_input_message
 
 
 class _EmptyRequestRepo:

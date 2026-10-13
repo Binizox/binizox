@@ -4,9 +4,9 @@ import pytest
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from yuxi.config import options
-from yuxi.storage_migrations import v071_options
-from yuxi.storage.postgres.models_business import Base
+from binizox.config import options
+from binizox.storage_migrations import v071_options
+from binizox.storage.postgres.models_business import Base
 
 
 @pytest_asyncio.fixture

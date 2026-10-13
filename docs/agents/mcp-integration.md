@@ -10,7 +10,7 @@ MCP（Model Context Protocol）让智能体调用外部服务提供的工具。�
 | `sse` | 仍提供 SSE 接口的远程服务 |
 | `stdio` | 仅限代码维护的系统内置 MCP |
 
-管理接口只接受 `streamable_http` 和 `sse`。Yuxi 不允许通过 HTTP 请求创建任意本地 `stdio` 进程；历史用户 `stdio` 配置会被禁用，应迁移为远程服务。
+管理接口只接受 `streamable_http` 和 `sse`。Binizox 不允许通过 HTTP 请求创建任意本地 `stdio` 进程；历史用户 `stdio` 配置会被禁用，应迁移为远程服务。
 
 ## 添加远程 MCP
 
@@ -60,7 +60,7 @@ MCP 配置从 PostgreSQL 读取，工具对象按配置哈希缓存。修改连�
 
 `stdio` MCP 等价于在 API/worker 容器内启动一个进程，只适合经过代码审查且必须本地运行的系统能力。远程服务可以承载时，优先使用 SSE 或 Streamable HTTP。
 
-开发者在 [`service.py`](https://github.com/xerrors/Yuxi/blob/main/backend/package/yuxi/agents/mcp/service.py) 的 `_DEFAULT_MCP_SERVERS` 中添加固定定义：
+开发者在 [`service.py`](https://github.com/Binizox/binizox/blob/main/backend/package/binizox/agents/mcp/service.py) 的 `_DEFAULT_MCP_SERVERS` 中添加固定定义：
 
 ```python
 _DEFAULT_MCP_SERVERS = {

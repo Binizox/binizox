@@ -1,6 +1,6 @@
-# Yuxi Spec Loop
+# Binizox Spec Loop
 
-Yuxi Spec Loop 把非平凡工程请求从“实现建议”收敛为“可以被反证、审查和长期维护的仓库事实”。它复用现有语义 Owner、decision、测试、workflow 和独立 Review，不建立平行 notes、中央 claim ID 或手工状态清单。
+Binizox Spec Loop 把非平凡工程请求从“实现建议”收敛为“可以被反证、审查和长期维护的仓库事实”。它复用现有语义 Owner、decision、测试、workflow 和独立 Review，不建立平行 notes、中央 claim ID 或手工状态清单。
 
 ## 适用范围
 
@@ -73,7 +73,7 @@ commit 前由不继承开发上下文的全新 Reviewer 读取完整需求、dec
 - durable/wire schema、migration、兼容承诺和部署脚本；
 - tests、fixture/snapshot、示例、正式文档和依赖声明。
 
-提案的验收矩阵必须包含“旧能力不存在”的负向搜索，并明确重新引入条件。若以依赖为“简化”理由，结果必须净删除 Yuxi 自有实现或维护表面；若依赖实际新增能力，应改为独立 `feature` 决策。公开 API、持久数据、部署脚本和真实用户都算 consumer，不能因代码搜索为空就假设可删除。
+提案的验收矩阵必须包含“旧能力不存在”的负向搜索，并明确重新引入条件。若以依赖为“简化”理由，结果必须净删除 Binizox 自有实现或维护表面；若依赖实际新增能力，应改为独立 `feature` 决策。公开 API、持久数据、部署脚本和真实用户都算 consumer，不能因代码搜索为空就假设可删除。
 
 ## 各材料的职责
 

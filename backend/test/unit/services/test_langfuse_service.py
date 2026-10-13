@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from yuxi.services import langfuse_service as svc
+from binizox.services import langfuse_service as svc
 
 
 class _FakeLangfuseClient:
@@ -91,7 +91,7 @@ def test_build_run_context_includes_trace_metadata(monkeypatch):
     assert run_context.metadata["backend_id"] == "ChatbotAgent"
     assert run_context.metadata["department_id"] == "7"
     assert run_context.tags == [
-        "yuxi",
+        "binizox",
         "chat",
         "agent_chat_stream",
         "agent:agent-a",
@@ -122,7 +122,7 @@ def test_build_run_context_merges_evaluation_metadata_and_tags(monkeypatch):
     assert run_context.metadata["feature"] == "agent_evaluation"
     assert run_context.metadata["evaluation"] == {"dataset_name": "agent-eval-smoke"}
     assert run_context.tags == [
-        "yuxi",
+        "binizox",
         "chat",
         "agent_chat_stream",
         "agent:agent-a",
@@ -206,13 +206,13 @@ def test_submit_user_feedback_score_creates_boolean_score(monkeypatch):
     assert client.scores == [
         {
             "trace_id": "trace-1",
-            "score_id": "yuxi-message-feedback-12",
+            "score_id": "binizox-message-feedback-12",
             "name": "user-feedback",
             "value": 0,
             "data_type": "BOOLEAN",
             "comment": "答案不准确",
             "metadata": {
-                "source": "yuxi",
+                "source": "binizox",
                 "feedback_id": 12,
                 "message_id": 34,
                 "conversation_id": 56,

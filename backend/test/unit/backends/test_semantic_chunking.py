@@ -1,6 +1,6 @@
 def test_heading_inference():
     """测试标题层级推断工具类"""
-    from yuxi.knowledge.chunking.ragflow_like.utils.md_parser_utils import infer_heading_level
+    from binizox.knowledge.chunking.ragflow_like.utils.md_parser_utils import infer_heading_level
 
     assert infer_heading_level("1. 简介") == 1
     assert infer_heading_level("1.1 详细设计") == 2

@@ -37,11 +37,11 @@
     </a-form>
     <template #footer>
       <div class="benchmark-modal-footer">
-        <div class="benchmark-help-text">
+        <div v-if="evaluationDocsUrl" class="benchmark-help-text">
           需要了解评估基准格式？查看
           <a
             class="benchmark-help-link"
-            href="https://xerrors.github.io/Yuxi/intro/evaluation.html"
+            :href="evaluationDocsUrl"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -64,6 +64,9 @@ import { ref, reactive, computed, watch } from 'vue'
 import { message } from 'ant-design-vue'
 import { UploadCloud } from '@lucide/vue'
 import { evaluationApi } from '@/apis/knowledge_api'
+import { productDocumentationUrl } from '@/config/product'
+
+const evaluationDocsUrl = productDocumentationUrl('intro/evaluation.html')
 
 const props = defineProps({
   visible: {

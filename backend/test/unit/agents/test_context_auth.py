@@ -6,7 +6,7 @@ import types
 from dataclasses import dataclass, field
 
 import pytest
-from yuxi.knowledge.read_models import KnowledgeBaseSummary
+from binizox.knowledge.read_models import KnowledgeBaseSummary
 
 
 def _knowledge_summary(kb_id: str) -> KnowledgeBaseSummary:
@@ -26,7 +26,7 @@ def _knowledge_summary(kb_id: str) -> KnowledgeBaseSummary:
 
 
 def _load_context_module():
-    return importlib.import_module("yuxi.agents.context")
+    return importlib.import_module("binizox.agents.context")
 
 
 context_module = _load_context_module()
@@ -124,7 +124,7 @@ async def test_resolve_agent_resource_options_empty_fields_loads_nothing(monkeyp
 
     monkeypatch.setitem(
         sys.modules,
-        "yuxi.knowledge.runtime",
+        "binizox.knowledge.runtime",
         types.SimpleNamespace(knowledge_base=types.SimpleNamespace(get_databases_by_user=fail_if_loaded)),
     )
 
@@ -144,7 +144,7 @@ async def test_lite_resource_options_exclude_persisted_knowledge_skill(monkeypat
     monkeypatch.setenv("LITE_MODE", "true")
     monkeypatch.setitem(
         sys.modules,
-        "yuxi.agents.skills.service",
+        "binizox.agents.skills.service",
         types.SimpleNamespace(list_accessible_skills=fake_list_skills),
     )
 
@@ -210,7 +210,7 @@ async def test_normalize_agent_context_config_expands_null_and_filters_explicit_
 
     monkeypatch.setitem(
         sys.modules,
-        "yuxi.agents.toolkits.service",
+        "binizox.agents.toolkits.service",
         types.SimpleNamespace(
             get_tool_metadata=lambda category=None: [
                 {"slug": "ask_user_question", "name": "Ask User", "description": ""},
@@ -220,12 +220,12 @@ async def test_normalize_agent_context_config_expands_null_and_filters_explicit_
     )
     monkeypatch.setitem(
         sys.modules,
-        "yuxi.knowledge.runtime",
+        "binizox.knowledge.runtime",
         types.SimpleNamespace(knowledge_base=types.SimpleNamespace(get_databases_by_user=fake_get_databases_by_user)),
     )
     monkeypatch.setitem(
         sys.modules,
-        "yuxi.agents.mcp.service",
+        "binizox.agents.mcp.service",
         types.SimpleNamespace(
             get_all_mcp_servers=fake_get_all_mcp_servers,
             get_enabled_mcp_server_slugs=fake_get_enabled_mcp_server_slugs,
@@ -233,12 +233,12 @@ async def test_normalize_agent_context_config_expands_null_and_filters_explicit_
     )
     monkeypatch.setitem(
         sys.modules,
-        "yuxi.agents.skills.service",
+        "binizox.agents.skills.service",
         types.SimpleNamespace(list_accessible_skills=fake_list_skills),
     )
     monkeypatch.setitem(
         sys.modules,
-        "yuxi.repositories.agent_repository",
+        "binizox.repositories.agent_repository",
         types.SimpleNamespace(AgentRepository=FakeAgentRepository),
     )
 
@@ -380,12 +380,12 @@ async def test_prepare_agent_runtime_context_filters_resources_and_derives_runti
 
     monkeypatch.setitem(
         sys.modules,
-        "yuxi.agents.backends.knowledge_base_backend",
+        "binizox.agents.backends.knowledge_base_backend",
         types.SimpleNamespace(resolve_visible_knowledge_bases_for_context=fake_resolve_visible_knowledge_bases),
     )
     monkeypatch.setitem(
         sys.modules,
-        "yuxi.agents.skills.runtime",
+        "binizox.agents.skills.runtime",
         types.SimpleNamespace(
             is_skill_allowed_in_runtime_mode=lambda _slug: True,
             resolve_runtime_skills_for_context=fake_resolve_runtime_skills_for_context,
@@ -393,17 +393,17 @@ async def test_prepare_agent_runtime_context_filters_resources_and_derives_runti
     )
     monkeypatch.setitem(
         sys.modules,
-        "yuxi.repositories.user_repository",
+        "binizox.repositories.user_repository",
         types.SimpleNamespace(UserRepository=FakeUserRepository),
     )
     monkeypatch.setitem(
         sys.modules,
-        "yuxi.storage.postgres.manager",
+        "binizox.storage.postgres.manager",
         types.SimpleNamespace(pg_manager=types.SimpleNamespace(get_async_session_context=lambda: FakeSessionContext())),
     )
     monkeypatch.setitem(
         sys.modules,
-        "yuxi.agents.toolkits.service",
+        "binizox.agents.toolkits.service",
         types.SimpleNamespace(
             get_tool_metadata=lambda category=None: [
                 {"slug": "ask_user_question", "name": "Ask User", "description": ""}
@@ -412,12 +412,12 @@ async def test_prepare_agent_runtime_context_filters_resources_and_derives_runti
     )
     monkeypatch.setitem(
         sys.modules,
-        "yuxi.knowledge.runtime",
+        "binizox.knowledge.runtime",
         types.SimpleNamespace(knowledge_base=types.SimpleNamespace(get_databases_by_user=fake_get_databases_by_user)),
     )
     monkeypatch.setitem(
         sys.modules,
-        "yuxi.agents.mcp.service",
+        "binizox.agents.mcp.service",
         types.SimpleNamespace(
             get_all_mcp_servers=fake_get_all_mcp_servers,
             get_enabled_mcp_server_slugs=fake_get_enabled_mcp_server_slugs,
@@ -425,12 +425,12 @@ async def test_prepare_agent_runtime_context_filters_resources_and_derives_runti
     )
     monkeypatch.setitem(
         sys.modules,
-        "yuxi.agents.skills.service",
+        "binizox.agents.skills.service",
         types.SimpleNamespace(list_accessible_skills=fake_list_skills),
     )
     monkeypatch.setitem(
         sys.modules,
-        "yuxi.repositories.agent_repository",
+        "binizox.repositories.agent_repository",
         types.SimpleNamespace(AgentRepository=FakeAgentRepository),
     )
     context = ChatBotContext(
@@ -480,22 +480,22 @@ async def test_prepare_agent_runtime_context_clears_resources_for_missing_user(m
 
     monkeypatch.setitem(
         sys.modules,
-        "yuxi.agents.backends.knowledge_base_backend",
+        "binizox.agents.backends.knowledge_base_backend",
         types.SimpleNamespace(resolve_visible_knowledge_bases_for_context=lambda _context: None),
     )
     monkeypatch.setitem(
         sys.modules,
-        "yuxi.agents.skills.runtime",
+        "binizox.agents.skills.runtime",
         types.SimpleNamespace(resolve_runtime_skills_for_context=lambda _context, db=None, user=None: None),
     )
     monkeypatch.setitem(
         sys.modules,
-        "yuxi.repositories.user_repository",
+        "binizox.repositories.user_repository",
         types.SimpleNamespace(UserRepository=FakeUserRepository),
     )
     monkeypatch.setitem(
         sys.modules,
-        "yuxi.storage.postgres.manager",
+        "binizox.storage.postgres.manager",
         types.SimpleNamespace(pg_manager=types.SimpleNamespace(get_async_session_context=lambda: FakeSessionContext())),
     )
 

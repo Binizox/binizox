@@ -3,7 +3,7 @@ $ProjectRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $EnvFile = Join-Path $ProjectRoot '.env'
 
 if (-not (Test-Path -LiteralPath $EnvFile)) {
-    throw '缺少 .env。请根据 .env.binizox.example 与 Yuxi 原始 .env.template 创建本地配置。'
+    throw '缺少 .env。请根据 .env.binizox.example 与 Binizox 原始 .env.template 创建本地配置。'
 }
 
 docker compose --project-directory $ProjectRoot --env-file $EnvFile `

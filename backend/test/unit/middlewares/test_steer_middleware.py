@@ -4,8 +4,8 @@ from types import SimpleNamespace
 
 import pytest
 from langchain_core.messages import AIMessage
-from yuxi.agents.middlewares.steer import SteerMiddleware
-from yuxi.services import agent_request_queue_service
+from binizox.agents.middlewares.steer import SteerMiddleware
+from binizox.services import agent_request_queue_service
 
 pytestmark = [pytest.mark.unit, pytest.mark.asyncio]
 

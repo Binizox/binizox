@@ -6,7 +6,7 @@ import { buildProjectConversationGroups } from '../../src/utils/projectConversat
 
 test('项目视图按项目顺序分组并把 implicit 对话放在最后', () => {
   const projects = [
-    { id: 'project-a', name: 'Yuxi', selection_status: 'selectable', status: 'active' },
+    { id: 'project-a', name: 'Binizox', selection_status: 'selectable', status: 'active' },
     { id: 'project-b', name: '论文', selection_status: 'selectable', status: 'active' },
     { id: 'deleted', name: '已删除', selection_status: 'selectable', status: 'deleted' }
   ]

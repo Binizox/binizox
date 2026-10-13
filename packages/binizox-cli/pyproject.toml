@@ -1,0 +1,56 @@
+[build-system]
+requires = ["setuptools>=80", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "binizox-cli"
+version = "0.1.4"
+description = "Binizox command line client"
+readme = "README.md"
+requires-python = ">=3.12"
+authors = [{ name = "Binizox Contributors" }]
+license = "MIT"
+license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]
+keywords = ["binizox", "cli", "rag", "knowledge-base", "agent"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Utilities",
+]
+dependencies = [
+    "httpx>=0.27",
+    "langfuse>=4.0.0",
+    "packaging>=24",
+    "questionary>=2.1.0",
+    "rich>=13.7",
+    "typer>=0.16",
+]
+
+[project.scripts]
+binizox = "binizox_cli.main:app"
+
+[project.urls]
+Repository = "https://github.com/Binizox/binizox"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+binizox_cli = ["chat.html"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 120
+lint.select = ["F", "E", "W", "UP"]
+
+[dependency-groups]
+test = [
+    "pytest>=8",
+]

@@ -24,8 +24,8 @@ from test.live_api_cleanup import (
     validate_test_runs_terminal,
     validate_test_workdirs_exclusive,
 )
-from yuxi.services import project_service
-from yuxi.storage.postgres.models_business import (
+from binizox.services import project_service
+from binizox.storage.postgres.models_business import (
     AgentRun,
     AgentRunRequest,
     Conversation,
@@ -36,7 +36,7 @@ from yuxi.storage.postgres.models_business import (
     ToolCall,
     User,
 )
-from yuxi.workspace.paths import ensure_bound_user_workdir, user_workdir_host_dir
+from binizox.workspace.paths import ensure_bound_user_workdir, user_workdir_host_dir
 
 pytestmark = [pytest.mark.asyncio, pytest.mark.integration]
 
@@ -57,7 +57,7 @@ async def _seed_thread(session_factory, *, thread_prefix: str) -> dict:
     uid = f"pytest-user-{uuid.uuid4()}"
     run_id = str(uuid.uuid4())
     request_id = f"cleanup-req-{uuid.uuid4()}"
-    workdir_path = f"projects/YUXI_TEST_cleanup-{uuid.uuid4()}"
+    workdir_path = f"projects/BINIZOX_TEST_cleanup-{uuid.uuid4()}"
     project_id = str(uuid.uuid4())
     async with session_factory() as db:
         db.add(User(username=uid, uid=uid, password_hash="test"))
@@ -324,7 +324,7 @@ async def test_request_prefix_matching_treats_underscores_literally(cleanup_data
     conversation_ids: list[int] = []
     project_ids = [str(uuid.uuid4()), str(uuid.uuid4())]
     message_ids: list[int] = []
-    request_ids = [f"YUXI_TEST_valid_{uuid.uuid4()}", f"YUXI-TEST-ordinary-{uuid.uuid4()}"]
+    request_ids = [f"BINIZOX_TEST_valid_{uuid.uuid4()}", f"BINIZOX-TEST-ordinary-{uuid.uuid4()}"]
     try:
         async with session_factory() as db:
             db.add(User(username=uid, uid=uid, password_hash="test"))
@@ -604,7 +604,7 @@ async def test_resource_cleanup_reports_file_failure_after_database_commit(clean
 
     session_factory = cleanup_database
     target = await _seed_thread(session_factory, thread_prefix="pytest-cleanup-file-failure")
-    workdir_path = f"projects/YUXI_TEST_failure-{uuid.uuid4()}"
+    workdir_path = f"projects/BINIZOX_TEST_failure-{uuid.uuid4()}"
     async with session_factory() as db:
         conversation = await db.get(Conversation, target["conversation_id"])
         project = await db.get(Project, target["project_id"])

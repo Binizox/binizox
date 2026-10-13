@@ -8,7 +8,7 @@ import asyncio
 import uuid
 
 import pytest
-from yuxi.config.runtime import lite_mode_enabled
+from binizox.config.runtime import lite_mode_enabled
 
 pytestmark = [pytest.mark.asyncio, pytest.mark.integration]
 

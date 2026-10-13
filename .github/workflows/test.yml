@@ -7,6 +7,7 @@ on:
     paths:
       - '.env.template'
       - 'backend/**'
+      - 'services/personal-tool-runner/**'
       - 'backend/pyproject.toml'
       - 'docker/**'
       - 'docker-compose.yml'
@@ -15,6 +16,8 @@ on:
       - 'scripts/init.sh'
       - 'scripts/init.ps1'
       - 'scripts/test_init_security.ps1'
+      - 'scripts/migrate-binizox-local-state.ps1'
+      - 'scripts/test_migrate_binizox_local_state.ps1'
       - 'scripts/migrate-storage.sh'
       - '.github/workflows/test.yml'
   push:
@@ -23,6 +26,7 @@ on:
     paths:
       - '.env.template'
       - 'backend/**'
+      - 'services/personal-tool-runner/**'
       - 'backend/pyproject.toml'
       - 'docker/**'
       - 'docker-compose.yml'
@@ -30,6 +34,8 @@ on:
       - 'scripts/init.sh'
       - 'scripts/init.ps1'
       - 'scripts/test_init_security.ps1'
+      - 'scripts/migrate-binizox-local-state.ps1'
+      - 'scripts/test_migrate_binizox_local_state.ps1'
       - 'scripts/migrate-storage.sh'
       - '.github/workflows/test.yml'
 
@@ -75,3 +81,22 @@ jobs:
       - name: Run native PowerShell security negative controls
         shell: pwsh
         run: pwsh -NoProfile -File scripts/test_init_security.ps1
+
+      - name: Run local state migration contract
+        shell: pwsh
+        run: pwsh -NoProfile -File scripts/test_migrate_binizox_local_state.ps1
+
+  personal-tool-runner-tests:
+    name: Personal Tool Runner unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Install service test dependencies
+        run: python -m pip install -e 'services/personal-tool-runner[dev]'
+      - name: Run authentication, isolation and idempotency tests
+        run: python -m pytest services/personal-tool-runner/test -q

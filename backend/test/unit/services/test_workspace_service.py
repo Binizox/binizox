@@ -9,9 +9,9 @@ from types import SimpleNamespace
 import pytest
 from fastapi import HTTPException, UploadFile
 
-import yuxi.workspace.preview as file_preview
-from yuxi.workspace import paths as workspace_paths
-from yuxi.services import workspace_service as svc
+import binizox.workspace.preview as file_preview
+from binizox.workspace import paths as workspace_paths
+from binizox.services import workspace_service as svc
 
 
 def _user() -> SimpleNamespace:
@@ -24,7 +24,7 @@ def _workspace_root(user: SimpleNamespace) -> Path:
 
 
 def test_workspace_root_creates_default_agent_context_files(tmp_path: Path, monkeypatch) -> None:
-    monkeypatch.setenv("YUXI_USER_DATA_DIR", str(tmp_path / "threads"))
+    monkeypatch.setenv("BINIZOX_USER_DATA_DIR", str(tmp_path / "threads"))
 
     previous_umask = os.umask(0o077)
     try:
@@ -47,7 +47,7 @@ def test_workspace_root_creates_default_agent_context_files(tmp_path: Path, monk
 
 
 def test_external_uid_uses_stable_path_safe_workspace_directory(tmp_path: Path, monkeypatch) -> None:
-    monkeypatch.setenv("YUXI_USER_DATA_DIR", str(tmp_path / "threads"))
+    monkeypatch.setenv("BINIZOX_USER_DATA_DIR", str(tmp_path / "threads"))
     uid = "oidc:898f3d04-140e-433b-a06e-1e50a2bd01b6"
 
     workspace_paths.ensure_user_workspace(uid)
@@ -60,7 +60,7 @@ def test_external_uid_uses_stable_path_safe_workspace_directory(tmp_path: Path, 
 
 @pytest.mark.parametrize("uid", ["../outside", r"C:\\outside", "oidc:tenant/user"])
 def test_external_uid_cannot_escape_threads_root(tmp_path: Path, monkeypatch, uid: str) -> None:
-    monkeypatch.setenv("YUXI_USER_DATA_DIR", str(tmp_path / "saves" / "threads"))
+    monkeypatch.setenv("BINIZOX_USER_DATA_DIR", str(tmp_path / "saves" / "threads"))
 
     workspace = workspace_paths.user_workspace_dir(uid)
 
@@ -69,7 +69,7 @@ def test_external_uid_cannot_escape_threads_root(tmp_path: Path, monkeypatch, ui
 
 
 def test_workspace_root_keeps_existing_agents_prompt_file(tmp_path: Path, monkeypatch) -> None:
-    monkeypatch.setenv("YUXI_USER_DATA_DIR", str(tmp_path / "threads"))
+    monkeypatch.setenv("BINIZOX_USER_DATA_DIR", str(tmp_path / "threads"))
     agents_dir = tmp_path / "threads" / "shared" / "user-1" / "workspace" / "agents"
     agents_dir.mkdir(parents=True)
     agents_file = agents_dir / "AGENTS.md"
@@ -82,7 +82,7 @@ def test_workspace_root_keeps_existing_agents_prompt_file(tmp_path: Path, monkey
 
 
 def test_workspace_root_rejects_symlink_root(tmp_path: Path, monkeypatch) -> None:
-    monkeypatch.setenv("YUXI_USER_DATA_DIR", str(tmp_path / "threads"))
+    monkeypatch.setenv("BINIZOX_USER_DATA_DIR", str(tmp_path / "threads"))
     user_root = tmp_path / "threads" / "shared" / "user-1"
     outside_root = tmp_path / "outside"
     user_root.mkdir(parents=True)
@@ -109,7 +109,7 @@ async def test_read_workspace_file_content_returns_unsupported_for_unreadable_fi
     filename: str,
     content: bytes,
 ) -> None:
-    monkeypatch.setenv("YUXI_USER_DATA_DIR", str(tmp_path / "threads"))
+    monkeypatch.setenv("BINIZOX_USER_DATA_DIR", str(tmp_path / "threads"))
     user = _user()
     root = _workspace_root(user)
     target = root / filename
@@ -127,7 +127,7 @@ async def test_read_workspace_file_content_returns_pdf_preview_for_office_file(
     tmp_path: Path,
     monkeypatch,
 ) -> None:
-    monkeypatch.setenv("YUXI_USER_DATA_DIR", str(tmp_path / "threads"))
+    monkeypatch.setenv("BINIZOX_USER_DATA_DIR", str(tmp_path / "threads"))
     user = _user()
     root = _workspace_root(user)
     target = root / "demo.docx"
@@ -138,7 +138,7 @@ async def test_read_workspace_file_content_returns_pdf_preview_for_office_file(
         assert content == b"office"
         return b"%PDF-1.4\npreview"
 
-    monkeypatch.setenv("YUXI_RUNTIME_DIR", str(tmp_path / "runtime"))
+    monkeypatch.setenv("BINIZOX_RUNTIME_DIR", str(tmp_path / "runtime"))
     monkeypatch.setattr(file_preview, "convert_office_to_pdf", fake_convert)
 
     result = await svc.read_workspace_file_content(path="/demo.docx", current_user=user)
@@ -147,7 +147,7 @@ async def test_read_workspace_file_content_returns_pdf_preview_for_office_file(
         body += chunk
 
     assert result.media_type == "application/pdf"
-    assert result.headers["x-yuxi-preview-type"] == "pdf"
+    assert result.headers["x-binizox-preview-type"] == "pdf"
     assert body == b"%PDF-1.4\npreview"
 
 
@@ -156,7 +156,7 @@ async def test_read_workspace_file_content_rejects_xlsx_preview(
     tmp_path: Path,
     monkeypatch,
 ) -> None:
-    monkeypatch.setenv("YUXI_USER_DATA_DIR", str(tmp_path / "threads"))
+    monkeypatch.setenv("BINIZOX_USER_DATA_DIR", str(tmp_path / "threads"))
     user = _user()
     root = _workspace_root(user)
     target = root / "sheet.xlsx"
@@ -185,8 +185,8 @@ async def test_preview_workspace_file_caches_office_pdf_conversion(
 ) -> None:
     save_dir = tmp_path / "saves"
     runtime_dir = tmp_path / "runtime"
-    monkeypatch.setenv("YUXI_USER_DATA_DIR", str(save_dir / "threads"))
-    monkeypatch.setenv("YUXI_RUNTIME_DIR", str(runtime_dir))
+    monkeypatch.setenv("BINIZOX_USER_DATA_DIR", str(save_dir / "threads"))
+    monkeypatch.setenv("BINIZOX_RUNTIME_DIR", str(runtime_dir))
     user = _user()
     root = _workspace_root(user)
     target = root / filename
@@ -205,7 +205,7 @@ async def test_preview_workspace_file_caches_office_pdf_conversion(
     async def read_pdf() -> bytes:
         response = await svc.read_workspace_file_content(path=f"/{filename}", current_user=user)
         assert response.media_type == "application/pdf"
-        assert response.headers["x-yuxi-preview-type"] == "pdf"
+        assert response.headers["x-binizox-preview-type"] == "pdf"
         body = b""
         async for chunk in response.body_iterator:
             body += chunk
@@ -227,7 +227,7 @@ async def test_download_workspace_file_keeps_office_original_file(
     tmp_path: Path,
     monkeypatch,
 ) -> None:
-    monkeypatch.setenv("YUXI_USER_DATA_DIR", str(tmp_path / "threads"))
+    monkeypatch.setenv("BINIZOX_USER_DATA_DIR", str(tmp_path / "threads"))
     user = _user()
     root = _workspace_root(user)
     target = root / "slides.pptx"
@@ -256,7 +256,7 @@ async def test_write_workspace_file_content_updates_file(
     original: str,
     content: str,
 ) -> None:
-    monkeypatch.setenv("YUXI_USER_DATA_DIR", str(tmp_path / "threads"))
+    monkeypatch.setenv("BINIZOX_USER_DATA_DIR", str(tmp_path / "threads"))
     user = _user()
     root = _workspace_root(user)
     target = root / f"note.{extension}"
@@ -272,7 +272,7 @@ async def test_write_workspace_file_content_updates_file(
 
 @pytest.mark.asyncio
 async def test_write_workspace_file_content_rejects_unsupported_suffix(tmp_path: Path, monkeypatch) -> None:
-    monkeypatch.setenv("YUXI_USER_DATA_DIR", str(tmp_path / "threads"))
+    monkeypatch.setenv("BINIZOX_USER_DATA_DIR", str(tmp_path / "threads"))
     user = _user()
     root = _workspace_root(user)
     target = root / "script.py"
@@ -287,7 +287,7 @@ async def test_write_workspace_file_content_rejects_unsupported_suffix(tmp_path:
 
 @pytest.mark.asyncio
 async def test_write_workspace_file_content_rejects_directory_and_missing_file(tmp_path: Path, monkeypatch) -> None:
-    monkeypatch.setenv("YUXI_USER_DATA_DIR", str(tmp_path / "threads"))
+    monkeypatch.setenv("BINIZOX_USER_DATA_DIR", str(tmp_path / "threads"))
     user = _user()
     workspace_paths.ensure_user_workspace("user-1")
 
@@ -302,7 +302,7 @@ async def test_write_workspace_file_content_rejects_directory_and_missing_file(t
 
 @pytest.mark.asyncio
 async def test_write_workspace_file_content_blocks_path_traversal(tmp_path: Path, monkeypatch) -> None:
-    monkeypatch.setenv("YUXI_USER_DATA_DIR", str(tmp_path / "threads"))
+    monkeypatch.setenv("BINIZOX_USER_DATA_DIR", str(tmp_path / "threads"))
 
     with pytest.raises(HTTPException) as exc_info:
         await svc.write_workspace_file_content(
@@ -316,7 +316,7 @@ async def test_write_workspace_file_content_blocks_path_traversal(tmp_path: Path
 
 @pytest.mark.asyncio
 async def test_upload_workspace_files_writes_files(tmp_path: Path, monkeypatch) -> None:
-    monkeypatch.setenv("YUXI_USER_DATA_DIR", str(tmp_path / "threads"))
+    monkeypatch.setenv("BINIZOX_USER_DATA_DIR", str(tmp_path / "threads"))
     user = _user()
     root = _workspace_root(user)
     uploads = [
@@ -341,7 +341,7 @@ async def test_upload_workspace_files_writes_files(tmp_path: Path, monkeypatch) 
 
 @pytest.mark.asyncio
 async def test_create_workspace_directory_uses_owner_only_mode(tmp_path: Path, monkeypatch) -> None:
-    monkeypatch.setenv("YUXI_USER_DATA_DIR", str(tmp_path / "threads"))
+    monkeypatch.setenv("BINIZOX_USER_DATA_DIR", str(tmp_path / "threads"))
 
     previous_umask = os.umask(0o077)
     try:
@@ -363,7 +363,7 @@ async def test_upload_workspace_files_rejects_oversized_file_and_cleans_partial_
     tmp_path: Path,
     monkeypatch,
 ) -> None:
-    monkeypatch.setenv("YUXI_USER_DATA_DIR", str(tmp_path / "threads"))
+    monkeypatch.setenv("BINIZOX_USER_DATA_DIR", str(tmp_path / "threads"))
     monkeypatch.setattr(svc, "MAX_WORKSPACE_UPLOAD_SIZE_BYTES", 5)
     user = _user()
     root = _workspace_root(user)
@@ -383,7 +383,7 @@ async def test_upload_workspace_files_rejects_oversized_file_and_cleans_partial_
 
 @pytest.mark.asyncio
 async def test_upload_workspace_files_rejects_more_than_limit(tmp_path: Path, monkeypatch) -> None:
-    monkeypatch.setenv("YUXI_USER_DATA_DIR", str(tmp_path / "threads"))
+    monkeypatch.setenv("BINIZOX_USER_DATA_DIR", str(tmp_path / "threads"))
     user = _user()
     uploads = [
         UploadFile(filename=f"demo-{index}.txt", file=BytesIO(b"hello"))
@@ -411,7 +411,7 @@ def _make_thread_files(tmp_path: Path, thread_id: str) -> Path:
 
 @pytest.mark.asyncio
 async def test_search_workspace_files_matches_filenames(tmp_path: Path, monkeypatch) -> None:
-    monkeypatch.setenv("YUXI_USER_DATA_DIR", str(tmp_path / "threads"))
+    monkeypatch.setenv("BINIZOX_USER_DATA_DIR", str(tmp_path / "threads"))
     root = _workspace_root(_user())
     (root / "notes").mkdir(parents=True, exist_ok=True)
     (root / "notes" / "meeting-record.md").write_text("记录", encoding="utf-8")

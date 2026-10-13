@@ -5,7 +5,7 @@ from pathlib import Path
 from uuid import uuid4
 
 import pytest
-from yuxi.config import get_legacy_storage_dir, get_runtime_dir
+from binizox.config import get_legacy_storage_dir, get_runtime_dir
 
 pytestmark = [pytest.mark.asyncio, pytest.mark.integration]
 

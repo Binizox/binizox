@@ -5,8 +5,8 @@ import pytest
 
 os.environ.setdefault("OPENAI_API_KEY", "test-key")
 
-from yuxi.models.providers.builtin import BUILTIN_PROVIDERS
-from yuxi.models.providers.service import (
+from binizox.models.providers.builtin import BUILTIN_PROVIDERS
+from binizox.models.providers.service import (
     _normalize_payload,
     _normalize_remote_model,
     _validate_request_body_overrides_scope,
@@ -124,8 +124,8 @@ async def test_update_provider_config_rejects_provider_type_change_with_existing
     async def fail_update_model_provider(db, provider, data):
         pytest.fail("不应在非法 request_body_overrides 范围下写入 provider")
 
-    monkeypatch.setattr("yuxi.models.providers.service.get_model_provider", fake_get_model_provider)
-    monkeypatch.setattr("yuxi.models.providers.service.update_model_provider", fail_update_model_provider)
+    monkeypatch.setattr("binizox.models.providers.service.get_model_provider", fake_get_model_provider)
+    monkeypatch.setattr("binizox.models.providers.service.update_model_provider", fail_update_model_provider)
 
     with pytest.raises(ValueError, match="仅支持 OpenAI 兼容供应商"):
         await update_provider_config(None, "openai-local", {"provider_type": "anthropic"}, "tester")
@@ -213,7 +213,7 @@ async def test_fetch_remote_models_loads_embedding_only_when_capability_enabled(
         calls.append((endpoint, model_type))
         return [{"id": f"{model_type}-model", "type": model_type}]
 
-    monkeypatch.setattr("yuxi.models.providers.service._fetch_models_from_endpoint", fake_fetch)
+    monkeypatch.setattr("binizox.models.providers.service._fetch_models_from_endpoint", fake_fetch)
 
     class Provider:
         base_url = "https://example.com/v1"

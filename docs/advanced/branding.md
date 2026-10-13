@@ -1,6 +1,6 @@
 # 自定义品牌信息
 
-Yuxi 的品牌配置分为两部分：后端读取的站点信息，以及前端源码中的主题样式。前者可以通过 YAML 文件替换名称、Logo 和协议链接；后者需要修改前端资源。
+Binizox 的品牌配置分为两部分：后端读取的站点信息，以及前端源码中的主题样式。前者可以通过 YAML 文件替换名称、Logo 和协议链接；后者需要修改前端资源。
 
 ## 配置站点信息
 
@@ -9,8 +9,8 @@ Yuxi 的品牌配置分为两部分：后端读取的站点信息，以及前端
 复制模板。`info.local.yaml` 通常是本地未跟踪文件；如果目标文件已经存在，不要覆盖它，直接编辑或先备份：
 
 ```bash
-cp -n backend/package/yuxi/config/static/info.template.yaml \
-  backend/package/yuxi/config/static/info.local.yaml
+cp -n backend/package/binizox/config/static/info.template.yaml \
+  backend/package/binizox/config/static/info.local.yaml
 ```
 
 在 `info.local.yaml` 中修改：
@@ -36,7 +36,7 @@ footer:
 图片和协议页面放在 `web/public` 下，路径从网站根目录开始写，例如 `/logo.svg`。Compose 中 API 的工作目录是 `/app`，因此默认配置路径可以写成：
 
 ```bash
-YUXI_BRAND_FILE_PATH=package/yuxi/config/static/info.local.yaml
+BINIZOX_BRAND_FILE_PATH=package/binizox/config/static/info.local.yaml
 ```
 
 也可以在 `.env` 中设置绝对路径，但文件必须挂载到 API 容器中。路径不存在时，API 会回退到 `info.template.yaml`；它不会把两个 YAML 文件合并。
@@ -49,14 +49,14 @@ YUXI_BRAND_FILE_PATH=package/yuxi/config/static/info.local.yaml
 docker compose restart api
 ```
 
-生产 Compose 不挂载仓库源码，品牌 YAML 会在构建 API 镜像时复制进去。修改 `backend/package/yuxi/config/static/info.local.yaml` 后，需要重新构建并创建 API/worker 容器：
+生产 Compose 不挂载仓库源码，品牌 YAML 会在构建 API 镜像时复制进去。修改 `backend/package/binizox/config/static/info.local.yaml` 后，需要重新构建并创建 API/worker 容器：
 
 ```bash
 docker compose --env-file .env.prod -f docker-compose.prod.yml \
   up -d --build --force-recreate api worker
 ```
 
-如果使用仓库之外的品牌文件，需要在 Compose 覆盖配置中把它只读挂载到 API 容器，并让 `YUXI_BRAND_FILE_PATH` 指向容器内路径；修改该环境变量后同样要重新创建容器。页面会通过公开的 `/api/system/info` 读取站点信息，版本占位符 `{{YUXI_VERSION}}` 由 API 替换为当前版本。
+如果使用仓库之外的品牌文件，需要在 Compose 覆盖配置中把它只读挂载到 API 容器，并让 `BINIZOX_BRAND_FILE_PATH` 指向容器内路径；修改该环境变量后同样要重新创建容器。页面会通过公开的 `/api/system/info` 读取站点信息，版本占位符 `{{BINIZOX_VERSION}}` 由 API 替换为当前版本。
 
 ## 登录协议
 

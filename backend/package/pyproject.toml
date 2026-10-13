@@ -3,14 +3,12 @@ requires = ["setuptools>=80", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "yuxi"
+name = "binizox"
 version = "0.7.2"
-description = "Yuxi 智能知识库与知识图谱平台核心后端包"
+description = "Binizox 智能知识库与知识图谱平台核心后端包"
 readme = "README.md"
-license = { text = "MIT" }
-classifiers = [
-    "License :: OSI Approved :: MIT License",
-]
+license = "MIT"
+license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]
 requires-python = ">=3.12,<3.14"
 dependencies = [
     "agent-sandbox>=0.0.26",
@@ -91,7 +89,7 @@ include-package-data = true
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["yuxi*"]
+include = ["binizox*"]
 
 
 [tool.uv]
@@ -114,6 +112,6 @@ url = "https://download.pytorch.org/whl/cpu"
 explicit = true
 
 [tool.uv.sources]
-yuxi = { path = "package", editable = true }
+binizox = { path = "package", editable = true }
 torch = { index = "pytorch-cpu" }
 torchvision = { index = "pytorch-cpu" }

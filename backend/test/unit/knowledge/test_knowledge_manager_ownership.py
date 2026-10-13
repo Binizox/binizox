@@ -2,8 +2,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from yuxi.knowledge.manager import KnowledgeBaseManager
-from yuxi.knowledge.read_models import KnowledgeBaseConfig
+from binizox.knowledge.manager import KnowledgeBaseManager
+from binizox.knowledge.read_models import KnowledgeBaseConfig
 
 pytestmark = pytest.mark.asyncio
 
@@ -26,7 +26,7 @@ async def test_delete_database_cleans_resources_before_deleting_record(tmp_path,
 
     monkeypatch.setattr(manager, "get_kb_executor", get_kb_executor)
     monkeypatch.setattr(
-        "yuxi.repositories.knowledge_base_repository.KnowledgeBaseRepository",
+        "binizox.repositories.knowledge_base_repository.KnowledgeBaseRepository",
         FakeRepository,
     )
 
@@ -79,7 +79,7 @@ async def test_update_query_params_delegates_persistence_to_manager(tmp_path, mo
             return object()
 
     monkeypatch.setattr(
-        "yuxi.repositories.knowledge_base_repository.KnowledgeBaseRepository",
+        "binizox.repositories.knowledge_base_repository.KnowledgeBaseRepository",
         FakeRepository,
     )
 
@@ -106,7 +106,7 @@ async def test_consistency_check_delegates_type_resources_to_executor(tmp_path, 
 
     manager.kb_instances["milvus"] = FakeExecutor()
     monkeypatch.setattr(
-        "yuxi.repositories.knowledge_base_repository.KnowledgeBaseRepository",
+        "binizox.repositories.knowledge_base_repository.KnowledgeBaseRepository",
         FakeRepository,
     )
 

@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 from server.routers import knowledge_eval_router
 from server.utils.auth_middleware import get_required_user
 from server.utils import knowledge_permissions
-from yuxi.permissions import ResourcePermission
+from binizox.permissions import ResourcePermission
 
 
 @pytest.mark.asyncio

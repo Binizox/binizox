@@ -1,6 +1,6 @@
-# 使用 API Key 调用 Yuxi
+# 使用 API Key 调用 Binizox
 
-API Key 适合服务之间调用 Yuxi。它绑定到一个具体的 Yuxi 用户，请求会继承该用户的角色、部门和资源权限；它不是一个绕过权限的“超级凭证”。
+API Key 适合服务之间调用 Binizox。它绑定到一个具体的 Binizox 用户，请求会继承该用户的角色、部门和资源权限；它不是一个绕过权限的“超级凭证”。
 
 ## 创建 API Key
 
@@ -28,12 +28,12 @@ Content-Type: application/json
 {
   "api_key": {
     "id": 12,
-    "key_prefix": "yxkey_abcdef",
+    "key_prefix": "bzkey_abcdef",
     "name": "外部客服系统",
     "user_id": 3,
     "is_enabled": true
   },
-  "secret": "yxkey_<your-secret>"
+  "secret": "bzkey_<your-secret>"
 }
 ```
 
@@ -55,7 +55,7 @@ Content-Type: application/json
 API 服务在容器内监听 `5050`：
 
 - 开发环境可使用 `http://localhost:5050`；
-- 生产环境使用反向代理提供的 HTTPS 地址，例如 `https://yuxi.example.com`；
+- 生产环境使用反向代理提供的 HTTPS 地址，例如 `https://binizox.example.com`；
 - 同一套 API 的 Web 入口通常是 `http://localhost:5173`（开发）或反向代理的根路径（生产）。
 
 API Key 通过 `Authorization` 请求头发送。生产环境必须使用 HTTPS，避免密钥在网络中被窃听或篡改。
@@ -63,18 +63,20 @@ API Key 通过 `Authorization` 请求头发送。生产环境必须使用 HTTPS�
 ## 认证请求
 
 ```http
-Authorization: Bearer yxkey_<your-secret>
+Authorization: Bearer bzkey_<your-secret>
 ```
 
-服务端会根据 `yxkey_` 前缀进入 API Key 校验；其他 Bearer token 按 JWT 校验。当前派生的 secret 由 `yxkey_` 加 48 位十六进制字符组成，总长度为 54 个字符；客户端不要记录或打印完整 secret。两种方式可以调用同一个受保护接口，但 API Key 的实际权限仍等于它绑定的用户。
+服务端会根据 `bzkey_` 前缀进入 API Key 校验；其他 Bearer token 按 JWT 校验。当前派生的 secret 由 `bzkey_` 加 48 位十六进制字符组成，总长度为 54 个字符；客户端不要记录或打印完整 secret。两种方式可以调用同一个受保护接口，但 API Key 的实际权限仍等于它绑定的用户。
+
+从 Binizox/AsterDesk 数据库迁入且以 `yxkey_` 开头的既有密钥可以继续验证和安全重放，但 Binizox 不再签发这种前缀。这个兼容分支只用于历史数据读取，确认所有客户端已经换用 `bzkey_` 后可以在后续版本删除。
 
 ## 运行一次 Agent
 
 通用 Run API 分为创建线程、提交运行和读取事件三步。创建线程时，`agent_id` 的值是智能体 slug，不是数据库自增 ID：
 
 ```bash
-BASE_URL=https://yuxi.example.com
-API_KEY=yxkey_<your-secret>
+BASE_URL=https://binizox.example.com
+API_KEY=bzkey_<your-secret>
 
 curl --fail "$BASE_URL/api/chat/thread" \
   -H "Authorization: Bearer $API_KEY" \
@@ -137,7 +139,7 @@ curl --no-buffer --fail "$BASE_URL<stream_url>" \
 
 ```http
 GET /api/agent/runs/{run_id}/result
-Authorization: Bearer yxkey_<your-secret>
+Authorization: Bearer bzkey_<your-secret>
 ```
 
 结果接口只读，不会重复执行 Run。最终输出必须从该 `run_id` 绑定的结果读取，不要从相邻 Run 或最近一条消息猜测。
@@ -185,7 +187,7 @@ Agent Call 结果包含 `run_id`、`agent_slug`、`thread_id`、`status`、`outp
 
 ```http
 POST /api/agent-invocation/agent-call/runs/result
-Authorization: Bearer yxkey_<your-secret>
+Authorization: Bearer bzkey_<your-secret>
 Content-Type: application/json
 
 {"run_id":"<agent-run-id>"}

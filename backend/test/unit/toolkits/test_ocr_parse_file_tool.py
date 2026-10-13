@@ -5,9 +5,9 @@ from pathlib import Path
 
 import pytest
 
-from yuxi.services import ocr_service
-from yuxi.agents.toolkits.buildin import tools as buildin_tools
-from yuxi.agents.toolkits.buildin.tools import ocr_parse_file
+from binizox.services import ocr_service
+from binizox.agents.toolkits.buildin import tools as buildin_tools
+from binizox.agents.toolkits.buildin.tools import ocr_parse_file
 
 pytestmark = pytest.mark.unit
 
@@ -62,7 +62,7 @@ def _runtime(
 
 @pytest.mark.asyncio
 async def test_ocr_parse_file_writes_markdown_to_outputs(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("YUXI_USER_DATA_DIR", str(tmp_path / "threads"))
+    monkeypatch.setenv("BINIZOX_USER_DATA_DIR", str(tmp_path / "threads"))
     _mock_system_options(monkeypatch)
 
     def resolve_engine(engine_id, default_engine):
@@ -104,7 +104,7 @@ async def test_ocr_parse_file_writes_markdown_to_outputs(tmp_path, monkeypatch: 
 
 @pytest.mark.asyncio
 async def test_ocr_parse_file_uses_default_engine(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("YUXI_USER_DATA_DIR", str(tmp_path / "threads"))
+    monkeypatch.setenv("BINIZOX_USER_DATA_DIR", str(tmp_path / "threads"))
     _mock_system_options(monkeypatch)
 
     def resolve_engine(engine_id, default_engine):
@@ -137,7 +137,7 @@ async def test_ocr_parse_file_uses_default_engine(tmp_path, monkeypatch: pytest.
 
 @pytest.mark.asyncio
 async def test_ocr_parse_file_accepts_disable_for_pdf(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("YUXI_USER_DATA_DIR", str(tmp_path / "threads"))
+    monkeypatch.setenv("BINIZOX_USER_DATA_DIR", str(tmp_path / "threads"))
     _mock_system_options(monkeypatch)
     thread_id = "thread-1"
     uid = "user-1"
@@ -174,7 +174,7 @@ async def test_ocr_parse_file_accepts_disable_for_pdf(tmp_path, monkeypatch: pyt
 async def test_ocr_parse_file_rejects_path_outside_user_data(
     tmp_path, monkeypatch: pytest.MonkeyPatch, file_path: str
 ) -> None:
-    monkeypatch.setenv("YUXI_USER_DATA_DIR", str(tmp_path / "threads"))
+    monkeypatch.setenv("BINIZOX_USER_DATA_DIR", str(tmp_path / "threads"))
     _mock_system_options(monkeypatch)
 
     with pytest.raises(ValueError, match="只允许解析"):
@@ -183,7 +183,7 @@ async def test_ocr_parse_file_rejects_path_outside_user_data(
 
 @pytest.mark.asyncio
 async def test_ocr_parse_file_rejects_directory(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("YUXI_USER_DATA_DIR", str(tmp_path / "threads"))
+    monkeypatch.setenv("BINIZOX_USER_DATA_DIR", str(tmp_path / "threads"))
     _mock_system_options(monkeypatch)
     thread_id = "thread-1"
     uid = "user-1"
@@ -195,7 +195,7 @@ async def test_ocr_parse_file_rejects_directory(tmp_path, monkeypatch: pytest.Mo
 
 
 def _mock_system_options(monkeypatch: pytest.MonkeyPatch) -> None:
-    from yuxi.config.options import Option, system_options
+    from binizox.config.options import Option, system_options
 
     async def get_options(option, _db=None):
         assert option is system_options

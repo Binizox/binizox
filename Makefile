@@ -19,8 +19,8 @@ reset:
 		echo "Error: .env file not found. Please create it from .env.template"; \
 		exit 1; \
 	fi
-	@if [ -n "$$YUXI_STATE_DIR" ] || grep -Eq '^[[:space:]]*YUXI_STATE_DIR[[:space:]]*=[[:space:]]*[^[:space:]#]' .env; then \
-		echo "Refusing to delete an external YUXI_STATE_DIR; stop the slot and remove its exact state directory explicitly." >&2; \
+	@if [ -n "$$BINIZOX_STATE_DIR" ] || grep -Eq '^[[:space:]]*BINIZOX_STATE_DIR[[:space:]]*=[[:space:]]*[^[:space:]#]' .env; then \
+		echo "Refusing to delete an external BINIZOX_STATE_DIR; stop the slot and remove its exact state directory explicitly." >&2; \
 		exit 1; \
 	fi
 	docker compose down
@@ -73,16 +73,16 @@ verify-trust:
 
 audit-dependencies:
 	cd backend && uv audit --locked --no-dev
-	cd packages/yuxi-cli && uv audit --locked --no-dev
+	cd packages/binizox-cli && uv audit --locked --no-dev
 	cd web && pnpm audit --audit-level=high --prod
 	cd docs && pnpm audit --audit-level=high --prod
-	@if uv audit --script scripts/dependency-audit-fixtures/vulnerable.py > /tmp/yuxi-python-audit-negative.log 2>&1; then echo "Expected the vulnerable Python fixture to fail"; exit 1; fi
-	grep -q "aiohttp 3.14.1 has" /tmp/yuxi-python-audit-negative.log
-	grep -q "GHSA-cq5v-8q36-5273" /tmp/yuxi-python-audit-negative.log
-	@if cd scripts/dependency-audit-fixtures/node && pnpm audit --audit-level=high --prod > /tmp/yuxi-node-audit-negative.log 2>&1; then echo "Expected the vulnerable Node.js fixture to fail"; exit 1; fi
-	grep -q "js-yaml" /tmp/yuxi-node-audit-negative.log
-	grep -q "GHSA-5p4m-2wfm-xmqj" /tmp/yuxi-node-audit-negative.log
+	@if uv audit --script scripts/dependency-audit-fixtures/vulnerable.py > /tmp/binizox-python-audit-negative.log 2>&1; then echo "Expected the vulnerable Python fixture to fail"; exit 1; fi
+	grep -q "aiohttp 3.14.1 has" /tmp/binizox-python-audit-negative.log
+	grep -q "GHSA-cq5v-8q36-5273" /tmp/binizox-python-audit-negative.log
+	@if cd scripts/dependency-audit-fixtures/node && pnpm audit --audit-level=high --prod > /tmp/binizox-node-audit-negative.log 2>&1; then echo "Expected the vulnerable Node.js fixture to fail"; exit 1; fi
+	grep -q "js-yaml" /tmp/binizox-node-audit-negative.log
+	grep -q "GHSA-5p4m-2wfm-xmqj" /tmp/binizox-node-audit-negative.log
 
 audit-licenses:
 	cd backend && UV_PYTHON=$(BACKEND_PYTHON) uv run --isolated --no-dev --with pip-licenses pip-licenses --from mixed --format markdown
-	cd packages/yuxi-cli && uv run --isolated --no-dev --with pip-licenses pip-licenses --from mixed --format markdown
+	cd packages/binizox-cli && uv run --isolated --no-dev --with pip-licenses pip-licenses --from mixed --format markdown

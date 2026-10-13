@@ -1,13 +1,13 @@
 # 开发智能体后端
 
-本页面向需要在 Yuxi 中新增或维护 Agent 后端的贡献者。它只讲代码装配；配置字段、权限和运行时上下文分别见[配置智能体](./agents-config.md)和[Agent 运行时上下文](../mechanisms/agent-runtime.md)。
+本页面向需要在 Binizox 中新增或维护 Agent 后端的贡献者。它只讲代码装配；配置字段、权限和运行时上下文分别见[配置智能体](./agents-config.md)和[Agent 运行时上下文](../mechanisms/agent-runtime.md)。
 
 ## 后端放在哪里
 
 随服务发布的 Agent 后端放在：
 
 ```text
-backend/package/yuxi/agents/buildin/<your_agent>/
+backend/package/binizox/agents/buildin/<your_agent>/
 ├── __init__.py
 ├── context.py
 └── graph.py
@@ -19,8 +19,8 @@ backend/package/yuxi/agents/buildin/<your_agent>/
 
 ```python
 from langchain.agents import create_agent
-from yuxi.agents import BaseAgent, BaseContext, load_chat_model
-from yuxi.agents.context import prepare_agent_runtime_context
+from binizox.agents import BaseAgent, BaseContext, load_chat_model
+from binizox.agents.context import prepare_agent_runtime_context
 
 
 class MyAgent(BaseAgent):
@@ -50,7 +50,7 @@ class MyAgent(BaseAgent):
 
 ```python
 from dataclasses import dataclass, field
-from yuxi.agents import BaseContext
+from binizox.agents import BaseContext
 
 
 @dataclass(kw_only=True)
@@ -96,7 +96,7 @@ context_schema
 
 - `BaseAgent` 子类位于可被 `agent_manager` 发现的包中，并被 `__init__.py` 导出；
 - `context_schema` 的默认值、字段权限和选项能被前端正确渲染；
-- Graph 使用 Yuxi 的模型、工具、文件和 checkpoint 装配入口；
+- Graph 使用 Binizox 的模型、工具、文件和 checkpoint 装配入口；
 - 工具副作用在执行处验证用户、路径和资源；
 - LITE 模式不会因新增导入而初始化知识库、图谱或评估重运行时；
 - 新的模型可见输入、状态、文件或协议有正向和负向测试；
@@ -104,11 +104,11 @@ context_schema
 
 ## 源码和测试
 
-- [BaseAgent](https://github.com/xerrors/Yuxi/blob/main/backend/package/yuxi/agents/base.py)
-- [Context](https://github.com/xerrors/Yuxi/blob/main/backend/package/yuxi/agents/context.py)
-- [Chatbot graph](https://github.com/xerrors/Yuxi/blob/main/backend/package/yuxi/agents/buildin/chatbot/graph.py)
-- [Agent 自动发现](https://github.com/xerrors/Yuxi/blob/main/backend/package/yuxi/agents/buildin/__init__.py)
-- [Agent unit tests](https://github.com/xerrors/Yuxi/tree/main/backend/test/unit/agents)
-- [Agent integration/E2E](https://github.com/xerrors/Yuxi/tree/main/backend/test/e2e)
+- [BaseAgent](https://github.com/Binizox/binizox/blob/main/backend/package/binizox/agents/base.py)
+- [Context](https://github.com/Binizox/binizox/blob/main/backend/package/binizox/agents/context.py)
+- [Chatbot graph](https://github.com/Binizox/binizox/blob/main/backend/package/binizox/agents/buildin/chatbot/graph.py)
+- [Agent 自动发现](https://github.com/Binizox/binizox/blob/main/backend/package/binizox/agents/buildin/__init__.py)
+- [Agent unit tests](https://github.com/Binizox/binizox/tree/main/backend/test/unit/agents)
+- [Agent integration/E2E](https://github.com/Binizox/binizox/tree/main/backend/test/e2e)
 
-改变持久配置、权限、模型可见输入、Run 生命周期或文件边界时，先按 [Yuxi Spec Loop](../develop-guides/spec-loop.md) 建立相应的决策和验证范围。
+改变持久配置、权限、模型可见输入、Run 生命周期或文件边界时，先按 [Binizox Spec Loop](../develop-guides/spec-loop.md) 建立相应的决策和验证范围。

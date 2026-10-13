@@ -98,7 +98,7 @@
               <X :size="14" />
             </button>
           </div>
-          <p class="star-card-title">给 Yuxi 点个 Star</p>
+          <p class="star-card-title">给 Binizox 点个 Star</p>
           <p class="star-card-description">
             如果这个项目帮到了你，欢迎去 GitHub 点亮一个 Star，让更多人看到它。
           </p>
@@ -108,11 +108,7 @@
             target="_blank"
             rel="noopener noreferrer"
           >
-            <img
-              class="star-card-link-image"
-              src="https://img.shields.io/github/stars/xerrors/Yuxi?label=Yuxi&style=social"
-              alt="GitHub stars for Yuxi"
-            />
+            <span>打开 Binizox 项目仓库</span>
             <ExternalLink :size="13" />
           </a>
         </div>
@@ -236,6 +232,7 @@ import OCRSettingsSection from '@/components/OCRSettingsSection.vue'
 import ApiKeyManagementComponent from '@/components/ApiKeyManagementComponent.vue'
 import UserManagementComponent from '@/components/UserManagementComponent.vue'
 import DepartmentManagementComponent from '@/components/DepartmentManagementComponent.vue'
+import { PRODUCT_REPOSITORY_URL } from '@/config/product'
 
 const props = defineProps({
   visible: {
@@ -252,10 +249,10 @@ const emit = defineEmits(['update:visible', 'close'])
 
 const userStore = useUserStore()
 const activeTab = ref('account')
-const showStarCard = ref(true)
+const showStarCard = ref(Boolean(PRODUCT_REPOSITORY_URL))
 
-const STAR_CARD_STORAGE_KEY = 'yuxi-settings-star-card-dismissed'
-const projectRepoUrl = 'https://github.com/xerrors/Yuxi'
+const STAR_CARD_STORAGE_KEY = 'binizox-settings-star-card-dismissed'
+const projectRepoUrl = PRODUCT_REPOSITORY_URL
 
 const visible = computed({
   get: () => props.visible,
@@ -288,7 +285,8 @@ const dismissStarCard = () => {
 }
 
 onMounted(() => {
-  showStarCard.value = localStorage.getItem(STAR_CARD_STORAGE_KEY) !== 'true'
+  showStarCard.value =
+    Boolean(projectRepoUrl) && localStorage.getItem(STAR_CARD_STORAGE_KEY) !== 'true'
 })
 
 watch(
@@ -478,10 +476,6 @@ watch(
     color: var(--gray-600);
   }
 
-  .star-card-link-image {
-    display: block;
-    height: 20px;
-  }
 }
 
 /* Content Area */

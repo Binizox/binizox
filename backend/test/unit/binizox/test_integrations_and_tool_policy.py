@@ -7,19 +7,21 @@ import runpy
 import httpx
 import pytest
 
-from yuxi.binizox import tool_runner_client
-from yuxi.binizox.integrations import list_upstream_integrations
-from yuxi.binizox.search_scope import resolve_knowledge_base_scope
+from binizox.personal import tool_runner_client
+from binizox.personal.integrations import list_upstream_integrations
+from binizox.personal.search_scope import resolve_knowledge_base_scope
 
 
-# yuxi.agents.__init__ 会加载完整数据库和模型依赖。该测试只验证独立策略模块，
+# binizox.agents.__init__ 会加载完整数据库和模型依赖。该测试只验证独立策略模块，
 # 因此直接从文件加载，避免把“未安装完整平台依赖”误判为策略代码失败。
-_POLICY_PATH = Path(__file__).parents[3] / "package" / "yuxi" / "agents" / "tool_approval.py"
+_POLICY_PATH = Path(__file__).parents[3] / "package" / "binizox" / "agents" / "tool_approval.py"
 _POLICY_SPEC = importlib.util.spec_from_file_location("binizox_tool_approval_under_test", _POLICY_PATH)
 assert _POLICY_SPEC is not None and _POLICY_SPEC.loader is not None
 _POLICY_MODULE = importlib.util.module_from_spec(_POLICY_SPEC)
 _POLICY_SPEC.loader.exec_module(_POLICY_MODULE)
-_BUILTIN_SKILLS_PATH = Path(__file__).parents[3] / "package" / "yuxi" / "agents" / "skills" / "buildin" / "__init__.py"
+_BUILTIN_SKILLS_PATH = (
+    Path(__file__).parents[3] / "package" / "binizox" / "agents" / "skills" / "buildin" / "__init__.py"
+)
 
 
 def test_all_fixed_upstreams_are_listed_without_overstating_integration() -> None:
@@ -113,3 +115,47 @@ async def test_tool_runner_health_rejects_invalid_json(monkeypatch) -> None:
     assert await tool_runner_client.get_personal_tool_runner_health() == {
         "status": "invalid_response"
     }
+
+
+@pytest.mark.asyncio
+async def test_tool_runner_invocation_uses_internal_service_token(monkeypatch) -> None:
+    captured: dict = {}
+
+    class Response:
+        status_code = 200
+
+        @staticmethod
+        def json():
+            return {"status": "succeeded"}
+
+    class RecordingClient:
+        def __init__(self, **_kwargs):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *_args):
+            return None
+
+        async def post(self, url, *, json, headers):
+            captured.update(url=url, payload=json, headers=headers)
+            return Response()
+
+    monkeypatch.setenv("BINIZOX_TOOL_RUNNER_TOKEN", "unit-test-service-token")
+    monkeypatch.setattr(tool_runner_client.httpx, "AsyncClient", RecordingClient)
+    payload = {"uid": "user-1", "run_id": "run-1"}
+
+    result = await tool_runner_client.invoke_personal_tool(payload)
+
+    assert result == {"status": "succeeded"}
+    assert captured["payload"] == payload
+    assert captured["headers"] == {"Authorization": "Bearer unit-test-service-token"}
+
+
+@pytest.mark.asyncio
+async def test_tool_runner_invocation_fails_closed_without_service_token(monkeypatch) -> None:
+    monkeypatch.delenv("BINIZOX_TOOL_RUNNER_TOKEN", raising=False)
+
+    with pytest.raises(tool_runner_client.PersonalToolRunnerError, match="凭据未配置"):
+        await tool_runner_client.invoke_personal_tool({"uid": "user-1", "run_id": "run-1"})

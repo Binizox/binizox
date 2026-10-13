@@ -1,6 +1,6 @@
 # 生产部署
 
-本页说明如何用 Docker Compose 部署 Yuxi、验证服务状态，以及从 v0.7.1 升级到当前 `v0.7.2`。当前版本仍是 Beta，重要数据上线前请先在备份环境演练恢复。
+本页说明如何用 Docker Compose 部署 Binizox、验证服务状态，以及从 v0.7.1 升级到当前 `v0.7.2`。当前版本仍是 Beta，重要数据上线前请先在备份环境演练恢复。
 
 ## 前置条件
 
@@ -33,10 +33,11 @@ MINIO_SECRET_KEY=<strong-minio-secret-key>
 JWT_SECRET_KEY=<random-value-at-least-32-characters>
 API_KEY_DERIVATION_SECRET=<another-random-value-at-least-32-characters>
 SANDBOX_PROVISIONER_TOKEN=<another-random-value-at-least-32-characters>
-YUXI_INSTANCE_ID=<stable-instance-name>
+BINIZOX_TOOL_RUNNER_TOKEN=<another-independent-random-value-at-least-32-characters>
+BINIZOX_INSTANCE_ID=<stable-instance-name>
 ```
 
-三个安全密钥必须彼此不同、没有首尾空白，并在重建或升级时保留原值。可以用下面的命令生成随机值，再把结果安全地写入 `.env.prod`：
+四个安全密钥必须彼此不同、没有首尾空白，并在重建或升级时保留原值。可以用下面的命令生成随机值，再把结果安全地写入 `.env.prod`：
 
 ```bash
 openssl rand -hex 32
@@ -68,7 +69,7 @@ docker compose --env-file .env.prod -f docker-compose.prod.yml --profile all up 
 
 - PostgreSQL 数据目录；
 - MinIO 数据目录；
-- `docker/volumes/yuxi` 中的历史文件、UserWorkspace 和 Skill 数据；
+- `.runtime/binizox/full/binizox`（或自定义 `BINIZOX_STATE_DIR` 下的 `binizox` 目录）中的历史文件、UserWorkspace 和 Skill 数据；
 - 当前 Compose、`.env.prod` 和目标版本代码。
 
 备份后至少做一次成套恢复演练。只恢复数据库或只恢复文件卷，会让数据库记录与文件字节不一致。
@@ -128,16 +129,16 @@ curl --fail http://localhost/api/system/ready
 生产环境不会默认允许浏览器跨域请求：
 
 ```dotenv
-YUXI_CORS_ORIGINS=https://frontend.example.com
+BINIZOX_CORS_ORIGINS=https://frontend.example.com
 ```
 
 多个来源用逗号分隔：
 
 ```dotenv
-YUXI_CORS_ORIGINS=https://a.example.com,https://b.example.com
+BINIZOX_CORS_ORIGINS=https://a.example.com,https://b.example.com
 ```
 
-前端与 API 同源时留空即可。设置为 `*` 会关闭 credentials，浏览器不会携带登录态，因此不适合需要 JWT Cookie/凭证的前端。开发环境在 `YUXI_ENV=development` 且未设置该变量时，默认允许 `http://localhost:5173` 和 `http://127.0.0.1:5173`；生产环境不会采用这个默认值。修改后重启 API。
+前端与 API 同源时留空即可。设置为 `*` 会关闭 credentials，浏览器不会携带登录态，因此不适合需要 JWT Cookie/凭证的前端。开发环境在 `BINIZOX_ENV=development` 且未设置该变量时，默认允许 `http://localhost:5173` 和 `http://127.0.0.1:5173`；生产环境不会采用这个默认值。修改后重启 API。
 
 ## 维护与故障排查
 
@@ -168,7 +169,7 @@ PostgreSQL 可以在数据库容器内使用交互式命令修改，避免新密
 
 ```bash
 docker compose --env-file .env.prod -f docker-compose.prod.yml \
-  exec postgres psql -U postgres -d yuxi -c '\password postgres'
+  exec postgres psql -U postgres -d binizox -c '\password postgres'
 ```
 
 Neo4j 使用 `cypher-shell` 的当前用户密码修改流程；MinIO 使用 `mc admin` 或部署采用的密钥管理流程。完成轮换后，把新值写入 `.env.prod`，再重建依赖这些凭据的服务：
@@ -178,7 +179,7 @@ docker compose --env-file .env.prod -f docker-compose.prod.yml \
   up -d --force-recreate postgres graph minio api worker
 ```
 
-最后分别用新凭据和旧凭据执行一次受控登录验证；API/worker 的 `API_KEY_DERIVATION_SECRET` 与 `SANDBOX_PROVISIONER_TOKEN` 也必须保持为持久、独立且至少 32 个字符的值。
+最后分别用新凭据和旧凭据执行一次受控登录验证；API/worker 的 `API_KEY_DERIVATION_SECRET`、`SANDBOX_PROVISIONER_TOKEN` 与 `BINIZOX_TOOL_RUNNER_TOKEN` 也必须保持为持久、彼此独立且至少 32 个字符的值。
 
 ### 常用检查顺序
 
@@ -190,7 +191,7 @@ docker compose --env-file .env.prod -f docker-compose.prod.yml \
 
 ## 第三方组件和许可证
 
-Yuxi 本体使用 MIT License。Compose 依赖以独立进程运行，Yuxi 通过公开协议访问它们；第三方组件的许可证不会因为使用 Compose 就变成 MIT。
+Binizox 本体使用 MIT License。Compose 依赖以独立进程运行，Binizox 通过公开协议访问它们；第三方组件的许可证不会因为使用 Compose 就变成 MIT。
 
 当前 Compose 引用的主要组件如下。表中的版本是镜像 tag；只有明确写死的 tag 才能提供对应的版本预期，`postgres:16`、`mineru-vllm:latest` 和 `paddlex:latest` 仍可能随重新拉取而变化：
 

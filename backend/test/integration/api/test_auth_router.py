@@ -13,10 +13,10 @@ import pytest_asyncio
 from sqlalchemy import update
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from yuxi.services import login_rate_limit_service as login_limiter
-from yuxi.storage.postgres.models_business import User as UserModel
-from yuxi.storage.redis import close_async_redis_client, create_async_redis_client, get_async_redis_client
-from yuxi.utils.datetime_utils import utc_now_naive
+from binizox.services import login_rate_limit_service as login_limiter
+from binizox.storage.postgres.models_business import User as UserModel
+from binizox.storage.redis import close_async_redis_client, create_async_redis_client, get_async_redis_client
+from binizox.utils.datetime_utils import utc_now_naive
 
 pytestmark = [pytest.mark.asyncio, pytest.mark.integration]
 
@@ -59,7 +59,7 @@ async def _clear_login_failure_keys():
     # 每个用例的事件循环不同，不复用共享单例客户端
     redis = await create_async_redis_client()
     try:
-        keys = [key async for key in redis.scan_iter(match="yuxi:login-failure:*")]
+        keys = [key async for key in redis.scan_iter(match="binizox:login-failure:*")]
         if keys:
             await redis.delete(*keys)
     finally:

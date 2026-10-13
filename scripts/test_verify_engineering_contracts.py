@@ -115,7 +115,7 @@ jobs:
             """on:
   pull_request:
     paths:
-      - 'backend/package/yuxi/**'
+      - 'backend/package/binizox/**'
       - 'backend/server/**'
       - 'backend/test/integration/**'
       - 'backend/test/e2e/**'
@@ -434,7 +434,7 @@ jobs:
         path = self.root / ".github/workflows/system-tests.yml"
         original = path.read_text(encoding="utf-8")
         for owning_path in (
-            "backend/package/yuxi/**",
+            "backend/package/binizox/**",
             "backend/test/e2e/**",
             "backend/test/support/**",
             "docker/**",
@@ -549,15 +549,15 @@ jobs:
     def test_service_workspace_host_path_bypasses_are_rejected(self) -> None:
         cases = (
             (
-                "from yuxi.workspace.paths import user_workdir_host_dir\n",
+                "from binizox.workspace.paths import user_workdir_host_dir\n",
                 "普通 Service/Repository 不得取得 UserWorkspace 宿主 Path",
             ),
             (
-                "import yuxi.workspace.paths as workspace_paths\n",
+                "import binizox.workspace.paths as workspace_paths\n",
                 "普通 Service/Repository 不得取得 UserWorkspace 宿主 Path",
             ),
             (
-                "from yuxi.config import get_user_data_dir\n"
+                "from binizox.config import get_user_data_dir\n"
                 "def scan():\n"
                 "    return list((get_user_data_dir() / 'shared').iterdir())\n",
                 "普通 Service/Repository 不得取得 UserWorkspace 宿主 Path",
@@ -565,11 +565,11 @@ jobs:
             (
                 "import os\nfrom pathlib import Path\n"
                 "def scan():\n"
-                "    return list(Path(os.environ['YUXI_USER_DATA_DIR']).iterdir())\n",
+                "    return list(Path(os.environ['BINIZOX_USER_DATA_DIR']).iterdir())\n",
                 "不得读取 UserWorkspace 宿主根环境变量",
             ),
         )
-        path = "backend/package/yuxi/services/invalid_service.py"
+        path = "backend/package/binizox/services/invalid_service.py"
         for source, expected_error in cases:
             with self.subTest(source=source):
                 self._write(path, source)

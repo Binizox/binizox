@@ -8,19 +8,19 @@ from types import SimpleNamespace
 
 import pandas as pd
 import pytest
-import yuxi.knowledge.parser.factory as factory_module
-import yuxi.knowledge.parser.unified as parser_unified
+import binizox.knowledge.parser.factory as factory_module
+import binizox.knowledge.parser.unified as parser_unified
 from docx import Document
 from PIL import Image
 from pypdf import PdfWriter
 from pypdf.generic import DecodedStreamObject, DictionaryObject, NameObject
 
-from yuxi.knowledge.parser.factory import DocumentProcessorFactory
-from yuxi.knowledge.parser.mineru import MinerUParser
-from yuxi.knowledge.parser.mineru_official import MinerUOfficialParser
-from yuxi.knowledge.parser.rapid_ocr import RapidOCRParser
-from yuxi.knowledge.parser.registry import PROCESSOR_TYPES, get_parser_metadata
-from yuxi.services.ocr_service import parse_document
+from binizox.knowledge.parser.factory import DocumentProcessorFactory
+from binizox.knowledge.parser.mineru import MinerUParser
+from binizox.knowledge.parser.mineru_official import MinerUOfficialParser
+from binizox.knowledge.parser.rapid_ocr import RapidOCRParser
+from binizox.knowledge.parser.registry import PROCESSOR_TYPES, get_parser_metadata
+from binizox.services.ocr_service import parse_document
 
 
 def test_factory_cache_key_does_not_contain_credential():
@@ -65,7 +65,7 @@ def test_mineru_parser_normalizes_trailing_slash():
 
 def test_mineru_official_health_check_does_not_create_task(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(
-        "yuxi.knowledge.parser.mineru_official.requests.post",
+        "binizox.knowledge.parser.mineru_official.requests.post",
         lambda *args, **kwargs: pytest.fail("健康检查不应创建解析任务"),
     )
 
@@ -100,7 +100,7 @@ def test_mineru_official_parsing_does_not_reject_configured_health(
 
 def test_rapid_ocr_health_check_does_not_load_model(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(
-        "yuxi.knowledge.parser.rapid_ocr.RapidOCR",
+        "binizox.knowledge.parser.rapid_ocr.RapidOCR",
         lambda *args, **kwargs: pytest.fail("健康检查不应加载 OCR 模型"),
     )
 
@@ -283,7 +283,7 @@ async def test_parse_document_png_returns_markdown_text_with_mocked_ocr(
         return params or {}
 
     monkeypatch.setattr(parser_unified, "parse_image_async", _fake_parse_image_async)
-    monkeypatch.setattr("yuxi.services.ocr_service.resolve_ocr_task_params", _resolve_params)
+    monkeypatch.setattr("binizox.services.ocr_service.resolve_ocr_task_params", _resolve_params)
 
     markdown = await parse_document(str(file_path), params={"ocr_engine": "rapid_ocr"})
 
@@ -385,9 +385,9 @@ async def test_parse_document_uses_config_default_ocr_when_engine_missing(
     async def _system_options_get(_option, _db=None):
         return {"default_ocr_engine": "mineru_ocr"}
 
-    monkeypatch.setattr("yuxi.config.options.Option.get", _system_options_get)
+    monkeypatch.setattr("binizox.config.options.Option.get", _system_options_get)
     monkeypatch.setattr(DocumentProcessorFactory, "process_file", _fake_process_file)
-    monkeypatch.setattr("yuxi.services.ocr_service._build_processor_kwargs", _build_processor_kwargs)
+    monkeypatch.setattr("binizox.services.ocr_service._build_processor_kwargs", _build_processor_kwargs)
 
     result = await parse_document(str(file_path), params={}, db=object())
 

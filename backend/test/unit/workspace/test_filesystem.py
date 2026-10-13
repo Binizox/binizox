@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from yuxi.workspace import filesystem as workspace_filesystem_module
-from yuxi.workspace.filesystem import Workspace
+from binizox.workspace import filesystem as workspace_filesystem_module
+from binizox.workspace.filesystem import Workspace
 
 
 def test_upload_authorized_file_uses_owner_only_mode(
@@ -30,8 +30,9 @@ def test_upload_authorized_file_uses_owner_only_mode(
 
     target = workspace_root / "projects" / "11111111-1111-4111-8111-111111111111" / "file.txt"
     assert target.read_text(encoding="utf-8") == "content"
-    assert target.stat().st_mode & 0o777 == 0o600
-    assert target.parent.stat().st_mode & 0o777 == 0o700
+    if os.name != "nt":
+        assert target.stat().st_mode & 0o777 == 0o600
+        assert target.parent.stat().st_mode & 0o777 == 0o700
 
 
 @pytest.mark.parametrize("existing_kind", ["file", "symlink"])
@@ -49,6 +50,8 @@ def test_upload_without_overwrite_atomically_preserves_existing_entry(
     if existing_kind == "file":
         target.write_text("original", encoding="utf-8")
     else:
+        if os.name == "nt":
+            pytest.skip("Windows 测试用户没有创建 symlink 的权限")
         target.symlink_to(outside)
     source = tmp_path / "source.txt"
     source.write_text("replacement", encoding="utf-8")
@@ -108,9 +111,11 @@ def test_create_authorized_directory_uses_owner_only_mode(
 
     assert metadata["is_dir"] is True
     assert metadata["size"] == 0
-    assert (workspace_root / "project").stat().st_mode & 0o777 == 0o700
+    if os.name != "nt":
+        assert (workspace_root / "project").stat().st_mode & 0o777 == 0o700
 
 
+@pytest.mark.skipif(os.name == "nt", reason="Windows 测试用户没有创建 symlink 的权限")
 def test_write_rejects_final_symlink_without_touching_target(
     tmp_path: Path,
     monkeypatch,
@@ -169,7 +174,8 @@ def test_search_tree_prunes_hidden_excluded_and_overdeep_directories(tmp_path: P
     outside = tmp_path / "outside"
     outside.mkdir()
     (outside / "escaped.py").write_text("escaped", encoding="utf-8")
-    (workspace_root / "linked").symlink_to(outside, target_is_directory=True)
+    if os.name != "nt":
+        (workspace_root / "linked").symlink_to(outside, target_is_directory=True)
     monkeypatch.setattr(workspace_filesystem_module, "user_workspace_dir", lambda _uid: workspace_root)
 
     results = Workspace("user-1").search_authorized_tree(

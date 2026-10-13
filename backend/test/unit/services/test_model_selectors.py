@@ -5,11 +5,11 @@ import httpx
 import pytest
 import requests
 
-from yuxi.agents.models import load_chat_model, resolve_chat_model_spec
-from yuxi.models.chat import LangChainChatAdapter, select_model
-from yuxi.models.embed import OtherEmbedding, select_embedding_model
-from yuxi.models.rerank import OpenAIReranker, get_reranker
-from yuxi.models.providers.cache import ModelInfo
+from binizox.agents.models import load_chat_model, resolve_chat_model_spec
+from binizox.models.chat import LangChainChatAdapter, select_model
+from binizox.models.embed import OtherEmbedding, select_embedding_model
+from binizox.models.rerank import OpenAIReranker, get_reranker
+from binizox.models.providers.cache import ModelInfo
 
 
 def _model_info(model_type: str) -> ModelInfo:
@@ -46,7 +46,7 @@ def _chat_model_info(
 def _capture_embed_warnings(monkeypatch: pytest.MonkeyPatch) -> list[str]:
     warnings = []
     monkeypatch.setattr(
-        "yuxi.models.embed.logger",
+        "binizox.models.embed.logger",
         SimpleNamespace(
             warning=warnings.append,
             error=lambda *_args, **_kwargs: None,
@@ -95,7 +95,7 @@ def test_resolve_chat_model_spec_rejects_all_empty():
 
 def test_select_embedding_model_loads_model_from_cache(monkeypatch):
     monkeypatch.setattr(
-        "yuxi.models.embed.model_cache.get_model_info",
+        "binizox.models.embed.model_cache.get_model_info",
         lambda spec: _model_info("embedding") if spec == "test-provider:namespace/embedding-model" else None,
     )
 
@@ -111,7 +111,7 @@ def test_select_model_wraps_langchain_model_and_expands_model_params(monkeypatch
     captured = {}
 
     monkeypatch.setattr(
-        "yuxi.models.chat.model_cache.get_model_info",
+        "binizox.models.chat.model_cache.get_model_info",
         lambda spec: (
             _chat_model_info("test-provider", "namespace/chat-model")
             if spec == "test-provider:namespace/chat-model"
@@ -124,7 +124,7 @@ def test_select_model_wraps_langchain_model_and_expands_model_params(monkeypatch
         captured["kwargs"] = kwargs
         return fake_model
 
-    monkeypatch.setattr("yuxi.models.chat.load_chat_model", fake_load_chat_model)
+    monkeypatch.setattr("binizox.models.chat.load_chat_model", fake_load_chat_model)
 
     model = select_model(
         "test-provider:namespace/chat-model",
@@ -145,7 +145,7 @@ def test_select_model_maps_anthropic_max_completion_tokens(monkeypatch):
     captured = {}
 
     monkeypatch.setattr(
-        "yuxi.models.chat.model_cache.get_model_info",
+        "binizox.models.chat.model_cache.get_model_info",
         lambda spec: (
             _chat_model_info("anthropic", "mimo-v2.5", provider_type="anthropic")
             if spec == "anthropic:mimo-v2.5"
@@ -153,7 +153,7 @@ def test_select_model_maps_anthropic_max_completion_tokens(monkeypatch):
         ),
     )
     monkeypatch.setattr(
-        "yuxi.models.chat.load_chat_model",
+        "binizox.models.chat.load_chat_model",
         lambda spec, **kwargs: captured.update({"spec": spec, "kwargs": kwargs}) or SimpleNamespace(),
     )
 
@@ -163,10 +163,10 @@ def test_select_model_maps_anthropic_max_completion_tokens(monkeypatch):
 
 
 def test_load_chat_model_uses_toolcall_chunk_fix_for_openai_compatible(monkeypatch):
-    from yuxi.agents.models import _ToolCallChunkFixChatOpenAI
+    from binizox.agents.models import _ToolCallChunkFixChatOpenAI
 
     monkeypatch.setattr(
-        "yuxi.agents.models.model_cache.get_model_info",
+        "binizox.agents.models.model_cache.get_model_info",
         lambda spec: (
             _chat_model_info("siliconflow-cn", "deepseek-ai/DeepSeek-V4-Flash")
             if spec == "siliconflow-cn:deepseek-ai/DeepSeek-V4-Flash"
@@ -179,15 +179,15 @@ def test_load_chat_model_uses_toolcall_chunk_fix_for_openai_compatible(monkeypat
     # 不再按 provider 禁用流式，改用归一化子类规避 v3 流式累积丢 tool_call 字段的缺陷
     assert isinstance(model, _ToolCallChunkFixChatOpenAI)
     assert model.disable_streaming is False
-    assert model.metadata["yuxi_provider_id"] == "siliconflow-cn"
-    assert model.metadata["yuxi_provider_type"] == "openai"
-    assert model.metadata["yuxi_model_id"] == "deepseek-ai/DeepSeek-V4-Flash"
-    assert model.metadata["yuxi_model_spec"] == "siliconflow-cn:deepseek-ai/DeepSeek-V4-Flash"
+    assert model.metadata["binizox_provider_id"] == "siliconflow-cn"
+    assert model.metadata["binizox_provider_type"] == "openai"
+    assert model.metadata["binizox_model_id"] == "deepseek-ai/DeepSeek-V4-Flash"
+    assert model.metadata["binizox_model_spec"] == "siliconflow-cn:deepseek-ai/DeepSeek-V4-Flash"
 
 
 def test_load_chat_model_keeps_non_siliconflow_openai_streaming(monkeypatch):
     monkeypatch.setattr(
-        "yuxi.agents.models.model_cache.get_model_info",
+        "binizox.agents.models.model_cache.get_model_info",
         lambda spec: (
             _chat_model_info("openai-compatible", "namespace/chat-model")
             if spec == "openai-compatible:namespace/chat-model"
@@ -206,7 +206,7 @@ def test_load_chat_model_merges_request_body_overrides_into_extra_body(monkeypat
     captured_body = {}
 
     monkeypatch.setattr(
-        "yuxi.agents.models.model_cache.get_model_info",
+        "binizox.agents.models.model_cache.get_model_info",
         lambda spec: (
             _chat_model_info(
                 "siliconflow-cn",
@@ -328,7 +328,7 @@ def test_embedding_sync_400_logs_warning(monkeypatch):
         calls.append(1)
         return response
 
-    monkeypatch.setattr("yuxi.models.embed.requests.post", fake_post)
+    monkeypatch.setattr("binizox.models.embed.requests.post", fake_post)
 
     with pytest.raises(ValueError, match="400 Client Error"):
         model.encode(["hello", "test"])
@@ -346,7 +346,7 @@ def test_embedding_sync_400_logs_warning(monkeypatch):
 def test_embedding_sync_429_retries_ten_times_before_success(monkeypatch):
     warnings = _capture_embed_warnings(monkeypatch)
     sleeps = []
-    monkeypatch.setattr("yuxi.models.embed.time.sleep", sleeps.append)
+    monkeypatch.setattr("binizox.models.embed.time.sleep", sleeps.append)
 
     model = OtherEmbedding(
         model="namespace/embedding-model",
@@ -356,7 +356,7 @@ def test_embedding_sync_429_retries_ten_times_before_success(monkeypatch):
     success = _requests_embedding_response(200, b'{"data":[{"embedding":[0.1,0.2]}]}')
     responses = [_requests_embedding_response(429) for _ in range(10)] + [success]
 
-    monkeypatch.setattr("yuxi.models.embed.requests.post", lambda *_args, **_kwargs: responses.pop(0))
+    monkeypatch.setattr("binizox.models.embed.requests.post", lambda *_args, **_kwargs: responses.pop(0))
 
     assert model.encode(["hello"]) == [[0.1, 0.2]]
     assert len(sleeps) == 10
@@ -370,7 +370,7 @@ def test_embedding_sync_5xx_uses_short_retry_budget(monkeypatch):
     warnings = _capture_embed_warnings(monkeypatch)
     sleeps = []
     calls = []
-    monkeypatch.setattr("yuxi.models.embed.time.sleep", sleeps.append)
+    monkeypatch.setattr("binizox.models.embed.time.sleep", sleeps.append)
 
     model = OtherEmbedding(
         model="namespace/embedding-model",
@@ -382,7 +382,7 @@ def test_embedding_sync_5xx_uses_short_retry_budget(monkeypatch):
         calls.append(1)
         return _requests_embedding_response(503)
 
-    monkeypatch.setattr("yuxi.models.embed.requests.post", fake_post)
+    monkeypatch.setattr("binizox.models.embed.requests.post", fake_post)
 
     with pytest.raises(ValueError, match="503 Server Error"):
         model.encode(["hello"])
@@ -413,7 +413,7 @@ async def test_embedding_async_400_logs_warning(monkeypatch):
             request = httpx.Request("POST", url)
             return httpx.Response(400, request=request, text='{"error":"bad embedding input"}')
 
-    monkeypatch.setattr("yuxi.models.embed.httpx.AsyncClient", FakeAsyncClient)
+    monkeypatch.setattr("binizox.models.embed.httpx.AsyncClient", FakeAsyncClient)
 
     with pytest.raises(httpx.HTTPStatusError, match="400 Bad Request"):
         await model.aencode(["hello", "test"])
@@ -435,7 +435,7 @@ async def test_embedding_async_429_retries_ten_times_before_success(monkeypatch)
     async def fake_sleep(delay):
         sleeps.append(delay)
 
-    monkeypatch.setattr("yuxi.models.embed.asyncio.sleep", fake_sleep)
+    monkeypatch.setattr("binizox.models.embed.asyncio.sleep", fake_sleep)
 
     model = OtherEmbedding(
         model="namespace/embedding-model",
@@ -455,7 +455,7 @@ async def test_embedding_async_429_retries_ten_times_before_success(monkeypatch)
         async def post(self, *_args, **_kwargs):
             return responses.pop(0)
 
-    monkeypatch.setattr("yuxi.models.embed.httpx.AsyncClient", FakeAsyncClient)
+    monkeypatch.setattr("binizox.models.embed.httpx.AsyncClient", FakeAsyncClient)
 
     assert await model.aencode(["hello"]) == [[0.1, 0.2]]
     assert sleeps == [1.0, 2.0, 4.0, 8.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0]
@@ -466,7 +466,7 @@ async def test_embedding_async_429_retries_ten_times_before_success(monkeypatch)
 
 def test_get_reranker_loads_model_from_cache(monkeypatch):
     monkeypatch.setattr(
-        "yuxi.models.rerank.model_cache.get_model_info",
+        "binizox.models.rerank.model_cache.get_model_info",
         lambda spec: _model_info("rerank") if spec == "test-provider:namespace/rerank-model" else None,
     )
 

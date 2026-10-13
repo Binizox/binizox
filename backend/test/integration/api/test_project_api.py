@@ -17,12 +17,12 @@ from test.live_api_cleanup import (
     make_test_conversation_title,
     make_test_resource_id,
 )
-from yuxi.repositories.conversation_repository import ConversationRepository
-from yuxi.repositories.project_repository import ProjectRepository
-from yuxi.services.agent_run_service import prepare_agent_run_creation_scope
-from yuxi.services.project_service import delete_project_view
-from yuxi.services.subagent_run_service import SubagentRunService
-from yuxi.storage.postgres.models_business import Conversation, Project, SubagentThread, User
+from binizox.repositories.conversation_repository import ConversationRepository
+from binizox.repositories.project_repository import ProjectRepository
+from binizox.services.agent_run_service import prepare_agent_run_creation_scope
+from binizox.services.project_service import delete_project_view
+from binizox.services.subagent_run_service import SubagentRunService
+from binizox.storage.postgres.models_business import Conversation, Project, SubagentThread, User
 
 pytestmark = [pytest.mark.asyncio, pytest.mark.integration]
 

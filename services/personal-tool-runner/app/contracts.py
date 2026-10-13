@@ -30,7 +30,9 @@ class WriteNoteParameters(BaseModel):
 class ToolInvocation(BaseModel):
     """由 Binizox worker 提交给独立工具服务的调用。"""
 
+    uid: str = Field(min_length=1, max_length=256)
     run_id: str = Field(min_length=1, max_length=128)
+    tool_call_id: str = Field(min_length=1, max_length=256)
     tool_name: Literal["workspace.write_note"]
     parameters: WriteNoteParameters
     idempotency_key: str = Field(min_length=8, max_length=200)

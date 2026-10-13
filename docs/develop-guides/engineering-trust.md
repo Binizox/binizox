@@ -1,12 +1,12 @@
 # 工程信任系统
 
-Yuxi 把 Agent 或开发者提交的实现视为待证伪候选。完成状态需要明确 Owner、真实系统事实、与风险匹配的 oracle、只读 gate 和可问责语义 Review 共同证明。提交者自述、测试数量和一次手工演示不能单独形成完成证据。
+Binizox 把 Agent 或开发者提交的实现视为待证伪候选。完成状态需要明确 Owner、真实系统事实、与风险匹配的 oracle、只读 gate 和可问责语义 Review 共同证明。提交者自述、测试数量和一次手工演示不能单独形成完成证据。
 
-从请求、提案、实现、证据到收敛的日常顺序由 [Yuxi Spec Loop](./spec-loop.md) 维护；本页只拥有信任闭环与证据等级。
+从请求、提案、实现、证据到收敛的日常顺序由 [Binizox Spec Loop](./spec-loop.md) 维护；本页只拥有信任闭环与证据等级。
 
 ## 权威模型：主张在语义 Owner 处闭合
 
-Yuxi 不维护可独立编辑的中央 risk/claim inventory，也不要求 claim ID。中央清单会复制源码、数据约束、测试和 workflow 已经拥有的事实，最终形成需要人工同步的第二真相。
+Binizox 不维护可独立编辑的中央 risk/claim inventory，也不要求 claim ID。中央清单会复制源码、数据约束、测试和 workflow 已经拥有的事实，最终形成需要人工同步的第二真相。
 
 一个重要工程主张由最接近行为的语义 Owner 拥有，并在该 Owner 周围形成可追踪闭环：
 

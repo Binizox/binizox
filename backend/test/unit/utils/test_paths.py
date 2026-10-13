@@ -3,10 +3,16 @@ import os
 from pathlib import Path
 import pytest
 
-from yuxi.utils import paths as paths_module
-from yuxi.utils.paths import ensure_within_root, open_directory_fd
+from binizox.utils import paths as paths_module
+from binizox.utils.paths import ensure_within_root, open_directory_fd, supports_secure_dir_fd
+
+posix_dir_fd_only = pytest.mark.skipif(
+    not supports_secure_dir_fd(),
+    reason="当前平台不支持安全 dir_fd 与 O_NOFOLLOW",
+)
 
 
+@posix_dir_fd_only
 def test_open_directory_fd_creates_nested_directories_without_taking_root_fd(tmp_path: Path) -> None:
     root = tmp_path / "root"
     root.mkdir()
@@ -27,6 +33,7 @@ def test_open_directory_fd_creates_nested_directories_without_taking_root_fd(tmp
         os.close(root_fd)
 
 
+@posix_dir_fd_only
 def test_open_directory_fd_distinguishes_symlink_and_non_directory_components(tmp_path: Path) -> None:
     root = tmp_path / "root"
     root.mkdir()
@@ -43,6 +50,7 @@ def test_open_directory_fd_distinguishes_symlink_and_non_directory_components(tm
     assert non_directory_error.value.errno == errno.ENOTDIR
 
 
+@posix_dir_fd_only
 def test_open_directory_fd_closes_internal_fd_after_failure(monkeypatch: pytest.MonkeyPatch) -> None:
     closed: list[int] = []
 

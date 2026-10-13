@@ -1,12 +1,12 @@
 # ARCHITECTURE.md
 
-本文档是 Yuxi 的代码地图，只描述相对稳定的系统边界、目录职责、核心运行链路和架构不变量。它用于帮助贡献者判断“一个改动应该落在哪里”，不替代具体模块文档、测试规范或源码注释。
+本文档是 Binizox 的代码地图，只描述相对稳定的系统边界、目录职责、核心运行链路和架构不变量。它用于帮助贡献者判断“一个改动应该落在哪里”，不替代具体模块文档、测试规范或源码注释。
 
 修改不熟悉的模块前，先阅读对应章节，再使用符号搜索定位具体类型、函数和路由。开发与运行拓扑始终以 `docker-compose.yml` 为准。
 
 ## 鸟瞰
 
-Yuxi 是一个面向 RAG、知识图谱和多智能体工作流的知识库平台。用户通过 Vue 前端管理智能体、知识库、模型、工具、Skills、MCP 与 SubAgents；前端通过 `/api` 调用 FastAPI；后端服务层协调 PostgreSQL、Redis、MinIO、Milvus、Neo4j、LangGraph 和沙盒。
+Binizox 是一个面向 RAG、知识图谱和多智能体工作流的知识库平台。用户通过 Vue 前端管理智能体、知识库、模型、工具、Skills、MCP 与 SubAgents；前端通过 `/api` 调用 FastAPI；后端服务层协调 PostgreSQL、Redis、MinIO、Milvus、Neo4j、LangGraph 和沙盒。
 
 普通智能体请求先在 PostgreSQL 中保存为请求和消息，再立即派发或进入线程级 FIFO 队列。派发后的 `AgentRun` 通过 Redis/ARQ 交给独立 worker 执行，运行事件写入 Redis Stream，最终状态和业务记录写回 PostgreSQL，前端通过 SSE 消费排队与运行事件。
 
@@ -15,7 +15,7 @@ Yuxi 是一个面向 RAG、知识图谱和多智能体工作流的知识库平�
 - `web`：Vue 3 / Vite 前端，挂载 `web/src` 并热重载。
 - `api`：FastAPI API 服务，挂载 `backend/server`、`backend/package` 和测试目录并热重载。
 - `worker`：ARQ worker，执行已经派发的 AgentRun，通过 attempt ownership 与 heartbeat 维护运行租约，并周期收敛失联 Run。
-- `storage-migrator`：Compose 中唯一修改 Yuxi 数据库 Schema 的一次性迁移进程，同时处理受支持的历史存储切换；API 与 worker 等待其成功后只校验 Schema 版本。
+- `storage-migrator`：Compose 中唯一修改 Binizox 数据库 Schema 的一次性迁移进程，同时处理受支持的历史存储切换；API 与 worker 等待其成功后只校验 Schema 版本。
 - `sandbox-provisioner`：为智能体工具执行提供隔离沙盒。
 - `postgres`：业务数据、知识库元数据、请求队列、AgentRun 与 LangGraph checkpoint。
 - `redis`：ARQ 投递、运行事件、取消信号以及跨进程配置和模型缓存。
@@ -26,18 +26,18 @@ Yuxi 是一个面向 RAG、知识图谱和多智能体工作流的知识库平�
 
 ## 后端代码地图
 
-后端分成两个顶层边界：`backend/server` 是 Web 应用入口与 HTTP 适配层，`backend/package/yuxi` 是业务和基础设施主体。新增领域逻辑通常优先放在 `yuxi` 包中，路由层只处理请求模型、认证上下文和响应装配。
+后端分成两个顶层边界：`backend/server` 是 Web 应用入口与 HTTP 适配层，`backend/package/binizox` 是业务和基础设施主体。新增领域逻辑通常优先放在 `binizox` 包中，路由层只处理请求模型、认证上下文和响应装配。
 
 ### Web 与 worker 入口
 
 - `server/main.py` 创建 FastAPI 应用、注册中间件，并将业务路由统一挂载到 `/api`。
 - `server/routers` 是 HTTP 路由边界，所有路由集中在 `server/routers/__init__.py` 注册。
 - `server/utils/lifespan.py` 管理数据库、内置模型/MCP/Skills、知识库、Redis、沙盒、LangGraph checkpoint 和通用 Tasker 的启动与关闭。
-- `server/worker_main.py` 是 ARQ worker 入口，实际执行设置位于 `yuxi.services.run_worker`。
+- `server/worker_main.py` 是 ARQ worker 入口，实际执行设置位于 `binizox.services.run_worker`。
 
-`LITE_MODE` 的解析由 `yuxi.config.runtime` 统一拥有。该模式保留认证、智能体、聊天、非知识类 Skills、MCP、模型、普通工作区和系统管理接口，但不注册 `external_kb`、`knowledge`、`evaluation`、`graph`、知识域 Dashboard 与 `/workspace/knowledge/*` 路由，不注册 `knowledge-base` Skill 或知识库工具，也不宣告客户端或 CLI 知识能力。该模式不导入知识解析重运行时、创建 knowledge schema 或初始化知识库管理器；Web 从运行时 discovery 获取同一能力投影，聊天附件只有在实际解析时才惰性加载 parser。
+`LITE_MODE` 的解析由 `binizox.config.runtime` 统一拥有。该模式保留认证、智能体、聊天、非知识类 Skills、MCP、模型、普通工作区和系统管理接口，但不注册 `external_kb`、`knowledge`、`evaluation`、`graph`、知识域 Dashboard 与 `/workspace/knowledge/*` 路由，不注册 `knowledge-base` Skill 或知识库工具，也不宣告客户端或 CLI 知识能力。该模式不导入知识解析重运行时、创建 knowledge schema 或初始化知识库管理器；Web 从运行时 discovery 获取同一能力投影，聊天附件只有在实际解析时才惰性加载 parser。
 
-### `backend/package/yuxi`
+### `backend/package/binizox`
 
 - `agents` 定义 LangGraph 智能体体系。`BaseAgent` 是智能体基类，`BaseContext` 是运行上下文；`buildin/chatbot` 和 `buildin/subagent` 放内置智能体；`middlewares` 组合文件系统、Skills、SubAgent、摘要、审批、模型兼容和用量统计；`toolkits` 管理本地工具；`backends` 对接沙盒、知识库和 Skills 文件系统；`skills` 与 `mcp` 管理扩展能力及其运行时加载。
 - `workspace` 是持久化 UserWorkspace Owner。`paths.py` 拥有 uid、宿主根和数据库 `projects/<uuid>` 映射，`filesystem.py` 拥有 no-follow 文件原语，`workdir.py` 提供以一个 Project 为根的持久化视图，`preview.py` 拥有 UserWorkspace 文件预览和 runtime 本地 Office 缓存。Agent Backend 单独拥有 `/home/gem/...` runtime 路径。
@@ -88,28 +88,28 @@ Yuxi 是一个面向 RAG、知识图谱和多智能体工作流的知识库平�
 7. 智能体通过 middleware 组合 UserWorkspace 中的当前 Workdir、只读共享 Skills、MCP、SubAgent、审批、摘要和工具能力。根 Agent 与子 Agent 共享同一个 runtime 和 Workdir；知识库能力主要由内置 `knowledge-base` Skill 及其依赖工具按需开放。
 8. Run 事件写入 Redis Stream，取消通过 Redis key/pubsub 传递；AgentRun、消息投递状态和最终结果写入 PostgreSQL。任何 assistant Message 发布前先在 Run 行锁内验证当前 attempt；正常输出、绑定和 `completed` 同事务提交。worker 失联后，过期 lease 会幂等收敛为带 `worker_lease_expired` 原因的 `failed`。该失败只证明执行 ownership 已丢失，外部副作用仍需按 at-least-once 语义核对。
 9. 前端在排队阶段消费 Request SSE，派发后切换到 Run SSE，并根据数据库状态处理断线恢复和终态补偿。
-10. Conversation 保存不可变 `project_id`，每个 Project 一期绑定一个 `workdir_path`，多个 Project 可以共享同一路径。v0.7.1 Conversation 在一次性迁移中直接获得 implicit Project，不形成 Conversation 路径中间态。managed Project 使用服务端创建的 `projects/<uuid>`；linked Project 可绑定当前 uid UserWorkspace 下除根目录外任意经过 no-follow 校验的已有目录。selectable Project 支持重命名；删除在同一事务中软删除 Project 与全部 Conversation，但不删除或修改 Workdir 字节。Workspace tree 仅展示 `/projects` 下属于 active selectable Project 的目录子树，隐藏 implicit、deleted 与尚未归属 Project 的匿名目录。`yuxi.workspace` 唯一拥有宿主路径和 fd-relative 文件访问，统一 Workdir resolver 通过 Project 为 Viewer、附件、Artifact、Run 和 SubAgent 提供同一持久路径。Agent Backend 单独把该路径映射为 `/home/gem/user-data/...` runtime 路径。目录的持久 POSIX 字节是 Agent 文件、附件、Viewer 和 artifact 的实时事实源，`uploads/outputs` 只是按需创建的目录约定。Run 终态清理 runtime 进程但保留 Workdir。
+10. Conversation 保存不可变 `project_id`，每个 Project 一期绑定一个 `workdir_path`，多个 Project 可以共享同一路径。v0.7.1 Conversation 在一次性迁移中直接获得 implicit Project，不形成 Conversation 路径中间态。managed Project 使用服务端创建的 `projects/<uuid>`；linked Project 可绑定当前 uid UserWorkspace 下除根目录外任意经过 no-follow 校验的已有目录。selectable Project 支持重命名；删除在同一事务中软删除 Project 与全部 Conversation，但不删除或修改 Workdir 字节。Workspace tree 仅展示 `/projects` 下属于 active selectable Project 的目录子树，隐藏 implicit、deleted 与尚未归属 Project 的匿名目录。`binizox.workspace` 唯一拥有宿主路径和 fd-relative 文件访问，统一 Workdir resolver 通过 Project 为 Viewer、附件、Artifact、Run 和 SubAgent 提供同一持久路径。Agent Backend 单独把该路径映射为 `/home/gem/user-data/...` runtime 路径。目录的持久 POSIX 字节是 Agent 文件、附件、Viewer 和 artifact 的实时事实源，`uploads/outputs` 只是按需创建的目录约定。Run 终态清理 runtime 进程但保留 Workdir。
 
 审批或人机输入产生的 resume 请求会从 LangGraph checkpoint 恢复，并创建新的 AgentRun；它不重新进入普通消息 FIFO 接入流程。
 
 ## 架构不变量
 
 - Docker Compose 是开发环境的事实来源。开发时先检查容器、日志和热重载，不默认要求本地裸跑服务。
-- HTTP 路由保持薄；用例流程放在 `yuxi.services`，持久化查询放在 `yuxi.repositories`。
+- HTTP 路由保持薄；用例流程放在 `binizox.services`，持久化查询放在 `binizox.repositories`。
 - 请求接入与 Run 执行是两个阶段：先提交 PostgreSQL 事实，再投递 ARQ，不能让队列消息先于数据库状态可见。
 - 同一用户、智能体和线程的普通请求通过 FIFO 队列串行派发；排队请求与运行中的 Run 使用不同状态模型和 SSE。
 - PostgreSQL 保存业务事实状态；Redis 承担投递、事件、取消和缓存，不作为 AgentRun 最终状态的唯一来源。
 - `pending` Run 是持久化投递意图；`running` / `cancel_requested` Run 必须由唯一 attempt lease 拥有。Heartbeat 只能由当前 owner 续租，终态或 retry publication 清除 lease，过期 ownership 不能被另一个执行者静默接管。
 - Run 结果以 `output_message_id` 指向的同 Run assistant 消息为权威；只有历史 `completed` Run 可在缺少指针时兼容读取同 conversation、相同 `run_id` 的 assistant 消息，禁止从未完成或相邻 Run 猜测输出。
 - `/api/system/health` 只表达 API 进程 liveness；Compose 以 `/api/system/ready` 判断启动完成、PostgreSQL/Redis 可用且存在完成启动的兼容 worker。worker 同时续租短 TTL ARQ 消费健康与 lease reconciliation 成功事实；持久 key、超长 TTL、错误 Redis DSN 或持续无法收敛失联 Run 都不能维持 readiness。业务正确性仍由真实链路测试证明。
-- Yuxi 数据库 Schema 只由 `storage-migrator` 在 PostgreSQL advisory lock 内修改并记录 business/knowledge 域版本；API 与 worker 不建表或执行收敛 DDL，版本缺失、过旧或过新时拒绝启动。LITE 只迁移和校验 business 域。
+- Binizox 数据库 Schema 只由 `storage-migrator` 在 PostgreSQL advisory lock 内修改并记录 business/knowledge 域版本；API 与 worker 不建表或执行收敛 DDL，版本缺失、过旧或过新时拒绝启动。LITE 只迁移和校验 business 域。
 - 内置 Skills 是默认 Agent shipping contract 的 required 组成，API/worker 通过 PostgreSQL advisory lock 串行同步；内置 MCP 定义是 optional，但失败必须形成可观测 degraded 而非被组件内部吞掉。
 - 跨 repository 的身份管理用例只有一个 service 事务 Owner；Department、User 与强制 OperationLog 同一提交。API Key 由独立服务端主密钥和客户端幂等 ID 确定性派生，只保存 hash；原始创建意图使用不可变指纹校验，撤销保留 request-id tombstone，同一请求可恢复响应但不能复活已撤销凭据。
 - 前端 API 调用集中在 `web/src/apis`，组件不要散落拼接普通 HTTP 接口。
 - 智能体能力通过 context、middleware、toolkits、Skills、MCP 和 backends 组合；不要把知识库、沙盒或扩展逻辑硬编码进单个页面或路由。
 - Skill 的依赖工具只有在对应 Skill 被显式预加载或动态激活后才对模型开放；基础工具与受 Skill 门控的工具保持边界。
 - LITE 模式必须允许跳过知识库、图谱和评估等重依赖能力，新增导入、路由和启动逻辑时要尊重该边界。
-- 文件边界只使用三种跨层路径：数据库 `projects/<uuid>`、Viewer 当前 scope 相对 `/foo`、Agent/artifact runtime 绝对 `/home/gem/user-data/...`；宿主 `Path` 由 `yuxi.workspace` 或显式 v0.7.1 storage migration 内部持有，普通 Service/Repository 不得取得。
+- 文件边界只使用三种跨层路径：数据库 `projects/<uuid>`、Viewer 当前 scope 相对 `/foo`、Agent/artifact runtime 绝对 `/home/gem/user-data/...`；宿主 `Path` 由 `binizox.workspace` 或显式 v0.7.1 storage migration 内部持有，普通 Service/Repository 不得取得。
 - 沙盒虚拟路径由当前 Project Workdir、User Data 与共享 Skills 根共同约束；个人 Skill 保存在 UserWorkspace 的 `agents/skills`，共享与内置 Skill 才投影到只读 `/home/gem/skills`。用户可见路径、对象存储 URL 与宿主机真实路径不能混用。
 - 面向用户和外部系统的输入在边界校验；内部服务优先依赖已有类型、事务和仓储约束，避免用静默回退掩盖设计错误。
 

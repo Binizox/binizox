@@ -44,6 +44,8 @@ RUN pnpm run build
 # 生产环境运行阶段
 FROM nginx:alpine AS production
 COPY --from=build-stage /app/dist /usr/share/nginx/html
+COPY ./LICENSE /usr/share/licenses/binizox/LICENSE
+COPY ./THIRD_PARTY_NOTICES.md /usr/share/licenses/binizox/THIRD_PARTY_NOTICES.md
 RUN find /usr/share/nginx/html -type d -exec chmod 755 {} \; \
     && find /usr/share/nginx/html -type f -exec chmod 644 {} \;
 COPY ./docker/nginx/nginx.conf /etc/nginx/nginx.conf

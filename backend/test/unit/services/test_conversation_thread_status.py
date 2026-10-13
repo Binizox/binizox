@@ -10,9 +10,9 @@ import pytest
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from yuxi.repositories.conversation_repository import ConversationRepository, UNVIEWED_RUN_MARKER
-from yuxi.services import conversation_service as svc
-from yuxi.storage.postgres.models_business import AgentRun, Base, Conversation, Project
+from binizox.repositories.conversation_repository import ConversationRepository, UNVIEWED_RUN_MARKER
+from binizox.services import conversation_service as svc
+from binizox.storage.postgres.models_business import AgentRun, Base, Conversation, Project
 
 pytestmark = [pytest.mark.asyncio, pytest.mark.unit]
 

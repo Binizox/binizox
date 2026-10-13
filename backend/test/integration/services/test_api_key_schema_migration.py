@@ -10,8 +10,8 @@ from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from yuxi.storage.postgres.manager import PostgresManager
-from yuxi.storage.postgres.models_business import Base
+from binizox.storage.postgres.manager import PostgresManager
+from binizox.storage.postgres.models_business import Base
 
 pytestmark = [pytest.mark.asyncio, pytest.mark.integration]
 

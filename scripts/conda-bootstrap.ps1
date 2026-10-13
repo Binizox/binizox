@@ -30,7 +30,7 @@ conda run --name $ParserEnvironmentName python -m pip install `
 if ($LASTEXITCODE -ne 0) { throw '解析服务依赖安装失败。' }
 
 if ($InstallPlatform) {
-    Write-Host '正在安装完整 Yuxi/Binizox 后端，首次执行可能耗时较长...'
+    Write-Host '正在安装完整 Binizox/Binizox 后端，首次执行可能耗时较长...'
     Push-Location (Join-Path $ProjectRoot 'backend')
     try {
         conda run --name $EnvironmentName uv sync --active --group dev --group test

@@ -5,7 +5,7 @@ from fastapi import HTTPException
 
 from server.routers import knowledge_router
 from server.utils.knowledge_response import serialize_knowledge_base
-from yuxi.knowledge.read_models import KnowledgeBaseSummary
+from binizox.knowledge.read_models import KnowledgeBaseSummary
 
 
 def test_serialize_knowledge_base_redacts_credentials_from_compatibility_fields():

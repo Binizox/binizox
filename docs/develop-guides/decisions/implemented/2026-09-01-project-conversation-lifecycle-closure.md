@@ -2,7 +2,7 @@
 
 状态：implemented
 类型：bug-fix
-Owner：backend/package/yuxi/services/subagent_run_service.py
+Owner：backend/package/binizox/services/subagent_run_service.py
 
 ## 问题
 

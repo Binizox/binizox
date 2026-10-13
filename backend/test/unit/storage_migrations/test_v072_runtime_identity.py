@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from yuxi.storage_migrations import v072_runtime_identity as migration
+from binizox.storage_migrations import v072_runtime_identity as migration
 
 
 def _configure_roots(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> tuple[Path, Path, Path]:

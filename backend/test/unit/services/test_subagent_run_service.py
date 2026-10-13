@@ -5,11 +5,11 @@ from types import SimpleNamespace
 import pytest
 from fastapi import HTTPException
 
-import yuxi.services.agent_run_service as agent_run_service
-import yuxi.services.subagent_run_service as service_module
-from yuxi.services.input_message_service import build_chat_input_message
-from yuxi.services.subagent_run_service import SubagentRunBusy, SubagentRunService
-from yuxi.utils.hash_utils import subagent_child_thread_id
+import binizox.services.agent_run_service as agent_run_service
+import binizox.services.subagent_run_service as service_module
+from binizox.services.input_message_service import build_chat_input_message
+from binizox.services.subagent_run_service import SubagentRunBusy, SubagentRunService
+from binizox.utils.hash_utils import subagent_child_thread_id
 
 
 def make_child_thread_id(parent_thread_id: str, agent_slug: str, tool_call_id: str) -> str:

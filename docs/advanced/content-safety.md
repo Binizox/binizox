@@ -1,6 +1,6 @@
 # 内容审查
 
-Yuxi 可以在 Agent 运行前后检查内容。关键词检查适合快速拦截已知词，LLM 审查适合补充更复杂的语义判断，但会增加模型调用和响应时间。
+Binizox 可以在 Agent 运行前后检查内容。关键词检查适合快速拦截已知词，LLM 审查适合补充更复杂的语义判断，但会增加模型调用和响应时间。
 
 ## 配置
 
@@ -29,7 +29,7 @@ LLM 审查只有在总开关开启且配置了审查模型时才会参与。审�
 关键词文件位于：
 
 ```text
-backend/package/yuxi/config/static/bad_keywords.txt
+backend/package/binizox/config/static/bad_keywords.txt
 ```
 
 一行填写一个关键词，从首列开始的 `#` 行会被忽略；带有前导空格的 `#` 不属于注释格式。API 和 worker 在进程启动时读取这份文件；修改后重新创建或重启相关容器：
@@ -49,4 +49,4 @@ docker compose up -d --force-recreate api worker
 - API/worker 可以访问模型服务；
 - 响应延迟符合预期。
 
-不要在日志或 Issue 中贴出包含真实敏感数据的原文。配置项由 [`options.py`](https://github.com/xerrors/Yuxi/blob/main/backend/package/yuxi/config/options.py) 定义，检查逻辑由 [`guard.py`](https://github.com/xerrors/Yuxi/blob/main/backend/package/yuxi/utils/guard.py) 和聊天服务负责。
+不要在日志或 Issue 中贴出包含真实敏感数据的原文。配置项由 [`options.py`](https://github.com/Binizox/binizox/blob/main/backend/package/binizox/config/options.py) 定义，检查逻辑由 [`guard.py`](https://github.com/Binizox/binizox/blob/main/backend/package/binizox/utils/guard.py) 和聊天服务负责。

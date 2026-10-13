@@ -86,7 +86,7 @@ PVC/subPath 由 `docker/sandbox_provisioner/app.py` 拥有。
 - 真实目标 Kubernetes RWX 双 Pod smoke：Not run；当前开发环境没有目标 CSI/PVC。
 
 旧能力不存在：shipping 服务不接受 `SAVE_DIR`、`THREAD_PVC`、`DOCKER_THREADS_HOST_PATH`、
-`LANGGRAPH_CHECKPOINTER_BACKEND` 或 `YUXI_CHECKPOINT_DIR`，不挂载 `/app/saves` 或 `/app/checkpoints`，
+`LANGGRAPH_CHECKPOINTER_BACKEND` 或 `BINIZOX_CHECKPOINT_DIR`，不挂载 `/app/saves` 或 `/app/checkpoints`，
 也不包含 SQLite saver 与 SQLite checkpoint 迁移路径。
 
 重新引入条件：只有新的部署契约明确要求同一服务拥有多个存储域，并提供权限、迁移、跨副本并发和

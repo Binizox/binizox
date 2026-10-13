@@ -6,20 +6,20 @@ from fastapi import APIRouter, Body, Depends, HTTPException, Query, UploadFile, 
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from yuxi.storage.postgres.models_business import User
+from binizox.storage.postgres.models_business import User
 from server.utils.auth_middleware import get_db, get_required_user
-from yuxi.config.options import system_options
-from yuxi.agents.tool_approval import ToolApprovalMode
-from yuxi.models import select_model
-from yuxi.services.attachment_service import (
+from binizox.config.options import system_options
+from binizox.agents.tool_approval import ToolApprovalMode
+from binizox.models import select_model
+from binizox.services.attachment_service import (
     confirm_tmp_thread_attachments_view,
     delete_thread_attachment_view,
     list_thread_attachments_view,
     parse_tmp_attachment_view,
     upload_tmp_attachment_view,
 )
-from yuxi.services.chat_service import get_agent_state_view
-from yuxi.services.conversation_service import (
+from binizox.services.chat_service import get_agent_state_view
+from binizox.services.conversation_service import (
     create_thread_view,
     delete_thread_view,
     get_thread_history_view,
@@ -28,13 +28,13 @@ from yuxi.services.conversation_service import (
     search_threads_view,
     update_thread_view,
 )
-from yuxi.services.artifact_service import (
+from binizox.services.artifact_service import (
     resolve_thread_artifact_view,
     save_thread_artifact_to_workspace_view,
 )
-from yuxi.services.feedback_service import get_message_feedback_view, submit_message_feedback_view
-from yuxi.utils.logging_config import logger
-from yuxi.utils.image_processor import process_uploaded_image
+from binizox.services.feedback_service import get_message_feedback_view, submit_message_feedback_view
+from binizox.utils.logging_config import logger
+from binizox.utils.image_processor import process_uploaded_image
 
 
 # TODO：当前文件的功能过于庞杂，路由标签混乱

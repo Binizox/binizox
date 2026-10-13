@@ -5,8 +5,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from yuxi import storage_migration
-from yuxi.storage_migrations.v071_workdirs import (
+from binizox import storage_migration
+from binizox.storage_migrations.v071_workdirs import (
     V071ConversationBinding,
     V071WorkdirBinding,
     V071WorkdirMigrationPlan,
@@ -127,8 +127,8 @@ async def test_storage_migration_rejects_v071_schema_without_quiescence_proof(mo
     monkeypatch.setattr(storage_migration, "_legacy_skill_roots_exist", lambda: False)
     monkeypatch.setattr(storage_migration, "_legacy_system_config_exists", lambda: False)
     monkeypatch.setattr(storage_migration, "runtime_storage_requires_quiescence", lambda: False)
-    monkeypatch.setenv("YUXI_STORAGE_MIGRATION_QUIESCENCE_FILE", str(tmp_path / "missing"))
-    monkeypatch.delenv("YUXI_STORAGE_MIGRATION_QUIESCENCE_TOKEN", raising=False)
+    monkeypatch.setenv("BINIZOX_STORAGE_MIGRATION_QUIESCENCE_FILE", str(tmp_path / "missing"))
+    monkeypatch.delenv("BINIZOX_STORAGE_MIGRATION_QUIESCENCE_TOKEN", raising=False)
 
     with pytest.raises(RuntimeError, match="migrate-storage.sh"):
         await storage_migration.main()

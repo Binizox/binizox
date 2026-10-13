@@ -11,7 +11,14 @@
       <a-result status="error" :title="error.title" :sub-title="error.message">
         <template #extra>
           <a-button type="primary" @click="retryLoad">重试</a-button>
-          <a-button :href="docsUrl" target="_blank" rel="noopener noreferrer">常见问题</a-button>
+          <a-button
+            v-if="docsUrl"
+            :href="docsUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            常见问题
+          </a-button>
         </template>
       </a-result>
     </div>
@@ -115,8 +122,9 @@
         </div>
         <div class="header-actions">
           <a
+            v-if="repositoryUrl"
             class="github-link"
-            href="https://github.com/xerrors/Yuxi"
+            :href="repositoryUrl"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="GitHub"
@@ -152,6 +160,7 @@
               <ArrowRight :size="18" />
             </button>
             <a
+              v-if="docsUrl"
               class="button-base secondary"
               :href="docsUrl"
               target="_blank"
@@ -183,11 +192,16 @@ import { useInfoStore } from '@/stores/info'
 import { healthApi } from '@/apis/system_api'
 import UserInfoComponent from '@/components/UserInfoComponent.vue'
 import { ArrowRight, BookText } from '@lucide/vue'
+import {
+  PRODUCT_DOCUMENTATION_URL,
+  PRODUCT_REPOSITORY_URL
+} from '@/config/product'
 
 const router = useRouter()
 const userStore = useUserStore()
 const infoStore = useInfoStore()
-const docsUrl = 'https://xerrors.github.io/Yuxi/'
+const docsUrl = PRODUCT_DOCUMENTATION_URL
+const repositoryUrl = PRODUCT_REPOSITORY_URL
 
 // 加载状态
 const isLoading = ref(true)

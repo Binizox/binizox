@@ -3,14 +3,14 @@
 from fastapi import Depends, HTTPException
 
 from server.utils.auth_middleware import get_admin_user
-from yuxi.knowledge.read_models import KnowledgeBaseDetail
-from yuxi.knowledge.runtime import knowledge_base
-from yuxi.permissions import (
+from binizox.knowledge.read_models import KnowledgeBaseDetail
+from binizox.knowledge.runtime import knowledge_base
+from binizox.permissions import (
     ResourcePermission,
     ResourcePermissionDenied,
     require_knowledge_base_permission,
 )
-from yuxi.storage.postgres.models_business import User
+from binizox.storage.postgres.models_business import User
 
 
 async def ensure_knowledge_base_permission(

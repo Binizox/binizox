@@ -1,22 +1,22 @@
 # 参与贡献
 
-欢迎提交 Bug 修复、功能改进、测试和文档。本文是 Fork → 开发 → 验证 → PR 的完整流程；只想了解仓库入口时，可以先看根目录的 [CONTRIBUTING.md](https://github.com/xerrors/Yuxi/blob/main/CONTRIBUTING.md)。
+欢迎提交 Bug 修复、功能改进、测试和文档。本文是 Fork → 开发 → 验证 → PR 的完整流程；只想了解仓库入口时，可以先看根目录的 [CONTRIBUTING.md](https://github.com/Binizox/binizox/blob/main/CONTRIBUTING.md)。
 
 ## 开始前
 
-- 先搜索 [Issues](https://github.com/xerrors/Yuxi/issues)，确认问题没有重复。
+- 先搜索 [Issues](https://github.com/Binizox/binizox/issues)，确认问题没有重复。
 - 如果任务来自 GitHub Project，读完任务描述、关联 Issue、验收标准和讨论，并确认任务已经分配给你。
-- 需求会改变架构、权限、持久化、运行生命周期、公开接口或模型可见输入时，先在 Issue 或 [Discussions](https://github.com/xerrors/Yuxi/discussions) 对齐方案，并建立 [工程决策记录](./decisions/README.md)。
+- 需求会改变架构、权限、持久化、运行生命周期、公开接口或模型可见输入时，先在 Issue 或 [Discussions](https://github.com/Binizox/binizox/discussions) 对齐方案，并建立 [工程决策记录](./decisions/README.md)。
 - 一个 PR 解决一个清楚的问题。无关的格式化、重构和“顺手优化”请另开 PR。
 
-修改不熟悉的模块前，先读 [ARCHITECTURE.md](https://github.com/xerrors/Yuxi/blob/main/ARCHITECTURE.md)，再从真实的路由、service、repository、Schema、Compose 和测试中定位实现。源码和可执行测试比旧文档、历史 PR 或自动生成 Wiki 更可靠。
+修改不熟悉的模块前，先读 [ARCHITECTURE.md](https://github.com/Binizox/binizox/blob/main/ARCHITECTURE.md)，再从真实的路由、service、repository、Schema、Compose 和测试中定位实现。源码和可执行测试比旧文档、历史 PR 或自动生成 Wiki 更可靠。
 
 ## 1. Fork、同步和建分支
 
 ```bash
-git clone https://github.com/<your-username>/Yuxi.git
-cd Yuxi
-git remote add upstream https://github.com/xerrors/Yuxi.git
+git clone https://github.com/<your-username>/Binizox.git
+cd Binizox
+git remote add upstream https://github.com/Binizox/binizox.git
 git fetch upstream
 git switch main
 git merge --ff-only upstream/main
@@ -24,7 +24,7 @@ git push origin main
 git switch -c docs/improve-guides
 ```
 
-`origin` 指向你的 Fork，`upstream` 指向 `xerrors/Yuxi`。不要把开发分支直接推送到 `upstream`，也不要在 `main` 上开发。
+`origin` 指向你的 Fork，`upstream` 指向 `Binizox/binizox`。不要把开发分支直接推送到 `upstream`，也不要在 `main` 上开发。需要追溯历史基座时，可另加只读 remote：`git remote add yuxi-upstream https://github.com/xerrors/Yuxi.git`。
 
 如果开发期间 `main` 有更新，只有在出现冲突、CI 明确要求更新，或维护者要求时才同步 `upstream/main`。涉及 rebase 和强制推送时使用 `--force-with-lease`，并先确认该分支没有其他贡献者共同开发。
 
@@ -41,7 +41,7 @@ chore/<topic>     工程辅助
 
 ## 2. 开发环境
 
-Yuxi 的开发拓扑以 Docker Compose 为准。首次启动前，根据 `.env.template` 准备 `.env`，再运行：
+Binizox 的开发拓扑以 Docker Compose 为准。首次启动前，根据 `.env.template` 准备 `.env`，再运行：
 
 ```bash
 docker compose up -d
@@ -62,7 +62,7 @@ LITE 模式不会注册知识库、图谱和评估能力。需要完整链路时
 ## 3. 实现原则
 
 - 用满足验收标准的最小实现，保持主路径线性可读。
-- HTTP 路由只做请求解析、认证上下文和响应装配；用例流程放在 `yuxi.services`，持久化查询放在 `yuxi.repositories`。
+- HTTP 路由只做请求解析、认证上下文和响应装配；用例流程放在 `binizox.services`，持久化查询放在 `binizox.repositories`。
 - 预设条件不成立时明确失败，不用静默回退或吞异常掩盖问题。
 - 权限在后端依赖和 repository 可见性查询处执行；前端守卫、prompt、schema omission 和隐藏按钮不是授权边界。
 - PostgreSQL 保存业务事实；Redis 只负责投递、短期事件、取消和缓存。LangGraph checkpoint 只使用 PostgreSQL。
@@ -171,8 +171,8 @@ Agent 创建 PR 前，先把拟提交的标题和完整正文展示给用户，�
 
 PR 正文按创建方式选择模板：
 
-- Agent 创建的 PR 使用默认的 [Agent PR 模板](https://github.com/xerrors/Yuxi/blob/main/.github/PULL_REQUEST_TEMPLATE.md)；
-- 人工或其他非 Agent 方式创建的 PR 可使用[简化模板](https://github.com/xerrors/Yuxi/blob/main/.github/PULL_REQUEST_TEMPLATE/non-agent.md)。使用 GitHub compare 页面时增加 `template=non-agent.md` 查询参数，使用 GitHub CLI 时传入 `--template .github/PULL_REQUEST_TEMPLATE/non-agent.md`。
+- Agent 创建的 PR 使用默认的 [Agent PR 模板](https://github.com/Binizox/binizox/blob/main/.github/PULL_REQUEST_TEMPLATE.md)；
+- 人工或其他非 Agent 方式创建的 PR 可使用[简化模板](https://github.com/Binizox/binizox/blob/main/.github/PULL_REQUEST_TEMPLATE/non-agent.md)。使用 GitHub compare 页面时增加 `template=non-agent.md` 查询参数，使用 GitHub CLI 时传入 `--template .github/PULL_REQUEST_TEMPLATE/non-agent.md`。
 
 模板复杂度不同，不改变非平凡或高风险变更的工程证据要求。来自 Fork 的 PR 默认无法读取主仓库 Secrets；不要通过修改工作流、打印环境变量或扩大权限绕过这一限制。如果验证必须依赖受保护凭证，应在 PR 中说明并由维护者执行对应检查。
 
@@ -204,6 +204,6 @@ AI 可以帮助搜索、实现、测试和整理文档，但贡献者仍对最�
 
 ## 获取帮助
 
-- Bug 和功能讨论：[GitHub Issues](https://github.com/xerrors/Yuxi/issues)
-- 方案讨论：[GitHub Discussions](https://github.com/xerrors/Yuxi/discussions)
-- 贡献入口：[根目录 CONTRIBUTING.md](https://github.com/xerrors/Yuxi/blob/main/CONTRIBUTING.md)
+- Bug 和功能讨论：[GitHub Issues](https://github.com/Binizox/binizox/issues)
+- 方案讨论：[GitHub Discussions](https://github.com/Binizox/binizox/discussions)
+- 贡献入口：[根目录 CONTRIBUTING.md](https://github.com/Binizox/binizox/blob/main/CONTRIBUTING.md)

@@ -4,8 +4,8 @@ from unittest.mock import AsyncMock
 
 os.environ.setdefault("OPENAI_API_KEY", "test-key")
 
-from yuxi.knowledge.eval import evaluator
-from yuxi.knowledge.eval.evaluator import (
+from binizox.knowledge.eval import evaluator
+from binizox.knowledge.eval.evaluator import (
     aggregate_metrics,
     build_answer_prompt,
     evaluate_question,

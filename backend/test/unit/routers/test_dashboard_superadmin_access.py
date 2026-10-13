@@ -14,8 +14,8 @@ from server.routers.dashboard_router import (
     get_user_activity_stats,
 )
 from server.utils.auth_middleware import get_superadmin_user
-from yuxi.storage.postgres.models_business import Agent, Base, Conversation, Department, Message, ToolCall, User
-from yuxi.utils.datetime_utils import utc_now_naive
+from binizox.storage.postgres.models_business import Agent, Base, Conversation, Department, Message, ToolCall, User
+from binizox.utils.datetime_utils import utc_now_naive
 
 pytestmark = [pytest.mark.asyncio, pytest.mark.unit]
 

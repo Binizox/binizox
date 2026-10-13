@@ -8,7 +8,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from server.utils.auth_middleware import get_db, get_required_user
-from yuxi.services.workspace_service import (
+from binizox.services.workspace_service import (
     create_workspace_directory,
     delete_workspace_path,
     download_workspace_file,
@@ -18,7 +18,7 @@ from yuxi.services.workspace_service import (
     upload_workspace_files,
     write_workspace_file_content,
 )
-from yuxi.storage.postgres.models_business import User
+from binizox.storage.postgres.models_business import User
 
 workspace = APIRouter(prefix="/workspace", tags=["workspace"])
 workspace_knowledge = APIRouter(prefix="/workspace", tags=["workspace"])
@@ -37,7 +37,7 @@ class UpdateWorkspaceFileContentRequest(BaseModel):
 def _get_knowledge_base():
     """仅在已注册的知识库工作区路由被调用时加载重运行时。"""
 
-    from yuxi.knowledge.runtime import knowledge_base
+    from binizox.knowledge.runtime import knowledge_base
 
     return knowledge_base
 
@@ -137,8 +137,8 @@ def _binary_preview_response(data: dict) -> StreamingResponse:
         media_type=data.get("media_type") or "application/octet-stream",
         headers={
             "Content-Disposition": f"inline; filename*=UTF-8''{quote(filename)}",
-            "X-Yuxi-Preview-Type": preview_type,
-            "X-Yuxi-Preview-Filename": quote(filename),
+            "X-Binizox-Preview-Type": preview_type,
+            "X-Binizox-Preview-Filename": quote(filename),
         },
     )
 
@@ -204,7 +204,7 @@ async def get_workspace_knowledge_file(
     await _ensure_knowledge_read_access(current_user, kb_id)
     await _ensure_knowledge_supports_documents(kb_id)
     try:
-        from yuxi.knowledge.preview import read_knowledge_file_preview
+        from binizox.knowledge.preview import read_knowledge_file_preview
 
         return _preview_response(await read_knowledge_file_preview(kb_id=kb_id, file_id=file_id))
     except ValueError as error:

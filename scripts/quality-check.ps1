@@ -10,9 +10,9 @@ Push-Location $ProjectRoot
 try {
     conda run --name binizox-dev ruff check `
         services/personal-tool-runner `
-        backend/package/yuxi/binizox `
-        backend/package/yuxi/asterdesk/document_service.py `
-        backend/package/yuxi/agents/toolkits/binizox.py `
+        backend/package/binizox/binizox `
+        backend/package/binizox/evidence/document_service.py `
+        backend/package/binizox/agents/toolkits/binizox.py `
         backend/server/routers/binizox_router.py `
         backend/test/unit/binizox
     if ($LASTEXITCODE -ne 0) { throw 'Binizox Python 静态检查失败。' }

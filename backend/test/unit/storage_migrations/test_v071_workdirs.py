@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-import yuxi.storage_migrations.v071_workdirs as svc
-from yuxi.storage.postgres.manager import V071_WORKDIR_CUTOVER_STATEMENTS, WORKDIR_PATH_SCHEMA_STATEMENTS
+import binizox.storage_migrations.v071_workdirs as svc
+from binizox.storage.postgres.manager import V071_WORKDIR_CUTOVER_STATEMENTS, WORKDIR_PATH_SCHEMA_STATEMENTS
 
 
 def test_cutover_creates_project_only_conversation_binding():
@@ -43,7 +43,7 @@ def test_import_moves_v071_thread_files_into_user_workspace(monkeypatch, tmp_pat
         (uploads / "input.txt").write_text("input", encoding="utf-8")
         user_data = tmp_path / "user-data"
 
-        monkeypatch.setenv("YUXI_USER_DATA_DIR", str(user_data))
+        monkeypatch.setenv("BINIZOX_USER_DATA_DIR", str(user_data))
         monkeypatch.setattr(svc, "get_legacy_storage_dir", lambda: legacy_storage)
         workdirs = (svc.V071WorkdirBinding("11111111-1111-4111-8111-111111111111", "user-1"),)
         conversations = (svc.V071ConversationBinding("thread-1", "user-1", "11111111-1111-4111-8111-111111111111"),)
@@ -61,7 +61,7 @@ def test_import_moves_v071_thread_files_into_user_workspace(monkeypatch, tmp_pat
 
 
 def test_import_creates_empty_workdir_without_eager_business_directories(monkeypatch, tmp_path: Path):
-    monkeypatch.setenv("YUXI_USER_DATA_DIR", str(tmp_path / "user-data"))
+    monkeypatch.setenv("BINIZOX_USER_DATA_DIR", str(tmp_path / "user-data"))
     monkeypatch.setattr(svc, "get_legacy_storage_dir", lambda: tmp_path / "legacy")
     workdirs = (svc.V071WorkdirBinding("22222222-2222-4222-8222-222222222222", "user-1"),)
     conversations = (svc.V071ConversationBinding("thread-empty", "user-1", "22222222-2222-4222-8222-222222222222"),)
@@ -79,7 +79,7 @@ def test_import_accepts_v071_thread_id_with_filename_safe_punctuation(monkeypatc
     source = legacy_storage / "threads" / "thread.v0:legacy" / "user-data" / "outputs"
     source.mkdir(parents=True)
     (source / "result.txt").write_text("result", encoding="utf-8")
-    monkeypatch.setenv("YUXI_USER_DATA_DIR", str(tmp_path / "user-data"))
+    monkeypatch.setenv("BINIZOX_USER_DATA_DIR", str(tmp_path / "user-data"))
     monkeypatch.setattr(svc, "get_legacy_storage_dir", lambda: legacy_storage)
 
     svc.import_v071_workdirs(
@@ -98,7 +98,7 @@ def test_import_does_not_resolve_unsafe_thread_id_outside_threads_root(monkeypat
     outside = legacy_storage / "escape" / "user-data" / "uploads"
     outside.mkdir(parents=True)
     (outside / "secret.txt").write_text("secret", encoding="utf-8")
-    monkeypatch.setenv("YUXI_USER_DATA_DIR", str(tmp_path / "user-data"))
+    monkeypatch.setenv("BINIZOX_USER_DATA_DIR", str(tmp_path / "user-data"))
     monkeypatch.setattr(svc, "get_legacy_storage_dir", lambda: legacy_storage)
 
     svc.import_v071_workdirs(
@@ -116,7 +116,7 @@ def test_import_does_not_fold_thread_id_onto_another_thread_directory(monkeypatc
     other_thread = legacy_storage / "threads" / "thread" / "user-data" / "uploads"
     other_thread.mkdir(parents=True)
     (other_thread / "secret.txt").write_text("secret", encoding="utf-8")
-    monkeypatch.setenv("YUXI_USER_DATA_DIR", str(tmp_path / "user-data"))
+    monkeypatch.setenv("BINIZOX_USER_DATA_DIR", str(tmp_path / "user-data"))
     monkeypatch.setattr(svc, "get_legacy_storage_dir", lambda: legacy_storage)
 
     svc.import_v071_workdirs(
@@ -138,7 +138,7 @@ def test_import_preserves_thread_symlinks_without_reading_target(monkeypatch, tm
     (uploads / "escape.txt").symlink_to(outside)
     user_data = tmp_path / "user-data"
 
-    monkeypatch.setenv("YUXI_USER_DATA_DIR", str(user_data))
+    monkeypatch.setenv("BINIZOX_USER_DATA_DIR", str(user_data))
     monkeypatch.setattr(svc, "get_legacy_storage_dir", lambda: legacy_storage)
     workdirs = (svc.V071WorkdirBinding("11111111-1111-4111-8111-111111111111", "user-1"),)
     conversations = (svc.V071ConversationBinding("thread-1", "user-1", "11111111-1111-4111-8111-111111111111"),)
@@ -160,7 +160,7 @@ def test_import_rejects_symlinked_legacy_thread_parent(monkeypatch, tmp_path: Pa
     (outside / "user-data" / "uploads").mkdir(parents=True)
     (outside / "user-data" / "uploads" / "secret.txt").write_text("secret", encoding="utf-8")
     (threads / "thread-1").symlink_to(outside, target_is_directory=True)
-    monkeypatch.setenv("YUXI_USER_DATA_DIR", str(tmp_path / "user-data"))
+    monkeypatch.setenv("BINIZOX_USER_DATA_DIR", str(tmp_path / "user-data"))
     monkeypatch.setattr(svc, "get_legacy_storage_dir", lambda: legacy_storage)
 
     with pytest.raises(RuntimeError, match="symlink"):
@@ -179,7 +179,7 @@ def test_import_rejects_symlinked_projects_parent(monkeypatch, tmp_path: Path):
     outside = tmp_path / "outside"
     outside.mkdir()
     (workspace / "projects").symlink_to(outside, target_is_directory=True)
-    monkeypatch.setenv("YUXI_USER_DATA_DIR", str(user_data))
+    monkeypatch.setenv("BINIZOX_USER_DATA_DIR", str(user_data))
     monkeypatch.setattr(svc, "get_legacy_storage_dir", lambda: tmp_path / "legacy")
 
     with pytest.raises(RuntimeError, match="projects.*symlink"):
@@ -192,7 +192,7 @@ def test_import_rejects_symlinked_projects_parent(monkeypatch, tmp_path: Path):
 
 
 def test_import_rejects_unsafe_legacy_identity(monkeypatch, tmp_path: Path):
-    monkeypatch.setenv("YUXI_USER_DATA_DIR", str(tmp_path / "user-data"))
+    monkeypatch.setenv("BINIZOX_USER_DATA_DIR", str(tmp_path / "user-data"))
 
     with pytest.raises(RuntimeError, match="不安全"):
         svc.import_v071_workdirs((svc.V071WorkdirBinding("../escape", "user-1"),), ())

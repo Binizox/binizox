@@ -1,1 +1,1 @@
-"""AsterDesk 文档解析 sidecar。"""
+"""Binizox 文档解析 sidecar。"""

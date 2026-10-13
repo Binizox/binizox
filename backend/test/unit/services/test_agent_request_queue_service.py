@@ -12,7 +12,7 @@ import pytest_asyncio
 from sqlalchemy import func as sa_func
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
-from yuxi.services.agent_request_queue_service import (
+from binizox.services.agent_request_queue_service import (
     DispatchResult,
     IntakeResult,
     NOT_IMPLEMENTED_QUEUE_POLICIES,
@@ -23,8 +23,8 @@ from yuxi.services.agent_request_queue_service import (
     steer_queued_request,
     validate_queue_policy,
 )
-from yuxi.storage.postgres.models_business import AgentRunRequest, Base, Message
-from yuxi.utils.datetime_utils import utc_now_naive
+from binizox.storage.postgres.models_business import AgentRunRequest, Base, Message
+from binizox.utils.datetime_utils import utc_now_naive
 
 pytestmark = [pytest.mark.unit]
 
@@ -51,7 +51,7 @@ async def test_finalize_dispatch_materializes_workdir_after_commit_before_enqueu
         assert run_id == "run-1"
         events.append("enqueue")
 
-    from yuxi.services import agent_request_queue_service as service
+    from binizox.services import agent_request_queue_service as service
 
     monkeypatch.setattr(service, "ensure_bound_user_workdir", ensure_workdir)
     monkeypatch.setattr(service, "enqueue_agent_run", enqueue)
@@ -78,7 +78,7 @@ async def test_finalize_dispatch_does_not_materialize_when_commit_fails(monkeypa
         async def commit(self):
             raise RuntimeError("commit failed")
 
-    from yuxi.services import agent_request_queue_service as service
+    from binizox.services import agent_request_queue_service as service
 
     monkeypatch.setattr(
         service,
@@ -118,7 +118,7 @@ async def test_finalize_queued_intake_recovers_missing_managed_workdir(monkeypat
         assert (uid, workdir_path) == ("user-1", "projects/project-1")
         events.append("materialize")
 
-    from yuxi.services import agent_request_queue_service as service
+    from binizox.services import agent_request_queue_service as service
 
     monkeypatch.setattr(service, "ensure_bound_user_workdir", ensure_workdir)
 
@@ -174,7 +174,7 @@ async def test_recover_pending_dispatches_isolates_failed_scope(monkeypatch: pyt
         recovered.append(kwargs["thread_id"])
         return "run-good"
 
-    from yuxi.services import agent_request_queue_service as service
+    from binizox.services import agent_request_queue_service as service
 
     monkeypatch.setattr(service.pg_manager, "get_async_session_context", session_context)
     monkeypatch.setattr(service, "dispatch_next_request", dispatch_next_request)
@@ -216,7 +216,7 @@ async def test_pending_linked_run_is_enqueued_without_opening_missing_directory(
     async def enqueue(run_id):
         events.append(f"enqueue:{run_id}")
 
-    from yuxi.services import agent_request_queue_service as service
+    from binizox.services import agent_request_queue_service as service
 
     monkeypatch.setattr(service.pg_manager, "get_async_session_context", session_context)
     monkeypatch.setattr(service, "ConversationRepository", ConversationRepo)
@@ -258,7 +258,7 @@ def test_validate_queue_policy_rejects_unknown():
 @pytest.mark.asyncio
 async def test_intake_rejects_steer_for_unsupported_source(session):
     from fastapi import HTTPException
-    from yuxi.services.input_message_service import build_chat_input_message
+    from binizox.services.input_message_service import build_chat_input_message
 
     with pytest.raises(HTTPException) as exc_info:
         await intake_request(
@@ -282,8 +282,8 @@ async def test_intake_rejects_steer_for_unsupported_source(session):
 async def test_channel_steer_is_accepted_for_active_message_run(
     session, monkeypatch: pytest.MonkeyPatch, active_source: str
 ):
-    from yuxi.services import agent_request_queue_service
-    from yuxi.services.input_message_service import build_chat_input_message
+    from binizox.services import agent_request_queue_service
+    from binizox.services.input_message_service import build_chat_input_message
 
     async def resolve_config(*_args):
         return "model", "default"
@@ -312,9 +312,9 @@ async def test_channel_steer_is_accepted_for_active_message_run(
 
 @pytest.mark.asyncio
 async def test_intake_request_binds_resolved_model_to_conversation(session, monkeypatch: pytest.MonkeyPatch):
-    from yuxi.services import agent_request_queue_service
-    from yuxi.services.input_message_service import build_chat_input_message
-    from yuxi.storage.postgres.models_business import Conversation
+    from binizox.services import agent_request_queue_service
+    from binizox.services.input_message_service import build_chat_input_message
+    from binizox.storage.postgres.models_business import Conversation
 
     resolved_requests = []
 
@@ -377,9 +377,9 @@ async def test_intake_request_binds_resolved_model_to_conversation(session, monk
 async def test_reject_dispatch_conflict_does_not_change_conversation_model(
     session, monkeypatch: pytest.MonkeyPatch
 ):
-    from yuxi.services import agent_request_queue_service
-    from yuxi.services.input_message_service import build_chat_input_message
-    from yuxi.storage.postgres.models_business import Conversation
+    from binizox.services import agent_request_queue_service
+    from binizox.services.input_message_service import build_chat_input_message
+    from binizox.storage.postgres.models_business import Conversation
 
     async def resolve_config(model_spec, *_args):
         return model_spec, "default"
@@ -414,9 +414,9 @@ async def test_reject_dispatch_conflict_does_not_change_conversation_model(
 
 @pytest.mark.asyncio
 async def test_intake_request_binds_attachments_in_request_transaction(session, monkeypatch: pytest.MonkeyPatch):
-    from yuxi.services import agent_request_queue_service
-    from yuxi.services.input_message_service import build_chat_input_message
-    from yuxi.storage.postgres.models_business import Conversation
+    from binizox.services import agent_request_queue_service
+    from binizox.services.input_message_service import build_chat_input_message
+    from binizox.storage.postgres.models_business import Conversation
 
     async def resolve_config(*_args):
         return "model", "default"
@@ -450,8 +450,8 @@ async def test_intake_request_rejects_missing_attachment_without_creating_reques
     monkeypatch: pytest.MonkeyPatch,
 ):
     from fastapi import HTTPException
-    from yuxi.services import agent_request_queue_service
-    from yuxi.services.input_message_service import build_chat_input_message
+    from binizox.services import agent_request_queue_service
+    from binizox.services.input_message_service import build_chat_input_message
 
     async def resolve_config(*_args):
         return "model", "default"
@@ -501,7 +501,7 @@ async def session():
 
 
 async def _seed_thread(session, *, uid="user-1", msg_id=100, conv_id=10):
-    from yuxi.storage.postgres.models_business import Conversation, Message, Project
+    from binizox.storage.postgres.models_business import Conversation, Message, Project
 
     project_id = f"project-{uid}-t1"
     session.add(
@@ -529,8 +529,8 @@ async def _seed_thread(session, *, uid="user-1", msg_id=100, conv_id=10):
 
 async def _seed_active_run(session, *, source="chat", status="running", run_type="chat"):
     """在线程内创建可供 Steer 门禁识别的活跃 Run。"""
-    from yuxi.repositories.agent_run_request_repository import AgentRunRequestRepository
-    from yuxi.storage.postgres.models_business import AgentRun
+    from binizox.repositories.agent_run_request_repository import AgentRunRequestRepository
+    from binizox.storage.postgres.models_business import AgentRun
 
     session.add(Message(id=101, conversation_id=10, role="user", content="active"))
     await AgentRunRequestRepository(session).create(
@@ -561,7 +561,7 @@ async def _seed_active_run(session, *, source="chat", status="running", run_type
 
 
 async def _create_request(session, *, request_id, uid="user-1", msg_id=100, queue_policy="enqueue"):
-    from yuxi.repositories.agent_run_request_repository import AgentRunRequestRepository
+    from binizox.repositories.agent_run_request_repository import AgentRunRequestRepository
 
     repo = AgentRunRequestRepository(session)
     await repo.create(
@@ -581,7 +581,7 @@ async def _create_request(session, *, request_id, uid="user-1", msg_id=100, queu
 
 @pytest.mark.asyncio
 async def test_steer_request_is_prioritized_without_new_status(session):
-    from yuxi.repositories.agent_run_request_repository import AgentRunRequestRepository
+    from binizox.repositories.agent_run_request_repository import AgentRunRequestRepository
 
     await _seed_thread(session)
     session.add(Message(id=101, conversation_id=10, role="user", content="steer"))
@@ -657,7 +657,7 @@ async def test_second_pending_steer_is_rejected(session):
 )
 async def test_steer_rejects_unsupported_active_run_before_persisting(session, source, status, run_type):
     from fastapi import HTTPException
-    from yuxi.services.input_message_service import build_chat_input_message
+    from binizox.services.input_message_service import build_chat_input_message
 
     await _seed_thread(session)
     await _seed_active_run(session, source=source, status=status, run_type=run_type)
@@ -688,7 +688,7 @@ async def test_steer_rejects_unsupported_active_run_before_persisting(session, s
 @pytest.mark.asyncio
 async def test_pending_steer_cannot_be_cancelled_until_active_run_finishes(session):
     from fastapi import HTTPException
-    from yuxi.storage.postgres.models_business import AgentRun
+    from binizox.storage.postgres.models_business import AgentRun
 
     await _seed_thread(session)
     await _seed_active_run(session)
@@ -738,7 +738,7 @@ async def test_cancel_returns_cancelled_status(session, already_cancelled):
     await _seed_thread(session)
     await _create_request(session, request_id="req-1")
     if already_cancelled:
-        from yuxi.repositories.agent_run_request_repository import AgentRunRequestRepository
+        from binizox.repositories.agent_run_request_repository import AgentRunRequestRepository
 
         repo = AgentRunRequestRepository(session)
         request = await repo.lock_by_request_id("req-1")
@@ -769,7 +769,7 @@ async def test_cancel_dispatched_raises_409(session):
 
 @pytest.mark.asyncio
 async def test_intake_idempotent_returns_existing(session):
-    from yuxi.services.input_message_service import build_chat_input_message
+    from binizox.services.input_message_service import build_chat_input_message
 
     await _seed_thread(session)
     await _create_request(session, request_id="req-idem")
@@ -798,7 +798,7 @@ async def test_intake_idempotent_returns_existing(session):
 async def test_intake_idempotent_rejects_cross_user(session):
     from fastapi import HTTPException
 
-    from yuxi.services.input_message_service import build_chat_input_message
+    from binizox.services.input_message_service import build_chat_input_message
 
     await _seed_thread(session)
     await _create_request(session, request_id="req-cross")
@@ -821,8 +821,8 @@ async def test_intake_idempotent_rejects_cross_user(session):
 async def test_intake_idempotent_rejects_scope_mismatch(session):
     from fastapi import HTTPException
 
-    from yuxi.services.input_message_service import build_chat_input_message
-    from yuxi.storage.postgres.models_business import Conversation
+    from binizox.services.input_message_service import build_chat_input_message
+    from binizox.storage.postgres.models_business import Conversation
 
     await _seed_thread(session)
     session.add(
@@ -860,9 +860,9 @@ async def test_intake_idempotent_rejects_scope_mismatch(session):
 
 @pytest.mark.asyncio
 async def test_create_message_with_queued_delivery_status(session):
-    from yuxi.services.agent_run_service import create_agent_run_input_message
-    from yuxi.services.input_message_service import build_chat_input_message
-    from yuxi.storage.postgres.models_business import Message
+    from binizox.services.agent_run_service import create_agent_run_input_message
+    from binizox.services.input_message_service import build_chat_input_message
+    from binizox.storage.postgres.models_business import Message
 
     await _seed_thread(session)
     msg = await create_agent_run_input_message(
@@ -882,9 +882,9 @@ async def test_create_message_with_queued_delivery_status(session):
 
 @pytest.mark.asyncio
 async def test_dispatch_sets_delivery_status_dispatched(session):
-    from yuxi.repositories.agent_run_request_repository import AgentRunRequestRepository
-    from yuxi.services.agent_request_queue_service import _dispatch_ready_head
-    from yuxi.storage.postgres.models_business import Message
+    from binizox.repositories.agent_run_request_repository import AgentRunRequestRepository
+    from binizox.services.agent_request_queue_service import _dispatch_ready_head
+    from binizox.storage.postgres.models_business import Message
 
     await _seed_thread(session, msg_id=200)
     repo = AgentRunRequestRepository(session)
@@ -914,9 +914,9 @@ async def test_dispatch_sets_delivery_status_dispatched(session):
 
 @pytest.mark.asyncio
 async def test_dispatches_multiple_queued_requests_one_at_a_time(session):
-    from yuxi.repositories.agent_run_repository import AgentRunRepository
-    from yuxi.repositories.agent_run_request_repository import AgentRunRequestRepository
-    from yuxi.services.agent_request_queue_service import _dispatch_ready_head
+    from binizox.repositories.agent_run_repository import AgentRunRepository
+    from binizox.repositories.agent_run_request_repository import AgentRunRequestRepository
+    from binizox.services.agent_request_queue_service import _dispatch_ready_head
 
     await _seed_thread(session, msg_id=300)
     session.add_all(
@@ -1015,8 +1015,8 @@ async def test_dispatches_multiple_queued_requests_one_at_a_time(session):
 async def test_reject_with_active_run_persists_request_and_is_idempotent(session):
     import uuid as _uuid
 
-    from yuxi.services.input_message_service import build_chat_input_message
-    from yuxi.storage.postgres.models_business import AgentRun, Message
+    from binizox.services.input_message_service import build_chat_input_message
+    from binizox.storage.postgres.models_business import AgentRun, Message
 
     await _seed_thread(session)
     session.add(
@@ -1075,7 +1075,7 @@ async def test_reject_with_active_run_persists_request_and_is_idempotent(session
 
 
 async def _seed_queued_request(session, *, request_id: str, message_id: int, created_at):
-    from yuxi.repositories.agent_run_request_repository import AgentRunRequestRepository
+    from binizox.repositories.agent_run_request_repository import AgentRunRequestRepository
 
     session.add(Message(id=message_id, conversation_id=10, role="user", content=request_id, delivery_status="queued"))
     await session.flush()
@@ -1093,7 +1093,7 @@ async def _seed_queued_request(session, *, request_id: str, message_id: int, cre
 
 
 async def _seed_terminal_run(session, *, run_id: str, status: str, created_at, finished_at):
-    from yuxi.storage.postgres.models_business import AgentRun
+    from binizox.storage.postgres.models_business import AgentRun
 
     session.add(
         AgentRun(
@@ -1115,7 +1115,7 @@ async def _seed_terminal_run(session, *, run_id: str, status: str, created_at, f
 
 @pytest.mark.asyncio
 async def test_snapshot_marks_existing_backlog_paused_after_failed_run(session):
-    from yuxi.services.agent_request_queue_service import get_thread_queue_snapshot
+    from binizox.services.agent_request_queue_service import get_thread_queue_snapshot
 
     await _seed_thread(session)
     now = utc_now_naive()
@@ -1141,7 +1141,7 @@ async def test_snapshot_marks_existing_backlog_paused_after_failed_run(session):
 
 @pytest.mark.asyncio
 async def test_snapshot_marks_interrupted_queue_as_non_continuable(session):
-    from yuxi.services.agent_request_queue_service import get_thread_queue_snapshot
+    from binizox.services.agent_request_queue_service import get_thread_queue_snapshot
 
     await _seed_thread(session)
     now = utc_now_naive()
@@ -1164,7 +1164,7 @@ async def test_snapshot_marks_interrupted_queue_as_non_continuable(session):
 
 @pytest.mark.asyncio
 async def test_snapshot_marks_post_failure_request_ready(session):
-    from yuxi.services.agent_request_queue_service import get_thread_queue_snapshot
+    from binizox.services.agent_request_queue_service import get_thread_queue_snapshot
 
     await _seed_thread(session)
     now = utc_now_naive()
@@ -1186,7 +1186,7 @@ async def test_snapshot_marks_post_failure_request_ready(session):
 
 @pytest.mark.asyncio
 async def test_snapshot_rejects_terminal_run_without_finished_at(session):
-    from yuxi.services.agent_request_queue_service import get_thread_queue_snapshot
+    from binizox.services.agent_request_queue_service import get_thread_queue_snapshot
 
     await _seed_thread(session)
     now = utc_now_naive()
@@ -1206,8 +1206,8 @@ async def test_snapshot_rejects_terminal_run_without_finished_at(session):
 
 @pytest.mark.asyncio
 async def test_continue_dispatches_only_paused_fifo_head(session):
-    from yuxi.repositories.agent_run_request_repository import AgentRunRequestRepository
-    from yuxi.services.agent_request_queue_service import continue_thread_queue
+    from binizox.repositories.agent_run_request_repository import AgentRunRequestRepository
+    from binizox.services.agent_request_queue_service import continue_thread_queue
 
     await _seed_thread(session)
     now = utc_now_naive()
@@ -1240,8 +1240,8 @@ async def test_continue_dispatches_only_paused_fifo_head(session):
 
 @pytest.mark.asyncio
 async def test_reject_does_not_resume_paused_queue(session):
-    from yuxi.repositories.agent_run_request_repository import AgentRunRequestRepository
-    from yuxi.services.input_message_service import build_chat_input_message
+    from binizox.repositories.agent_run_request_repository import AgentRunRequestRepository
+    from binizox.services.input_message_service import build_chat_input_message
 
     await _seed_thread(session)
     now = utc_now_naive()
@@ -1278,9 +1278,9 @@ async def test_reject_marks_request_rejected_when_immediate_dispatch_loses_race(
     session,
     monkeypatch: pytest.MonkeyPatch,
 ):
-    from yuxi.repositories.agent_run_request_repository import AgentRunRequestRepository
-    from yuxi.services import agent_request_queue_service
-    from yuxi.services.input_message_service import build_chat_input_message
+    from binizox.repositories.agent_run_request_repository import AgentRunRequestRepository
+    from binizox.services import agent_request_queue_service
+    from binizox.services.input_message_service import build_chat_input_message
 
     async def resolve_config(*_args):
         return "model", "default"
@@ -1319,9 +1319,9 @@ async def test_intake_rejects_message_while_run_is_interrupted(
     session, monkeypatch: pytest.MonkeyPatch, queue_policy: str
 ):
     from fastapi import HTTPException
-    from yuxi.repositories.agent_run_request_repository import AgentRunRequestRepository
-    from yuxi.services import agent_request_queue_service
-    from yuxi.services.input_message_service import build_chat_input_message
+    from binizox.repositories.agent_run_request_repository import AgentRunRequestRepository
+    from binizox.services import agent_request_queue_service
+    from binizox.services.input_message_service import build_chat_input_message
 
     async def resolve_config(*_args):
         return "model", "default"
@@ -1366,8 +1366,8 @@ async def test_intake_rejects_message_while_run_is_interrupted(
 
 @pytest.mark.asyncio
 async def test_enqueue_after_empty_failed_queue_dispatches_new_request(session, monkeypatch: pytest.MonkeyPatch):
-    from yuxi.services import agent_request_queue_service
-    from yuxi.services.input_message_service import build_chat_input_message
+    from binizox.services import agent_request_queue_service
+    from binizox.services.input_message_service import build_chat_input_message
 
     async def resolve_config(*_args):
         return "model", "default"

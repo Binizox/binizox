@@ -2,7 +2,7 @@
 
 状态：implemented
 类型：feature
-Owner：backend/package/yuxi/services/project_service.py
+Owner：backend/package/binizox/services/project_service.py
 
 ## 问题
 
@@ -34,7 +34,7 @@ Owner：backend/package/yuxi/services/project_service.py
 | 验收主张 | 失败面 | 语义 Owner | 直接证据 / 命令 | 负向案例 | 当前结果 |
 |---|---|---|---|---|---|
 | Project 独立存在且一期各自绑定一个 Workdir | 空 Project 无法读取，或 Project 同时形成多份路径事实 | Project model/repository/service | 真实 HTTP/PostgreSQL/POSIX 探针回读 managed、linked、幂等和互斥绑定 | Project 缺少路径；两个 Project 共享路径仍保持不同 ID | Passed |
-| managed 与 linked 创建保持各自目录语义 | 提交前遗留目录，或 linked 目录被复制/改写/静默创建 | ProjectService 与 `yuxi.workspace` | 完整 backend unit；真实探针回读原目录和 managed 路径 | linked 路径不存在、文件、symlink；重复路径绑定成功 | Passed |
+| managed 与 linked 创建保持各自目录语义 | 提交前遗留目录，或 linked 目录被复制/改写/静默创建 | ProjectService 与 `binizox.workspace` | 完整 backend unit；真实探针回读原目录和 managed 路径 | linked 路径不存在、文件、symlink；重复路径绑定成功 | Passed |
 | 手动创建 Project 必须选择目录 | 显式创建仍可提交 managed 或空路径 | ProjectService 与 Project UI | Project service unit；前端禁用状态；Playwright 新建弹窗 | `managed`、空 workdir、空 path 与 mode 缺失均返回 422 | Passed |
 | Workspace 目录选择接受根目录外任意合法目录 | 合法保留目录被 API、worker 或 provisioner 误拒绝，或路径逃逸边界 | Workspace filesystem boundary、ProjectService 与 sandbox provisioner | Workspace/Project unit、provisioner unit、真实目录候选与创建探针 | `/`、文件、symlink、空路径组件、`..`、绝对路径和 URL 拒绝；`agents`、`projects` 和重复路径接受 | Passed |
 | projects tree 隐藏匿名目录 | implicit 或未归属目录出现在通用 tree，或前端按 UUID 猜测 | WorkspaceService 与 ProjectRepository | Workspace 可见性 unit；真实 tree API | selectable 目录、祖先和内部内容保留；选中 projects 根时完整可见；普通目录不额外查 Project | Passed |

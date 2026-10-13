@@ -6,15 +6,15 @@ import pytest
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from yuxi.services.auth_service import (
+from binizox.services.auth_service import (
     CLIAuthError,
     approve_cli_auth_session,
     create_cli_auth_session,
     exchange_cli_auth_token,
     get_cli_auth_session_for_user,
 )
-from yuxi.storage.postgres.models_business import APIKey, Base, Department, User
-from yuxi.utils.datetime_utils import utc_now_naive
+from binizox.storage.postgres.models_business import APIKey, Base, Department, User
+from binizox.utils.datetime_utils import utc_now_naive
 
 pytestmark = [pytest.mark.asyncio, pytest.mark.unit]
 
@@ -63,7 +63,7 @@ async def test_cli_auth_session_pending_then_exchange(session):
     await approve_cli_auth_session(db, auth_session.user_code, user)
     token_data = await exchange_cli_auth_token(db, device_code)
 
-    assert token_data["secret"].startswith("yxkey_")
+    assert token_data["secret"].startswith("bzkey_")
     assert token_data["api_key"]["user_id"] == user.id
     assert token_data["user"]["uid"] == "admin"
 

@@ -7,7 +7,7 @@ import sys
 from types import SimpleNamespace
 
 import pytest
-from yuxi.knowledge.manager import KnowledgeBaseManager
+from binizox.knowledge.manager import KnowledgeBaseManager
 
 pytestmark = pytest.mark.unit
 
@@ -20,8 +20,8 @@ def test_knowledge_runtime_preserves_lite_mode(tmp_path):
             sys.executable,
             "-c",
             (
-                "import json; from yuxi.knowledge.runtime import knowledge_base; "
-                "from yuxi.knowledge.factory import KnowledgeBaseFactory; "
+                "import json; from binizox.knowledge.runtime import knowledge_base; "
+                "from binizox.knowledge.factory import KnowledgeBaseFactory; "
                 "print(json.dumps({"
                 "'manager': type(knowledge_base).__name__, "
                 "'types': sorted(KnowledgeBaseFactory.get_available_types())"
@@ -42,7 +42,7 @@ def test_knowledge_runtime_preserves_lite_mode(tmp_path):
 @pytest.mark.asyncio
 async def test_initialize_creates_executors_without_loading_all_configs(monkeypatch):
     """initialize() 只创建已使用类型的执行器，不加载全部 KB 配置。"""
-    manager = KnowledgeBaseManager("/tmp/yuxi-test")
+    manager = KnowledgeBaseManager("/tmp/binizox-test")
 
     async def fake_get_all(_self):
         return [
@@ -55,15 +55,15 @@ async def test_initialize_creates_executors_without_loading_all_configs(monkeypa
         return fake_instance
 
     monkeypatch.setattr(
-        "yuxi.repositories.knowledge_base_repository.KnowledgeBaseRepository.get_all",
+        "binizox.repositories.knowledge_base_repository.KnowledgeBaseRepository.get_all",
         fake_get_all,
     )
     monkeypatch.setattr(
-        "yuxi.knowledge.manager.KnowledgeBaseFactory.is_type_supported",
+        "binizox.knowledge.manager.KnowledgeBaseFactory.is_type_supported",
         classmethod(lambda cls, _kb_type: True),
     )
     monkeypatch.setattr(
-        "yuxi.knowledge.manager.KnowledgeBaseFactory.create",
+        "binizox.knowledge.manager.KnowledgeBaseFactory.create",
         staticmethod(fake_create),
     )
 
@@ -83,15 +83,15 @@ async def test_initialize_propagates_failure_from_backend_already_in_use(monkeyp
         raise ConnectionError("milvus unavailable")
 
     monkeypatch.setattr(
-        "yuxi.repositories.knowledge_base_repository.KnowledgeBaseRepository.get_all",
+        "binizox.repositories.knowledge_base_repository.KnowledgeBaseRepository.get_all",
         fake_get_all,
     )
     monkeypatch.setattr(
-        "yuxi.knowledge.manager.KnowledgeBaseFactory.is_type_supported",
+        "binizox.knowledge.manager.KnowledgeBaseFactory.is_type_supported",
         classmethod(lambda cls, _kb_type: True),
     )
     monkeypatch.setattr(
-        "yuxi.knowledge.manager.KnowledgeBaseFactory.create",
+        "binizox.knowledge.manager.KnowledgeBaseFactory.create",
         staticmethod(fail_create),
     )
 
@@ -107,7 +107,7 @@ async def test_initialize_rejects_persisted_unsupported_backend(monkeypatch, tmp
         return [SimpleNamespace(kb_id="kb_legacy", kb_type="removed-backend")]
 
     monkeypatch.setattr(
-        "yuxi.repositories.knowledge_base_repository.KnowledgeBaseRepository.get_all",
+        "binizox.repositories.knowledge_base_repository.KnowledgeBaseRepository.get_all",
         fake_get_all,
     )
 

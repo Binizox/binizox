@@ -2,7 +2,7 @@
 
 状态：implemented
 类型：bug-fix
-Owner：backend/package/yuxi/storage/postgres/manager.py
+Owner：backend/package/binizox/storage/postgres/manager.py
 
 ## 问题
 

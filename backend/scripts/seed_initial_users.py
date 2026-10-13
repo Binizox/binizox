@@ -19,7 +19,7 @@ SUPERADMIN_UID = "zwj"
 SUPERADMIN_NAME = "张文杰"
 SUPERADMIN_PHONE_NUMBER = "15251638888"
 SUPERADMIN_PASSWORD = "zwj12138"
-DEFAULT_USER_PASSWORD = "yuxi123456"
+DEFAULT_USER_PASSWORD = "binizox123456"
 
 
 class DepartmentSeed(TypedDict):
@@ -47,7 +47,7 @@ def load_project_env() -> None:
 
 
 async def ensure_uninitialized(session) -> None:
-    from yuxi.storage.postgres.models_business import User
+    from binizox.storage.postgres.models_business import User
 
     user_count = await session.scalar(select(func.count(User.id)))
     if user_count:
@@ -59,10 +59,10 @@ async def ensure_uninitialized(session) -> None:
 
 
 async def seed_initial_users() -> None:
-    from yuxi.utils.auth_utils import AuthUtils
-    from yuxi.storage.postgres.manager import pg_manager
-    from yuxi.storage.postgres.models_business import Department, User
-    from yuxi.utils.datetime_utils import utc_now_naive
+    from binizox.utils.auth_utils import AuthUtils
+    from binizox.storage.postgres.manager import pg_manager
+    from binizox.storage.postgres.models_business import Department, User
+    from binizox.utils.datetime_utils import utc_now_naive
 
     try:
         pg_manager.initialize()
@@ -139,7 +139,7 @@ def main() -> int:
         "3 个部门、6 个部门管理员和 14 个普通用户。"
     )
     print("超级管理员密码：zwj12138")
-    print("部门管理员和普通用户默认密码：yuxi123456")
+    print("部门管理员和普通用户默认密码：binizox123456")
     return 0
 
 

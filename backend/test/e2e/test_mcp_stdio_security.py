@@ -7,9 +7,9 @@ import pytest
 import pytest_asyncio
 from sqlalchemy import delete, select
 
-from yuxi.agents.mcp.service import ensure_builtin_mcp_servers_in_db, get_mcp_tools
-from yuxi.storage.postgres.manager import pg_manager
-from yuxi.storage.postgres.models_business import MCPServer
+from binizox.agents.mcp.service import ensure_builtin_mcp_servers_in_db, get_mcp_tools
+from binizox.storage.postgres.manager import pg_manager
+from binizox.storage.postgres.models_business import MCPServer
 
 pytestmark = pytest.mark.e2e
 

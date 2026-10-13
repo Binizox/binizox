@@ -1,9 +1,10 @@
+import os
 from pathlib import Path
 
 import pytest
 
-from yuxi.workspace import filesystem as workspace_filesystem_module
-from yuxi.workspace.workdir import Workdir
+from binizox.workspace import filesystem as workspace_filesystem_module
+from binizox.workspace.workdir import Workdir
 
 
 def test_open_existing_returns_workdir_capability(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -38,6 +39,7 @@ def test_open_existing_rejects_regular_file(tmp_path: Path, monkeypatch: pytest.
         Workdir.open_existing("user-1", workdir_path)
 
 
+@pytest.mark.skipif(os.name == "nt", reason="Windows 测试用户没有创建 symlink 的权限")
 def test_open_existing_rejects_symlinked_workdir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     workdir_path = "projects/11111111-1111-4111-8111-111111111111"
     workspace_root = tmp_path / "workspace"

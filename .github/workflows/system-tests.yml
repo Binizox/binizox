@@ -4,7 +4,7 @@ on:
   pull_request:
     paths:
       - '.env.template'
-      - 'backend/package/yuxi/**'
+      - 'backend/package/binizox/**'
       - 'backend/server/**'
       - 'backend/test/integration/**'
       - 'backend/test/e2e/**'
@@ -12,13 +12,17 @@ on:
       - 'docker/**'
       - 'docker-compose.yml'
       - 'docker-compose.prod.yml'
+      - 'docker-compose.binizox.yml'
+      - 'services/parser-sidecar/**'
+      - 'services/personal-tool-runner/**'
+      - 'examples/evidence/**'
       - 'scripts/migrate-storage.sh'
       - '.github/workflows/system-tests.yml'
   push:
     branches: [main]
     paths:
       - '.env.template'
-      - 'backend/package/yuxi/**'
+      - 'backend/package/binizox/**'
       - 'backend/server/**'
       - 'backend/test/integration/**'
       - 'backend/test/e2e/**'
@@ -26,6 +30,10 @@ on:
       - 'docker/**'
       - 'docker-compose.yml'
       - 'docker-compose.prod.yml'
+      - 'docker-compose.binizox.yml'
+      - 'services/parser-sidecar/**'
+      - 'services/personal-tool-runner/**'
+      - 'examples/evidence/**'
       - 'scripts/migrate-storage.sh'
       - '.github/workflows/system-tests.yml'
   workflow_dispatch:
@@ -47,6 +55,7 @@ jobs:
       JWT_SECRET_KEY: ci-jwt-secret-at-least-thirty-two-characters
       API_KEY_DERIVATION_SECRET: ci-api-key-derivation-secret-at-least-32-chars
       SANDBOX_PROVISIONER_TOKEN: ci-sandbox-token-at-least-thirty-two-characters
+      BINIZOX_TOOL_RUNNER_TOKEN: ci-tool-runner-token-at-least-thirty-two-characters
       E2E_USERNAME: ci_e2e_admin
       E2E_PASSWORD: ci-e2e-password-at-least-eight
     steps:
@@ -57,7 +66,8 @@ jobs:
           sed -i "s/^JWT_SECRET_KEY=.*/JWT_SECRET_KEY=${JWT_SECRET_KEY}/" .env
           sed -i "s/^API_KEY_DERIVATION_SECRET=.*/API_KEY_DERIVATION_SECRET=${API_KEY_DERIVATION_SECRET}/" .env
           sed -i "s/^SANDBOX_PROVISIONER_TOKEN=.*/SANDBOX_PROVISIONER_TOKEN=${SANDBOX_PROVISIONER_TOKEN}/" .env
-          grep -E "^(JWT_SECRET_KEY|API_KEY_DERIVATION_SECRET|SANDBOX_PROVISIONER_TOKEN)=.+" .env
+          sed -i "s/^BINIZOX_TOOL_RUNNER_TOKEN=.*/BINIZOX_TOOL_RUNNER_TOKEN=${BINIZOX_TOOL_RUNNER_TOKEN}/" .env
+          grep -E "^(JWT_SECRET_KEY|API_KEY_DERIVATION_SECRET|SANDBOX_PROVISIONER_TOKEN|BINIZOX_TOOL_RUNNER_TOKEN)=.+" .env
       - name: Start focused runtime topology
         run: docker compose up -d --build postgres redis minio sandbox-provisioner api worker
       - name: Wait for truthful readiness
@@ -105,8 +115,8 @@ jobs:
           PY
       - name: Verify worker health leases are expiring runtime facts
         run: |
-          worker_ttl=$(docker compose exec -T redis redis-cli PTTL yuxi:worker:health:agent-run-v1)
-          reconciliation_ttl=$(docker compose exec -T redis redis-cli PTTL yuxi:worker:health:agent-run-v1:lease-reconciliation)
+          worker_ttl=$(docker compose exec -T redis redis-cli PTTL binizox:worker:health:agent-run-v1)
+          reconciliation_ttl=$(docker compose exec -T redis redis-cli PTTL binizox:worker:health:agent-run-v1:lease-reconciliation)
           test "$worker_ttl" -gt 0 && test "$worker_ttl" -le 6000
           test "$reconciliation_ttl" -gt 0 && test "$reconciliation_ttl" -le 65000
       - name: Verify dead worker removes API readiness
@@ -161,3 +171,60 @@ jobs:
       - name: Stop runtime topology
         if: always()
         run: docker compose down -v
+
+  evidence-e2e:
+    name: Evidence ACL, Agent answer and approved note
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      LITE_MODE: 'false'
+      JWT_SECRET_KEY: ci-evidence-jwt-secret-at-least-thirty-two-characters
+      API_KEY_DERIVATION_SECRET: ci-evidence-api-secret-at-least-thirty-two-characters
+      SANDBOX_PROVISIONER_TOKEN: ci-evidence-sandbox-token-at-least-thirty-two-characters
+      BINIZOX_TOOL_RUNNER_TOKEN: ci-evidence-tool-runner-token-at-least-thirty-two-characters
+      E2E_USERNAME: ci_evidence_admin
+      E2E_PASSWORD: ci-evidence-password-at-least-eight
+    steps:
+      - uses: actions/checkout@v7
+      - name: Prepare Compose environment
+        run: |
+          cp .env.template .env
+          sed -i "s/^JWT_SECRET_KEY=.*/JWT_SECRET_KEY=${JWT_SECRET_KEY}/" .env
+          sed -i "s/^API_KEY_DERIVATION_SECRET=.*/API_KEY_DERIVATION_SECRET=${API_KEY_DERIVATION_SECRET}/" .env
+          sed -i "s/^SANDBOX_PROVISIONER_TOKEN=.*/SANDBOX_PROVISIONER_TOKEN=${SANDBOX_PROVISIONER_TOKEN}/" .env
+          sed -i "s/^BINIZOX_TOOL_RUNNER_TOKEN=.*/BINIZOX_TOOL_RUNNER_TOKEN=${BINIZOX_TOOL_RUNNER_TOKEN}/" .env
+      - name: Start Evidence runtime topology
+        run: >-
+          docker compose -f docker-compose.yml -f docker-compose.binizox.yml --profile test
+          up -d --build postgres redis minio sandbox-provisioner binizox-parser
+          binizox-tool-runner api worker binizox-evidence-replay
+      - name: Wait for API and sidecars
+        run: |
+          for attempt in $(seq 1 120); do
+            if curl -fsS http://localhost:5050/api/system/ready >/dev/null \
+              && curl -fsS http://localhost:8090/health >/dev/null \
+              && curl -fsS http://localhost:8091/health >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker compose -f docker-compose.yml -f docker-compose.binizox.yml --profile test logs --tail 300
+          exit 1
+      - name: Initialize isolated E2E administrator
+        run: |
+          curl -fsS -X POST http://localhost:5050/api/auth/initialize \
+            -H 'Content-Type: application/json' \
+            --data "{\"uid\":\"${E2E_USERNAME}\",\"password\":\"${E2E_PASSWORD}\"}" >/dev/null
+      - name: Verify Evidence ACL, Agent answer and HITL note E2E
+        run: >-
+          docker compose -f docker-compose.yml -f docker-compose.binizox.yml --profile test
+          exec -T -e E2E_USERNAME -e E2E_PASSWORD api
+          uv run --no-sync --no-dev pytest test/e2e/test_binizox_evidence_e2e.py -q
+      - name: Runtime logs on failure
+        if: failure()
+        run: >-
+          docker compose -f docker-compose.yml -f docker-compose.binizox.yml --profile test
+          logs api worker binizox-parser binizox-tool-runner binizox-evidence-replay --tail 300
+      - name: Stop Evidence runtime topology
+        if: always()
+        run: docker compose -f docker-compose.yml -f docker-compose.binizox.yml --profile test down -v

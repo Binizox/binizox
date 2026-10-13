@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from yuxi.services import chat_service as svc
+from binizox.services import chat_service as svc
 
 
 def test_apply_model_override_sets_model_from_meta():

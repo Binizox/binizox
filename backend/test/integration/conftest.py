@@ -25,7 +25,7 @@ from test.live_api_cleanup import (  # noqa: E402
     cleanup_pytest_knowledge_resources,
     cleanup_test_chat_resources,
 )
-from yuxi.config.runtime import lite_mode_enabled  # noqa: E402
+from binizox.config.runtime import lite_mode_enabled  # noqa: E402
 
 load_dotenv(PROJECT_ROOT / ".env", override=False)
 load_dotenv(PROJECT_ROOT / "test/.env.test", override=False)
@@ -47,7 +47,7 @@ def ensure_live_api_schema():
         return
 
     async def verify_schema_version() -> None:
-        from yuxi.storage.postgres.manager import pg_manager
+        from binizox.storage.postgres.manager import pg_manager
 
         pg_manager.initialize()
         await pg_manager.require_current_schema(include_knowledge=not LITE_MODE)

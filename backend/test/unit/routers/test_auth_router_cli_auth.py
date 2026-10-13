@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from server.routers.auth_router import auth
 from server.utils.auth_middleware import get_db, get_required_user
-from yuxi.storage.postgres.models_business import Base, Department, User
+from binizox.storage.postgres.models_business import Base, Department, User
 
 pytestmark = [pytest.mark.asyncio, pytest.mark.unit]
 
@@ -77,5 +77,5 @@ async def test_auth_router_cli_auth_create_approve_and_exchange(app_client):
     token_response = await app_client.post("/api/auth/cli/sessions/token", json={"device_code": session["device_code"]})
     assert token_response.status_code == 200, token_response.text
     token_data = token_response.json()
-    assert token_data["secret"].startswith("yxkey_")
+    assert token_data["secret"].startswith("bzkey_")
     assert token_data["user"]["uid"] == "admin"

@@ -8,9 +8,9 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from server.routers.auth_router import delete_user
 from server.routers.user_router import APIKeyCreate, create_api_key, get_accessible_api_key
 from server.utils.auth_middleware import _verify_api_key
-from yuxi.repositories.api_key_repository import APIKeyRepository
-from yuxi.storage.postgres.models_business import APIKey, Base, Department, User
-from yuxi.utils.auth_utils import AuthUtils
+from binizox.repositories.api_key_repository import APIKeyRepository
+from binizox.storage.postgres.models_business import APIKey, Base, Department, User
+from binizox.utils.auth_utils import AuthUtils
 
 pytestmark = [pytest.mark.asyncio, pytest.mark.unit]
 

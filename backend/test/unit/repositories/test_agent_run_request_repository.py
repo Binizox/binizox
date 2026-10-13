@@ -7,9 +7,9 @@ from datetime import timedelta
 import pytest
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
-from yuxi.repositories.agent_run_request_repository import AgentRunRequestRepository
-from yuxi.storage.postgres.models_business import AgentRunRequest, Base, Conversation, Message
-from yuxi.utils.datetime_utils import utc_now_naive
+from binizox.repositories.agent_run_request_repository import AgentRunRequestRepository
+from binizox.storage.postgres.models_business import AgentRunRequest, Base, Conversation, Message
+from binizox.utils.datetime_utils import utc_now_naive
 
 pytestmark = [pytest.mark.asyncio, pytest.mark.unit]
 

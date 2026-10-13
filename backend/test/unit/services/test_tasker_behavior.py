@@ -7,8 +7,8 @@ import asyncio
 
 import pytest
 
-from yuxi.services import task_service
-from yuxi.services.task_service import Task, Tasker
+from binizox.services import task_service
+from binizox.services.task_service import Task, Tasker
 
 
 class FakeRecord:

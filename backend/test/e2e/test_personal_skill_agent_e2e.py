@@ -12,8 +12,8 @@ from test.live_api_cleanup import (
     make_test_conversation_title,
     remove_e2e_thread_storage,
 )
-from yuxi.agents.skills.service import get_personal_skills_root_dir, get_user_skills_root_dir
-from yuxi.agents.backends.paths import VIRTUAL_PERSONAL_SKILLS_PATH
+from binizox.agents.skills.service import get_personal_skills_root_dir, get_user_skills_root_dir
+from binizox.agents.backends.paths import VIRTUAL_PERSONAL_SKILLS_PATH
 
 pytestmark = [pytest.mark.asyncio, pytest.mark.e2e, pytest.mark.slow]
 

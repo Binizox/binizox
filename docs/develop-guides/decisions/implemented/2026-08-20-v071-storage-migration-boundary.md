@@ -2,7 +2,7 @@
 
 状态：implemented
 类型：simplification
-Owner：backend/package/yuxi/storage_migration.py
+Owner：backend/package/binizox/storage_migration.py
 
 ## 问题
 

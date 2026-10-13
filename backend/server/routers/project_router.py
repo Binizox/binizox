@@ -5,14 +5,14 @@ from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from server.utils.auth_middleware import get_db, get_required_user
-from yuxi.services.project_service import (
+from binizox.services.project_service import (
     create_project_view,
     delete_project_view,
     list_history_candidates_view,
     list_projects_view,
     rename_project_view,
 )
-from yuxi.storage.postgres.models_business import User
+from binizox.storage.postgres.models_business import User
 
 projects = APIRouter(prefix="/projects", tags=["projects"])
 

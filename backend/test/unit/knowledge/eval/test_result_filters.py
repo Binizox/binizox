@@ -5,7 +5,7 @@ from fastapi import HTTPException
 
 from server.routers import knowledge_eval_router
 from server.routers.knowledge_eval_router import get_evaluation_run_results
-from yuxi.knowledge.eval.service import EvaluationService
+from binizox.knowledge.eval.service import EvaluationService
 
 
 def make_item(item_index: int, *, score: float = 1.0, recall: float = 1.0):

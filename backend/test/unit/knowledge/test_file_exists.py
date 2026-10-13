@@ -4,9 +4,9 @@ import pytest
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from yuxi.repositories import knowledge_file_repository as repository_module
-from yuxi.repositories.knowledge_file_repository import KnowledgeFileRepository
-from yuxi.storage.postgres.models_knowledge import KnowledgeBase, KnowledgeFile
+from binizox.repositories import knowledge_file_repository as repository_module
+from binizox.repositories.knowledge_file_repository import KnowledgeFileRepository
+from binizox.storage.postgres.models_knowledge import KnowledgeBase, KnowledgeFile
 
 pytestmark = [pytest.mark.asyncio, pytest.mark.unit]
 

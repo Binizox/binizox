@@ -2,7 +2,7 @@
 
 状态：implemented
 类型：bug-fix
-Owner：backend/package/yuxi/agents/backends/sandbox/backend.py
+Owner：backend/package/binizox/agents/backends/sandbox/backend.py
 
 ## 问题
 

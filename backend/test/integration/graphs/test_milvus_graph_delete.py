@@ -4,8 +4,8 @@ from uuid import uuid4
 
 import pytest
 
-from yuxi.knowledge.graphs.milvus_graph_service import MilvusGraphService
-from yuxi.storage.neo4j import get_shared_neo4j_connection, safe_neo4j_label
+from binizox.knowledge.graphs.milvus_graph_service import MilvusGraphService
+from binizox.storage.neo4j import get_shared_neo4j_connection, safe_neo4j_label
 
 
 @pytest.mark.integration

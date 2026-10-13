@@ -2,7 +2,7 @@
 
 状态：implemented
 类型：architecture
-Owner：backend/package/yuxi/storage_migration.py
+Owner：backend/package/binizox/storage_migration.py
 
 `storage-migrator` 执行数据库 Schema 变更，`PostgresManager` 持久化版本并提供只读兼容校验；API 与 worker 只消费已经完成迁移的 Schema。
 

@@ -33,7 +33,7 @@
             </div>
           </a-menu-item>
           <a-menu-divider />
-          <a-menu-item key="docs" @click="openDocs">
+          <a-menu-item v-if="docsUrl" key="docs" @click="openDocs">
             <template #icon><BookOpen :size="16" /></template>
             <span class="menu-text">文档中心</span>
           </a-menu-item>
@@ -80,12 +80,14 @@ import { BookOpen, Sun, Moon, LogOut, Settings, Terminal } from '@lucide/vue'
 import { useThemeStore } from '@/stores/theme'
 import { generatePixelAvatar } from '@/utils/pixelAvatar'
 import FallbackAvatar from '@/components/common/FallbackAvatar.vue'
+import { PRODUCT_DOCUMENTATION_URL } from '@/config/product'
 
 const router = useRouter()
 const userStore = useUserStore()
 const infoStore = useInfoStore()
 const themeStore = useThemeStore()
 const slots = useSlots()
+const docsUrl = PRODUCT_DOCUMENTATION_URL
 
 // Inject settings modal methods
 const { openSettingsModal } = inject('settingsModal', {})
@@ -131,7 +133,7 @@ const goToLogin = () => {
 }
 
 const openDocs = () => {
-  window.open('https://xerrors.github.io/Yuxi/', '_blank', 'noopener,noreferrer')
+  if (docsUrl) window.open(docsUrl, '_blank', 'noopener,noreferrer')
 }
 
 const toggleTheme = () => {

@@ -5,7 +5,6 @@ import { GithubOutlined } from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
 import {
   BarChart3,
-  ClipboardList,
   LibraryBig,
   Box,
   HardDrive,
@@ -34,6 +33,7 @@ import ConversationNavSection from '@/components/ConversationNavSection.vue'
 import GlobalSearchModal from '@/components/GlobalSearchModal.vue'
 import { searchWorkspaceFiles } from '@/apis/workspace_api'
 import { projectApi } from '@/apis/project_api'
+import { PRODUCT_REPOSITORY_URL } from '@/config/product'
 
 const configStore = useConfigStore()
 const agentStore = useAgentStore()
@@ -51,9 +51,7 @@ const { projects, isLoading: projectsLoading, error: projectsError } = storeToRe
 const { threads, currentThreadId, hasMoreThreads, isLoadingMoreThreads, threadCreationInFlight } =
   storeToRefs(chatThreadsStore)
 
-// Add state for GitHub stars
-const githubStars = ref(0)
-const isLoadingStars = ref(false)
+const repositoryUrl = PRODUCT_REPOSITORY_URL
 
 // Add state for settings modal
 const showSettingsModal = ref(false)
@@ -87,21 +85,6 @@ const getRemoteDatabase = async () => {
   }
 }
 
-// Fetch GitHub stars count
-const fetchGithubStars = async () => {
-  try {
-    isLoadingStars.value = true
-    // 公共API，可以直接使用fetch
-    const response = await fetch('https://api.github.com/repos/xerrors/Yuxi')
-    const data = await response.json()
-    githubStars.value = data.stargazers_count
-  } catch (error) {
-    console.error('获取GitHub stars失败:', error)
-  } finally {
-    isLoadingStars.value = false
-  }
-}
-
 const handleGlobalKeydown = (e) => {
   // Ctrl+Shift+D or Cmd+Shift+D: Toggle Debug Modal for SuperAdmin
   if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'D' || e.key === 'd')) {
@@ -121,7 +104,6 @@ onMounted(async () => {
   // 仅管理员加载任务中心数据
   if (userStore.isAdmin) {
     taskerStore.loadTasks()
-    fetchGithubStars() // Fetch GitHub stars on mount
   }
   startThreadStatusSync()
 })
@@ -205,14 +187,6 @@ const mainList = computed(() => {
     activeIcon: LibraryBig
   })
 
-  if (userStore.isAdmin) {
-    items.push({
-      name: '审批工作台',
-      path: '/approvals',
-      icon: ClipboardList,
-      activeIcon: ClipboardList
-    })
-  }
 
   if (userStore.isSuperAdmin) {
     items.push({
@@ -497,15 +471,17 @@ provide('settingsModal', {
         />
       </div>
       <div class="foo">
-        <div class="github nav-item" @click.stop>
+        <div v-if="repositoryUrl" class="github nav-item" @click.stop>
           <a-tooltip placement="right" :open="sidebarCollapsed ? undefined : false">
             <template #title>欢迎 Star</template>
-            <a href="https://github.com/xerrors/Yuxi" target="_blank" class="github-link">
+            <a
+              :href="repositoryUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="github-link"
+            >
               <GithubOutlined class="icon" />
               <span class="nav-text">GitHub</span>
-              <span v-if="githubStars > 0" class="github-stars">
-                <span class="star-count">{{ (githubStars / 1000).toFixed(1) }}k</span>
-              </span>
             </a>
           </a-tooltip>
         </div>
@@ -838,26 +814,6 @@ div.header,
         line-height: 1;
       }
 
-      .github-stars {
-        display: flex;
-        align-items: center;
-        max-width: 48px;
-        margin-left: auto;
-        overflow: hidden;
-        font-size: 12px;
-        color: var(--gray-600);
-        background-color: var(--gray-100);
-        padding: 2px 8px;
-        border-radius: 6px;
-        white-space: nowrap;
-        transition:
-          opacity 0.12s ease,
-          max-width 0.18s ease;
-
-        .star-count {
-          font-weight: 600;
-        }
-      }
     }
 
     &.api-docs {
@@ -1001,8 +957,7 @@ div.header,
       width: 100%;
       padding: 0 @sidebar-collapsed-icon-padding-x;
 
-      .nav-text,
-      .github-stars {
+      .nav-text {
         max-width: 0;
         margin-left: 0;
         opacity: 0;

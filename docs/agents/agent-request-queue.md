@@ -1,6 +1,6 @@
 # Agent 请求队列
 
-一次 Agent 运行可能包含多次模型调用、知识库检索、工具执行和文件操作。为了避免同一对话同时修改同一份上下文，Yuxi 把“收到请求”和“开始运行”分成两个阶段，并为每个线程维护 FIFO 队列。
+一次 Agent 运行可能包含多次模型调用、知识库检索、工具执行和文件操作。为了避免同一对话同时修改同一份上下文，Binizox 把“收到请求”和“开始运行”分成两个阶段，并为每个线程维护 FIFO 队列。
 
 本页说明调度行为和可观察状态；接口字段以 `/docs` 的 OpenAPI 为准。
 
@@ -122,4 +122,4 @@ intake、resume、continue 和自动接力会在同一线程的 Conversation 行
 
 当前不支持强制终止正在执行的模型或工具、多个 Steer 的合并与排序、通用优先级、失败后的自动回滚，以及把多个请求合并成一次 Run。
 
-实现入口见 [Agent 路由](https://github.com/xerrors/Yuxi/blob/main/backend/server/routers/agent_router.py)、[请求队列服务](https://github.com/xerrors/Yuxi/blob/main/backend/package/yuxi/services/agent_request_queue_service.py) 和[运行 worker](https://github.com/xerrors/Yuxi/blob/main/backend/package/yuxi/services/run_worker.py)。
+实现入口见 [Agent 路由](https://github.com/Binizox/binizox/blob/main/backend/server/routers/agent_router.py)、[请求队列服务](https://github.com/Binizox/binizox/blob/main/backend/package/binizox/services/agent_request_queue_service.py) 和[运行 worker](https://github.com/Binizox/binizox/blob/main/backend/package/binizox/services/run_worker.py)。

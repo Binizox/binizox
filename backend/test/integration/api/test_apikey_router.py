@@ -12,8 +12,8 @@ import pytest
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from yuxi.services.oidc_service import restore_deleted_oidc_user
-from yuxi.storage.postgres.models_business import APIKey, User
+from binizox.services.oidc_service import restore_deleted_oidc_user
+from binizox.storage.postgres.models_business import APIKey, User
 
 pytestmark = [pytest.mark.asyncio, pytest.mark.integration]
 
@@ -50,7 +50,7 @@ async def test_create_api_key(test_client, admin_headers):
     assert "api_key" in data
     assert "secret" in data
     assert data["api_key"]["name"] == "Test API Key"
-    assert data["api_key"]["key_prefix"].startswith("yxkey_")
+    assert data["api_key"]["key_prefix"].startswith("bzkey_")
     assert data["secret"].startswith(data["api_key"]["key_prefix"])
 
     replay = await test_client.post(API_KEYS_PATH, json=payload, headers=admin_headers)
@@ -275,7 +275,7 @@ async def test_api_key_auth_requires_valid_key(test_client):
     # Call protected endpoint with invalid API Key
     response = await test_client.get(
         PROTECTED_PATH,
-        headers={"Authorization": "Bearer yxkey_invalid_key_that_does_not_exist"},
+        headers={"Authorization": "Bearer bzkey_invalid_key_that_does_not_exist"},
     )
     assert response.status_code == 401, response.text
 

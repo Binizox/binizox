@@ -5,8 +5,8 @@ from contextlib import asynccontextmanager
 from types import SimpleNamespace
 
 import pytest
-import yuxi.repositories.knowledge_base_repository as repository_module
-from yuxi.repositories.knowledge_base_repository import KnowledgeBaseRepository
+import binizox.repositories.knowledge_base_repository as repository_module
+from binizox.repositories.knowledge_base_repository import KnowledgeBaseRepository
 
 pytestmark = pytest.mark.unit
 

@@ -8,15 +8,15 @@ import uuid
 
 import pytest
 
-from yuxi.agents.backends.sandbox import ProvisionerSandboxBackend, get_sandbox_provider
-from yuxi.workspace.paths import (
+from binizox.agents.backends.sandbox import ProvisionerSandboxBackend, get_sandbox_provider
+from binizox.workspace.paths import (
     ensure_user_workspace,
     global_user_data_dir,
     user_workspace_dir,
     workspace_uid_dirname,
 )
-from yuxi.agents.skills.service import get_user_skills_root_dir, sync_user_accessible_skills_async
-from yuxi.config import get_skill_projection_dir, get_user_data_dir
+from binizox.agents.skills.service import get_user_skills_root_dir, sync_user_accessible_skills_async
+from binizox.config import get_skill_projection_dir, get_user_data_dir
 
 pytestmark = [pytest.mark.asyncio, pytest.mark.integration]
 
@@ -80,7 +80,7 @@ async def test_two_sandboxes_share_project_files_but_not_runtime_state():
     second_scope = f"pytest-runtime-b-{suffix}"
     project_root = f"/home/gem/user-data/{workdir_path}"
     project_file = f"{project_root}/outputs/shared.txt"
-    runtime_file = f"/tmp/yuxi-runtime-{suffix}"
+    runtime_file = f"/tmp/binizox-runtime-{suffix}"
 
     first = ProvisionerSandboxBackend(thread_id=first_scope, uid=uid, workdir_path=workdir_path)
     second = ProvisionerSandboxBackend(thread_id=second_scope, uid=uid, workdir_path=workdir_path)
@@ -141,7 +141,7 @@ async def test_recreated_runtime_keeps_project_files_and_drops_process_state():
     second_scope = f"pytest-runtime-after-{suffix}"
     project_root = f"/home/gem/user-data/{workdir_path}"
     project_file = f"{project_root}/outputs/persistent.txt"
-    runtime_file = f"/tmp/yuxi-runtime-{suffix}"
+    runtime_file = f"/tmp/binizox-runtime-{suffix}"
     provider = get_sandbox_provider()
 
     first = ProvisionerSandboxBackend(thread_id=first_scope, uid=uid, workdir_path=workdir_path)

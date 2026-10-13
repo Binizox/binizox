@@ -2,7 +2,7 @@
 
 状态：implemented
 类型：feature
-Owner：backend/package/yuxi/agents/tool_approval.py
+Owner：backend/package/binizox/agents/tool_approval.py
 
 ## 问题
 
@@ -29,7 +29,7 @@ Chatbot graph 从已准备运行上下文的持久化 `workdir_relative_path` �
 
 - `docker compose exec api uv run --group test pytest test/unit/agents/test_tool_approval.py test/unit/agents/test_summary_graph_config.py -q`：13 passed；覆盖 Project 内写入、Project 外写入、相邻前缀、非法路径、缺失 Workdir、`execute`、`always_trust` 和 Chatbot graph 装配。
 - `docker compose exec api uv run --group test pytest test/unit/agents test/unit/services/test_chat_stream_interrupt.py -q`：102 passed；覆盖 Agent 中间件和既有审批中断投影。
-- `docker compose exec -e RUFF_CACHE_DIR=/tmp/ruff-cache api uv run ruff check package/yuxi/agents/tool_approval.py package/yuxi/agents/buildin/chatbot/graph.py test/unit/agents/test_tool_approval.py test/unit/agents/test_summary_graph_config.py`：通过。
+- `docker compose exec -e RUFF_CACHE_DIR=/tmp/ruff-cache api uv run ruff check package/binizox/agents/tool_approval.py package/binizox/agents/buildin/chatbot/graph.py test/unit/agents/test_tool_approval.py test/unit/agents/test_summary_graph_config.py`：通过。
 - `python3 scripts/verify_engineering_contracts.py && python3 -m unittest scripts.test_verify_engineering_contracts`：通过，61 passed。
 - `git diff --check`（本次文件范围）：通过。
 - 独立 Reviewer：No blocking findings；指出真实 HITL/Graph 装配证据缺口后补充 Chatbot graph 装配测试。真实 worker/SSE 的审批、resume 与多工具调用 E2E：Not run，残余风险限于框架运行时组合语义。

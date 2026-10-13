@@ -17,7 +17,7 @@ from langchain_core.tools import tool
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.errors import GraphRecursionError
 
-from yuxi.agents.models import _normalize_tool_call_chunks
+from binizox.agents.models import _normalize_tool_call_chunks
 
 
 @tool

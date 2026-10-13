@@ -1,6 +1,6 @@
 import pytest
 
-from yuxi.utils import guard as guard_module
+from binizox.utils import guard as guard_module
 
 
 def test_configured_content_guard_does_not_mutate_global_instance(monkeypatch: pytest.MonkeyPatch):

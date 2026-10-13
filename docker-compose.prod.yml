@@ -2,20 +2,23 @@ x-api-worker-env: &api-worker-env
   HOST_IP: ${HOST_IP:-}
   LITE_MODE: ${LITE_MODE:-}
   RUNNING_IN_DOCKER: "true"
-  YUXI_ENV: production
+  BINIZOX_ENV: production
   PYTHONPATH: /app/package
   JWT_SECRET_KEY: ${JWT_SECRET_KEY:?Set JWT_SECRET_KEY in .env.prod}
   API_KEY_DERIVATION_SECRET: ${API_KEY_DERIVATION_SECRET:?Set API_KEY_DERIVATION_SECRET in .env.prod}
-  NLTK_DATA: /home/yuxi/nltk_data
-  RAPIDOCR_MODEL_DIR: /home/yuxi/.cache/rapidocr/models
-  YUXI_INSTANCE_ID: ${YUXI_INSTANCE_ID:?Set YUXI_INSTANCE_ID in .env.prod}
-  POSTGRES_URL: ${POSTGRES_URL:-postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.prod}@postgres:5432/${POSTGRES_DB:-yuxi}}
+  BINIZOX_TOOL_RUNNER_TOKEN: ${BINIZOX_TOOL_RUNNER_TOKEN:?Set BINIZOX_TOOL_RUNNER_TOKEN in .env.prod}
+  NLTK_DATA: /home/binizox/nltk_data
+  RAPIDOCR_MODEL_DIR: /home/binizox/.cache/rapidocr/models
+  BINIZOX_INSTANCE_ID: ${BINIZOX_INSTANCE_ID:?Set BINIZOX_INSTANCE_ID in .env.prod}
+  POSTGRES_URL: ${POSTGRES_URL:-postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.prod}@postgres:5432/${POSTGRES_DB:-binizox}}
   REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
   RUN_CANCEL_KEY_TTL_SECONDS: ${RUN_CANCEL_KEY_TTL_SECONDS:-1800}
   RUN_EVENTS_STREAM_TTL_SECONDS: ${RUN_EVENTS_STREAM_TTL_SECONDS:-7200}
   READINESS_PROBE_TIMEOUT_SECONDS: ${READINESS_PROBE_TIMEOUT_SECONDS:-2}
   READINESS_CACHE_TTL_SECONDS: ${READINESS_CACHE_TTL_SECONDS:-1}
-  YUXI_CORS_ORIGINS: ${YUXI_CORS_ORIGINS:-}
+  BINIZOX_CORS_ORIGINS: ${BINIZOX_CORS_ORIGINS:-}
+  BINIZOX_PARSER_URL: http://binizox-parser:8090
+  BINIZOX_TOOL_RUNNER_URL: http://binizox-tool-runner:8091
   NEO4J_URI: ${NEO4J_URI:-bolt://graph:7687}
   NEO4J_USERNAME: ${NEO4J_USERNAME:-neo4j}
   NEO4J_PASSWORD: ${NEO4J_PASSWORD:?Set NEO4J_PASSWORD in .env.prod}
@@ -31,26 +34,66 @@ x-api-worker-env: &api-worker-env
   SANDBOX_VIRTUAL_PATH_PREFIX: ${SANDBOX_VIRTUAL_PATH_PREFIX:-/home/gem/user-data}
   SANDBOX_EXEC_TIMEOUT_SECONDS: ${SANDBOX_EXEC_TIMEOUT_SECONDS:-180}
   SANDBOX_MAX_OUTPUT_BYTES: ${SANDBOX_MAX_OUTPUT_BYTES:-262144}
-  YUXI_SKILL_DATA_DIR: /app/skill-sources
-  YUXI_SKILL_PROJECTION_DIR: /app/skill-projections
-  NO_PROXY: localhost,127.0.0.1,milvus,graph,minio,milvus-etcd,etcd,mineru,paddlex,sandbox-provisioner,api.siliconflow.cn
-  no_proxy: localhost,127.0.0.1,milvus,graph,minio,milvus-etcd,etcd,mineru,paddlex,sandbox-provisioner,api.siliconflow.cn
+  BINIZOX_SKILL_DATA_DIR: /app/skill-sources
+  BINIZOX_SKILL_PROJECTION_DIR: /app/skill-projections
+  NO_PROXY: localhost,127.0.0.1,milvus,graph,minio,milvus-etcd,etcd,mineru,paddlex,sandbox-provisioner,binizox-parser,binizox-tool-runner,api.siliconflow.cn
+  no_proxy: localhost,127.0.0.1,milvus,graph,minio,milvus-etcd,etcd,mineru,paddlex,sandbox-provisioner,binizox-parser,binizox-tool-runner,api.siliconflow.cn
 
 services:
+  binizox-parser:
+    build:
+      context: ./services/parser-sidecar
+      dockerfile: Dockerfile
+    image: binizox-parser:${BINIZOX_VERSION:-0.7.2}
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8090/health').read()"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  binizox-tool-runner:
+    build:
+      context: ./services/personal-tool-runner
+      dockerfile: Dockerfile
+    image: binizox-personal-tool-runner:${BINIZOX_VERSION:-0.7.2}
+    networks:
+      - app-network
+    env_file:
+      - .env.prod
+    environment:
+      BINIZOX_TOOL_RUNNER_TOKEN: ${BINIZOX_TOOL_RUNNER_TOKEN:?Set BINIZOX_TOOL_RUNNER_TOKEN in .env.prod}
+      BINIZOX_WORKSPACE_ROOT: /app/user-data
+      BINIZOX_TOOL_STATE_PATH: /data/tool-runner.sqlite3
+    volumes:
+      - tool_runner_data:/data
+      - ./docker/volumes/binizox/threads:/app/user-data
+    depends_on:
+      storage-migrator:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8091/health').read()"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
   api:
     build:
       context: .
       dockerfile: docker/api.Dockerfile
-    image: yuxi-api:${YUXI_VERSION:-0.7.2}
+    image: binizox-api:${BINIZOX_VERSION:-0.7.2}
     container_name: api-prod
     working_dir: /app
     user: "1000:1000"
     networks:
       - app-network
     volumes:
-      - ./docker/volumes/yuxi/threads:/app/user-data
-      - ./docker/volumes/yuxi/skill-sources:/app/skill-sources
-      - ./docker/volumes/yuxi/skill-projections:/app/skill-projections
+      - ./docker/volumes/binizox/threads:/app/user-data
+      - ./docker/volumes/binizox/skill-sources:/app/skill-sources
+      - ./docker/volumes/binizox/skill-projections:/app/skill-projections
     extra_hosts:
       - "host.docker.internal:host-gateway"
     env_file:
@@ -58,8 +101,8 @@ services:
     # region api_envs
     environment:
       <<: *api-worker-env
-      YUXI_RUNTIME_DIR: /app/runtime/api
-      YUXI_USER_DATA_DIR: /app/user-data
+      BINIZOX_RUNTIME_DIR: /app/runtime/api
+      BINIZOX_USER_DATA_DIR: /app/user-data
     # endregion api_envs
     command: uv run --no-sync --no-dev uvicorn server.main:app --host 0.0.0.0 --port 5050
     restart: unless-stopped
@@ -85,24 +128,24 @@ services:
     build:
       context: .
       dockerfile: docker/api.Dockerfile
-    image: yuxi-api:${YUXI_VERSION:-0.7.2}
+    image: binizox-api:${BINIZOX_VERSION:-0.7.2}
     container_name: worker-prod
     working_dir: /app
     user: "1000:1000"
     networks:
       - app-network
     volumes:
-      - ./docker/volumes/yuxi/threads:/app/user-data
-      - ./docker/volumes/yuxi/skill-sources:/app/skill-sources
-      - ./docker/volumes/yuxi/skill-projections:/app/skill-projections
+      - ./docker/volumes/binizox/threads:/app/user-data
+      - ./docker/volumes/binizox/skill-sources:/app/skill-sources
+      - ./docker/volumes/binizox/skill-projections:/app/skill-projections
     extra_hosts:
       - "host.docker.internal:host-gateway"
     env_file:
       - .env.prod
     environment:
       <<: *api-worker-env
-      YUXI_RUNTIME_DIR: /app/runtime/worker
-      YUXI_USER_DATA_DIR: /app/user-data
+      BINIZOX_RUNTIME_DIR: /app/runtime/worker
+      BINIZOX_USER_DATA_DIR: /app/user-data
     command: uv run --no-sync --no-dev arq server.worker_main.WorkerSettings
     restart: unless-stopped
     healthcheck:
@@ -127,24 +170,24 @@ services:
     build:
       context: .
       dockerfile: docker/api.Dockerfile
-    image: yuxi-api:${YUXI_VERSION:-0.7.2}
+    image: binizox-api:${BINIZOX_VERSION:-0.7.2}
     working_dir: /app
     user: "0:0"
     networks:
       - app-network
     volumes:
-      - ./docker/volumes/yuxi:/app/legacy-saves
-      - ./docker/volumes/yuxi/threads:/app/user-data
-      - ./docker/volumes/yuxi/skill-sources:/app/skill-sources
-      - ./docker/volumes/yuxi/skill-projections:/app/skill-projections
+      - ./docker/volumes/binizox:/app/legacy-saves
+      - ./docker/volumes/binizox/threads:/app/user-data
+      - ./docker/volumes/binizox/skill-sources:/app/skill-sources
+      - ./docker/volumes/binizox/skill-projections:/app/skill-projections
     env_file:
       - .env.prod
     environment:
       <<: *api-worker-env
-      YUXI_RUNTIME_DIR: /app/runtime/storage-migrator
-      YUXI_LEGACY_STORAGE_DIR: /app/legacy-saves
-      YUXI_USER_DATA_DIR: /app/user-data
-    command: uv run --no-sync --no-dev python -m yuxi.storage_migration
+      BINIZOX_RUNTIME_DIR: /app/runtime/storage-migrator
+      BINIZOX_LEGACY_STORAGE_DIR: /app/legacy-saves
+      BINIZOX_USER_DATA_DIR: /app/user-data
+    command: uv run --no-sync --no-dev python -m binizox.storage_migration
     restart: "no"
     depends_on:
       postgres:
@@ -156,8 +199,8 @@ services:
       dockerfile: Dockerfile
     container_name: sandbox-provisioner
     volumes:
-      - ./docker/volumes/yuxi/threads:/app/user-data
-      - ./docker/volumes/yuxi/skill-projections:/app/skill-projections
+      - ./docker/volumes/binizox/threads:/app/user-data
+      - ./docker/volumes/binizox/skill-projections:/app/skill-projections
       - ./docker/sandbox_provisioner/sandbox.env:/app/sandbox.env:ro
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
@@ -181,16 +224,16 @@ services:
       - HTTPS_PROXY=${SANDBOX_HTTPS_PROXY:-}
       - NO_PROXY=localhost,127.0.0.1,host.docker.internal
       # Docker backend only
-      - DOCKER_NETWORK_PREFIX=${SANDBOX_DOCKER_NETWORK_PREFIX:-yuxi-know-sandbox}
+      - DOCKER_NETWORK_PREFIX=${SANDBOX_DOCKER_NETWORK_PREFIX:-binizox-know-sandbox}
       - DOCKER_USER_DATA_HOST_PATH=${SANDBOX_DOCKER_USER_DATA_HOST_PATH:-}
       - DOCKER_SKILL_PROJECTIONS_HOST_PATH=${SANDBOX_DOCKER_SKILL_PROJECTIONS_HOST_PATH:-}
-      - DOCKER_SANDBOX_PREFIX=${SANDBOX_DOCKER_SANDBOX_PREFIX:-yuxi-sandbox}
+      - DOCKER_SANDBOX_PREFIX=${SANDBOX_DOCKER_SANDBOX_PREFIX:-binizox-sandbox}
       # Kubernetes backend only
-      - K8S_NAMESPACE=${SANDBOX_K8S_NAMESPACE:-yuxi-know}
+      - K8S_NAMESPACE=${SANDBOX_K8S_NAMESPACE:-binizox-know}
       - NODE_HOST=${SANDBOX_NODE_HOST:-host.docker.internal}
       - KUBECONFIG_PATH=${KUBECONFIG_PATH:-}
-      - USER_DATA_PVC=${USER_DATA_PVC:-yuxi-user-data}
-      - SKILLS_PVC=${SKILLS_PVC:-yuxi-skills}
+      - USER_DATA_PVC=${USER_DATA_PVC:-binizox-user-data}
+      - SKILLS_PVC=${SKILLS_PVC:-binizox-skills}
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8002/health').read()"]
       interval: 10s
@@ -207,7 +250,7 @@ services:
       context: .
       dockerfile: docker/web.Dockerfile
       target: production
-    image: yuxi-web:${YUXI_VERSION:-0.7.2}
+    image: binizox-web:${BINIZOX_VERSION:-0.7.2}
     container_name: web-prod
     ports:
       - "80:80"
@@ -316,12 +359,12 @@ services:
     environment:
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.prod}
-      - POSTGRES_DB=${POSTGRES_DB:-yuxi}
+      - POSTGRES_DB=${POSTGRES_DB:-binizox}
       - TZ=${TZ:-Asia/Shanghai}
     volumes:
       - ./docker/volumes/postgresql:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-yuxi} || exit 1"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-binizox} || exit 1"]
       interval: 5s
       timeout: 3s
       retries: 30
@@ -406,6 +449,9 @@ services:
     networks:
       - app-network
     restart: unless-stopped
+
+volumes:
+  tool_runner_data:
 
 networks:
   app-network:

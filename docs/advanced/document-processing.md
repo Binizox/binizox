@@ -1,6 +1,6 @@
 # 文档处理与 OCR
 
-Yuxi 把文档处理拆成两步：先把原文件保存到知识库，再根据文件类型和 OCR 配置生成 Markdown。知识库索引使用生成后的内容；附件解析只把结果写回当前 Workdir，不会创建知识库文件记录。
+Binizox 把文档处理拆成两步：先把原文件保存到知识库，再根据文件类型和 OCR 配置生成 Markdown。知识库索引使用生成后的内容；附件解析只把结果写回当前 Workdir，不会创建知识库文件记录。
 
 文件状态和存储归属见[知识库机制详解](../mechanisms/knowledge-base.md)，第一次上传文档见[创建并使用知识库](../intro/knowledge-base.md)。
 
@@ -20,10 +20,10 @@ ZIP 处理会优先使用名为 `full.md` 的 Markdown 文件，否则使用压�
 
 ## 从 URL 导入网页
 
-网页导入受白名单控制。设置 `YUXI_URL_WHITELIST` 后，系统才会抓取 URL，并把 HTML 转成 Markdown 进入同一套知识库处理流程：
+网页导入受白名单控制。设置 `BINIZOX_URL_WHITELIST` 后，系统才会抓取 URL，并把 HTML 转成 Markdown 进入同一套知识库处理流程：
 
 ```bash
-YUXI_URL_WHITELIST=github.com,docs.example.com,*.wikipedia.org
+BINIZOX_URL_WHITELIST=github.com,docs.example.com,*.wikipedia.org
 ```
 
 列表以逗号分隔；配置的域名及其子域名可以通过校验，空列表表示关闭 URL 导入。抓取器在 DNS 正常解析到 loopback、私有网段或 link-local 地址时会拒绝请求，并逐跳检查重定向目标；最多跟随 5 次重定向，只接受 HTML，响应体默认不超过 10 MB。DNS 解析失败目前会记录日志后继续请求，因此 URL 白名单和地址检查不能当作网络出口防火墙；生产环境还应在网络层限制出口。

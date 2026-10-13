@@ -10,10 +10,10 @@ import pytest
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from yuxi.repositories.api_key_repository import APIKeyRepository, APIKeySubjectUnavailable
-from yuxi.repositories.user_repository import UserRepository
-from yuxi.storage.postgres.models_business import APIKey, User
-from yuxi.utils.auth_utils import AuthUtils
+from binizox.repositories.api_key_repository import APIKeyRepository, APIKeySubjectUnavailable
+from binizox.repositories.user_repository import UserRepository
+from binizox.storage.postgres.models_business import APIKey, User
+from binizox.utils.auth_utils import AuthUtils
 
 pytestmark = [pytest.mark.asyncio, pytest.mark.integration]
 

@@ -14,12 +14,12 @@ from fastapi import HTTPException
 from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from yuxi.repositories.agent_run_request_repository import AgentRunRequestRepository
-from yuxi.repositories.agent_run_repository import AgentRunRepository
-from yuxi.services import agent_request_queue_service
-from yuxi.services import run_worker
-from yuxi.services.input_message_service import build_chat_input_message
-from yuxi.storage.postgres.models_business import (
+from binizox.repositories.agent_run_request_repository import AgentRunRequestRepository
+from binizox.repositories.agent_run_repository import AgentRunRepository
+from binizox.services import agent_request_queue_service
+from binizox.services import run_worker
+from binizox.services.input_message_service import build_chat_input_message
+from binizox.storage.postgres.models_business import (
     AgentRun,
     AgentRunRequest,
     Conversation,
@@ -28,7 +28,7 @@ from yuxi.storage.postgres.models_business import (
     SubagentThread,
     User,
 )
-from yuxi.utils.datetime_utils import utc_now_naive
+from binizox.utils.datetime_utils import utc_now_naive
 
 pytestmark = [pytest.mark.asyncio, pytest.mark.integration]
 

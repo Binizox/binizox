@@ -1,4 +1,4 @@
-.yuxi/
+.binizox/
 
 *.egg-info
 
@@ -91,3 +91,5 @@ docs/vibe
 .taskr/
 .workbuddy/
 web/src/utils/__tests__/
+# 本地 Python 打包产物
+/backend/package/build/

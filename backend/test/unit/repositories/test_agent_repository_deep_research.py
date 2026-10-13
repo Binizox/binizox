@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from yuxi.repositories.agent_repository import (
+from binizox.repositories.agent_repository import (
     AgentRepository,
     DEEP_RESEARCH_AGENT_SLUG,
     DEFAULT_AGENT_BACKEND_ID,

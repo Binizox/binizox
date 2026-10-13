@@ -28,15 +28,15 @@ def _preflight(client: TestClient, origin: str):
 
 
 def test_default_development_cors_origins(monkeypatch):
-    monkeypatch.delenv("YUXI_CORS_ORIGINS", raising=False)
-    monkeypatch.setenv("YUXI_ENV", "development")
+    monkeypatch.delenv("BINIZOX_CORS_ORIGINS", raising=False)
+    monkeypatch.setenv("BINIZOX_ENV", "development")
 
     assert _parse_cors_origins() == ["http://localhost:5173", "http://127.0.0.1:5173"]
 
 
 def test_production_does_not_default_to_wildcard(monkeypatch):
-    monkeypatch.delenv("YUXI_CORS_ORIGINS", raising=False)
-    monkeypatch.setenv("YUXI_ENV", "production")
+    monkeypatch.delenv("BINIZOX_CORS_ORIGINS", raising=False)
+    monkeypatch.setenv("BINIZOX_ENV", "production")
 
     assert _parse_cors_origins() == []
 

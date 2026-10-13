@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from yuxi.services import knowledge_dashboard_service
+from binizox.services import knowledge_dashboard_service
 
 pytestmark = [pytest.mark.asyncio, pytest.mark.unit]
 

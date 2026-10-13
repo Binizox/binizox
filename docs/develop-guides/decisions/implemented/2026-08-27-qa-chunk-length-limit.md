@@ -2,7 +2,7 @@
 
 状态：implemented
 类型：bug-fix
-Owner：backend/package/yuxi/knowledge/chunking/ragflow_like/parsers/qa.py
+Owner：backend/package/binizox/knowledge/chunking/ragflow_like/parsers/qa.py
 
 ## 问题
 

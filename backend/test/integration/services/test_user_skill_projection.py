@@ -12,10 +12,10 @@ import pytest
 from sqlalchemy import delete, select, text, update
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from yuxi.agents.skills import service as skill_service
-from yuxi.storage_migrations import v071_skills
-from yuxi.storage.postgres.manager import pg_manager
-from yuxi.storage.postgres.models_business import Skill, User
+from binizox.agents.skills import service as skill_service
+from binizox.storage_migrations import v071_skills
+from binizox.storage.postgres.manager import pg_manager
+from binizox.storage.postgres.models_business import Skill, User
 
 pytestmark = [pytest.mark.asyncio, pytest.mark.integration]
 
@@ -83,7 +83,7 @@ async def test_projection_refresh_waits_for_lock_then_reloads_revoked_authorizat
     skill_id: int | None = None
     refresh_task: asyncio.Task[dict[str, str]] | None = None
     policy_task: asyncio.Task[None] | None = None
-    lock_scope = f"yuxi:skills:user-projection:v1:{uid}"
+    lock_scope = f"binizox:skills:user-projection:v1:{uid}"
 
     try:
         async with session_factory() as db:
@@ -254,10 +254,10 @@ async def test_legacy_shared_skill_migrates_without_touching_personal_workspace(
     uid = f"pytest-skill-migration-{suffix}"
     shared_slug = f"shared-{suffix}"
     personal_slug = f"personal-{suffix}"
-    monkeypatch.setenv("YUXI_LEGACY_STORAGE_DIR", str(tmp_path))
-    monkeypatch.setenv("YUXI_USER_DATA_DIR", str(tmp_path / "threads"))
-    monkeypatch.setenv("YUXI_SKILL_DATA_DIR", str(tmp_path / "skill-sources"))
-    monkeypatch.setenv("YUXI_SKILL_PROJECTION_DIR", str(tmp_path / "skill-projections"))
+    monkeypatch.setenv("BINIZOX_LEGACY_STORAGE_DIR", str(tmp_path))
+    monkeypatch.setenv("BINIZOX_USER_DATA_DIR", str(tmp_path / "threads"))
+    monkeypatch.setenv("BINIZOX_SKILL_DATA_DIR", str(tmp_path / "skill-sources"))
+    monkeypatch.setenv("BINIZOX_SKILL_PROJECTION_DIR", str(tmp_path / "skill-projections"))
 
     legacy_shared = tmp_path / "skills" / shared_slug
     legacy_personal = tmp_path / "threads/shared" / uid / "workspace/agents/skills" / personal_slug

@@ -8,8 +8,8 @@ on:
       - "backend/pyproject.toml"
       - "backend/package/pyproject.toml"
       - "backend/uv.lock"
-      - "packages/yuxi-cli/pyproject.toml"
-      - "packages/yuxi-cli/uv.lock"
+      - "packages/binizox-cli/pyproject.toml"
+      - "packages/binizox-cli/uv.lock"
       - "web/package.json"
       - "web/pnpm-lock.yaml"
       - "web/pnpm-workspace.yaml"
@@ -25,8 +25,8 @@ on:
       - "backend/pyproject.toml"
       - "backend/package/pyproject.toml"
       - "backend/uv.lock"
-      - "packages/yuxi-cli/pyproject.toml"
-      - "packages/yuxi-cli/uv.lock"
+      - "packages/binizox-cli/pyproject.toml"
+      - "packages/binizox-cli/uv.lock"
       - "web/package.json"
       - "web/pnpm-lock.yaml"
       - "web/pnpm-workspace.yaml"
@@ -70,11 +70,11 @@ jobs:
       - name: Audit Python transitive licenses
         working-directory: backend
         run: uv run --isolated --no-dev --with pip-licenses pip-licenses --from mixed --format markdown
-      - name: Audit yuxi-cli locked vulnerabilities
-        working-directory: packages/yuxi-cli
+      - name: Audit binizox-cli locked vulnerabilities
+        working-directory: packages/binizox-cli
         run: uv audit --locked --no-dev
-      - name: Audit yuxi-cli transitive licenses
-        working-directory: packages/yuxi-cli
+      - name: Audit binizox-cli transitive licenses
+        working-directory: packages/binizox-cli
         run: uv run --isolated --no-dev --with pip-licenses pip-licenses --from mixed --format markdown
 
   node:

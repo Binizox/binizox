@@ -7,6 +7,7 @@
 - Source: `deepdoc/parser/pdf_parser.py`, `PlainParser`
 - License: Apache License 2.0
 - Local file: `app/vendor/ragflow_plain_pdf.py`
+- Full license: `LICENSES/Apache-2.0.txt`
 
 The local copy retains the original copyright and license header. It removes
 RAGFlow platform imports, preserves per-page text instead of flattening all

@@ -11,14 +11,14 @@ from sqlalchemy import delete, func, select, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from yuxi.services.identity_admin_service import (
+from binizox.services.identity_admin_service import (
     DepartmentAdminCreation,
     IdentityConflictError,
     SystemAlreadyInitializedError,
     create_department_with_admin,
     initialize_system_admin,
 )
-from yuxi.storage.postgres.models_business import Base, Department, OperationLog, User
+from binizox.storage.postgres.models_business import Base, Department, OperationLog, User
 
 pytestmark = [pytest.mark.asyncio, pytest.mark.integration]
 

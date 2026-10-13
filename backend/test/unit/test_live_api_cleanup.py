@@ -189,7 +189,7 @@ async def test_cleanup_deletes_e2e_threads_before_temporary_agents(tmp_path, mon
             for index, thread_id in enumerate(("thread-viewer", "thread-marked"), start=1)
         },
     )
-    monkeypatch.setenv("YUXI_USER_DATA_DIR", str(tmp_path / "threads"))
+    monkeypatch.setenv("BINIZOX_USER_DATA_DIR", str(tmp_path / "threads"))
     (tmp_path / "threads" / "thread-viewer").mkdir(parents=True)
     (tmp_path / "threads" / "thread-marked").mkdir(parents=True)
     responses: dict[str, object] = {
@@ -198,7 +198,7 @@ async def test_cleanup_deletes_e2e_threads_before_temporary_agents(tmp_path, mon
                 "id": "thread-viewer",
                 "title": "viewer-fs-e2e-deadbeef",
                 "agent_id": "default-chatbot",
-                "metadata": {"_yuxi_e2e": True, "test": "viewer-fs-e2e"},
+                "metadata": {"_binizox_e2e": True, "test": "viewer-fs-e2e"},
             },
             {
                 "id": "thread-user",
@@ -210,7 +210,7 @@ async def test_cleanup_deletes_e2e_threads_before_temporary_agents(tmp_path, mon
                 "id": "thread-marked",
                 "title": "未使用固定前缀",
                 "agent_id": "e2e-main-deadbeef",
-                "metadata": {"_yuxi_e2e": True, "marker": "YUXI_SUBAGENT_STREAM_E2E_deadbeef"},
+                "metadata": {"_binizox_e2e": True, "marker": "BINIZOX_SUBAGENT_STREAM_E2E_deadbeef"},
             },
         ],
         "/api/agent": {
@@ -254,7 +254,7 @@ async def test_cleanup_only_exempts_projects_whose_managed_workdir_is_deleted(tm
     managed_dir = tmp_path / workdir_path
     managed_dir.mkdir(parents=True)
     monkeypatch.setattr("test.live_api_cleanup.user_workdir_host_dir", lambda _uid, _path: managed_dir)
-    monkeypatch.setenv("YUXI_USER_DATA_DIR", str(tmp_path / "threads"))
+    monkeypatch.setenv("BINIZOX_USER_DATA_DIR", str(tmp_path / "threads"))
     resources = {
         "thread-managed": CleanupConversationResource(
             1,
@@ -288,7 +288,7 @@ async def test_cleanup_only_exempts_projects_whose_managed_workdir_is_deleted(tm
             return httpx.Response(
                 200,
                 json=[
-                    {"id": thread_id, "metadata": {"_yuxi_test": True}}
+                    {"id": thread_id, "metadata": {"_binizox_test": True}}
                     for thread_id in resources
                 ],
             )
@@ -320,7 +320,7 @@ async def test_cleanup_paginates_active_threads(tmp_path, monkeypatch):
         },
     )
     offsets: list[str] = []
-    monkeypatch.setenv("YUXI_USER_DATA_DIR", str(tmp_path / "threads"))
+    monkeypatch.setenv("BINIZOX_USER_DATA_DIR", str(tmp_path / "threads"))
 
     def handle_request(request: httpx.Request) -> httpx.Response:
         """模拟分两页返回线程的清理 API。"""
@@ -342,7 +342,7 @@ async def test_cleanup_paginates_active_threads(tmp_path, monkeypatch):
                     {
                         "id": "thread-page-2",
                         "title": "任意标题",
-                        "metadata": {"_yuxi_e2e": True, "test": "viewer-fs-e2e"},
+                        "metadata": {"_binizox_e2e": True, "test": "viewer-fs-e2e"},
                     }
                 ],
             )
@@ -387,7 +387,7 @@ async def test_cleanup_removes_deleted_and_subagent_thread_storage(tmp_path, mon
             ),
         },
     )
-    monkeypatch.setenv("YUXI_USER_DATA_DIR", str(tmp_path / "threads"))
+    monkeypatch.setenv("BINIZOX_USER_DATA_DIR", str(tmp_path / "threads"))
     for thread_id in ("thread-deleted", "thread-child"):
         (tmp_path / "threads" / thread_id).mkdir(parents=True)
 
@@ -419,7 +419,7 @@ async def test_cleanup_removes_deleted_and_subagent_thread_storage(tmp_path, mon
 async def test_remove_e2e_thread_storage_rejects_symlink(tmp_path, monkeypatch):
     """沙盒目录是符号链接时必须拒绝删除，避免解析后误删用户目录。"""
 
-    monkeypatch.setenv("YUXI_USER_DATA_DIR", str(tmp_path / "threads"))
+    monkeypatch.setenv("BINIZOX_USER_DATA_DIR", str(tmp_path / "threads"))
     threads_root = tmp_path / "threads"
     threads_root.mkdir()
     user_dir = threads_root / "user-data"
@@ -437,8 +437,8 @@ async def test_test_resource_names_use_one_visible_prefix():
     metadata = make_test_conversation_metadata("viewer-filesystem")
 
     assert title.startswith(TEST_CONVERSATION_TITLE_PREFIX)
-    assert metadata["_yuxi_test"] is True
-    assert make_test_resource_id("agent-call").startswith("YUXI_TEST_")
+    assert metadata["_binizox_test"] is True
+    assert make_test_resource_id("agent-call").startswith("BINIZOX_TEST_")
 
 
 async def test_legacy_title_matching_is_exact_and_does_not_capture_user_titles():
@@ -455,7 +455,7 @@ async def test_cleanup_discovery_failure_has_no_destructive_side_effect(tmp_path
     """数据库无法确认归属时，不得先软删会话或删除临时智能体。"""
 
     destructive_paths: list[str] = []
-    monkeypatch.setenv("YUXI_USER_DATA_DIR", str(tmp_path / "threads"))
+    monkeypatch.setenv("BINIZOX_USER_DATA_DIR", str(tmp_path / "threads"))
 
     async def fail_discovery(_owner_uid: str):
         raise OSError("postgres unavailable")
@@ -469,7 +469,7 @@ async def test_cleanup_discovery_failure_has_no_destructive_side_effect(tmp_path
         if request.url.path == "/api/chat/threads":
             return httpx.Response(
                 200,
-                json=[{"id": "thread-marked", "metadata": {"_yuxi_test": True}}],
+                json=[{"id": "thread-marked", "metadata": {"_binizox_test": True}}],
             )
         if request.url.path == "/api/agent":
             raise AssertionError("agent cleanup must not run after discovery failure")
@@ -488,7 +488,7 @@ async def test_cleanup_guard_failure_has_no_destructive_side_effect(tmp_path, mo
     destructive_paths: list[str] = []
     legacy_dir = tmp_path / "threads" / "thread-marked"
     legacy_dir.mkdir(parents=True)
-    monkeypatch.setenv("YUXI_USER_DATA_DIR", str(tmp_path / "threads"))
+    monkeypatch.setenv("BINIZOX_USER_DATA_DIR", str(tmp_path / "threads"))
     resources = {
         "thread-marked": CleanupConversationResource(
             1,
@@ -518,7 +518,7 @@ async def test_cleanup_guard_failure_has_no_destructive_side_effect(tmp_path, mo
             destructive_paths.append(request.url.path)
             return httpx.Response(200, json={})
         if request.url.path == "/api/chat/threads":
-            return httpx.Response(200, json=[{"id": "thread-marked", "metadata": {"_yuxi_test": True}}])
+            return httpx.Response(200, json=[{"id": "thread-marked", "metadata": {"_binizox_test": True}}])
         if request.url.path == "/api/agent":
             raise AssertionError("agent cleanup must not run after guard failure")
         raise AssertionError(f"unexpected request: {request.method} {request.url}")
@@ -537,7 +537,7 @@ async def test_cleanup_stops_when_cancelled_request_remains_queued(tmp_path, mon
     destructive_paths: list[str] = []
     legacy_dir = tmp_path / "threads" / "thread-marked"
     legacy_dir.mkdir(parents=True)
-    monkeypatch.setenv("YUXI_USER_DATA_DIR", str(tmp_path / "threads"))
+    monkeypatch.setenv("BINIZOX_USER_DATA_DIR", str(tmp_path / "threads"))
 
     async def fake_list_resources(_owner_uid: str):
         return {
@@ -555,7 +555,7 @@ async def test_cleanup_stops_when_cancelled_request_remains_queued(tmp_path, mon
         return None
 
     async def still_queued(_thread_ids: set[str]) -> list[str]:
-        return ["YUXI_TEST_queued_request"]
+        return ["BINIZOX_TEST_queued_request"]
 
     monkeypatch.setattr("test.live_api_cleanup.list_test_conversation_resources", fake_list_resources)
     monkeypatch.setattr("test.live_api_cleanup.validate_test_workdirs_exclusive", fake_validate)
@@ -564,7 +564,7 @@ async def test_cleanup_stops_when_cancelled_request_remains_queued(tmp_path, mon
 
     def handle_request(request: httpx.Request) -> httpx.Response:
         if request.url.path == "/api/chat/threads":
-            return httpx.Response(200, json=[{"id": "thread-marked", "metadata": {"_yuxi_test": True}}])
+            return httpx.Response(200, json=[{"id": "thread-marked", "metadata": {"_binizox_test": True}}])
         if request.method == "POST" and request.url.path.endswith("/cancel"):
             return httpx.Response(200, json={"status": "cancelled"})
         if request.method == "DELETE":
@@ -635,10 +635,10 @@ async def test_remove_test_workdir_is_idempotent_when_directory_is_gone(tmp_path
 async def test_is_e2e_thread_recognizes_marker_or_e2e_agent_prefix():
     from test.live_api_cleanup import _is_e2e_thread
 
-    marked = {"id": "t1", "agent_id": "default-chatbot", "metadata": {"_yuxi_e2e": True, "test": "viewer-fs-e2e"}}
+    marked = {"id": "t1", "agent_id": "default-chatbot", "metadata": {"_binizox_e2e": True, "test": "viewer-fs-e2e"}}
     agent_prefix = {"id": "invocation_x", "agent_id": "e2e-agent-call-deadbeef"}
     unified = {"id": "t3", "title": f"{TEST_CONVERSATION_TITLE_PREFIX}viewer_deadbeef", "metadata": {}}
-    explicit = {"id": "t4", "metadata": {"_yuxi_test": True}}
+    explicit = {"id": "t4", "metadata": {"_binizox_test": True}}
     plain = {"id": "t2", "agent_id": "default-chatbot"}
 
     assert _is_e2e_thread(marked)

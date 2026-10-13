@@ -3,16 +3,16 @@ from collections.abc import Callable
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from yuxi.config.runtime import lite_mode_enabled
-from yuxi.services.task_service import tasker
-from yuxi.agents.mcp.service import ensure_builtin_mcp_servers_in_db
-from yuxi.models.providers.service import ensure_builtin_model_providers_in_db
-from yuxi.services.run_queue_service import close_queue_clients, get_redis_client
-from yuxi.storage.postgres.manager import pg_manager
-from yuxi.utils import logger
-from yuxi.agents.backends.sandbox import init_sandbox_provider, shutdown_sandbox_provider
-from yuxi import get_version
-from yuxi.utils.auth_utils import AuthUtils
+from binizox.config.runtime import lite_mode_enabled
+from binizox.services.task_service import tasker
+from binizox.agents.mcp.service import ensure_builtin_mcp_servers_in_db
+from binizox.models.providers.service import ensure_builtin_model_providers_in_db
+from binizox.services.run_queue_service import close_queue_clients, get_redis_client
+from binizox.storage.postgres.manager import pg_manager
+from binizox.utils import logger
+from binizox.agents.backends.sandbox import init_sandbox_provider, shutdown_sandbox_provider
+from binizox import get_version
+from binizox.utils.auth_utils import AuthUtils
 
 
 class RequiredStartupComponentError(RuntimeError):
@@ -69,7 +69,7 @@ async def _startup(app: FastAPI) -> None:
     pg_manager.initialize()
     await pg_manager.require_current_schema(include_knowledge=not lite_mode)
 
-    from yuxi.config.options import (
+    from binizox.config.options import (
         ensure_options_in_db,
         invalidate_option_cache,
         system_options,
@@ -90,7 +90,7 @@ async def _startup(app: FastAPI) -> None:
     async def initialize_builtin_skills() -> None:
         """在独立事务中安装内置 Skills。"""
 
-        from yuxi.agents.skills.service import init_builtin_skills
+        from binizox.agents.skills.service import init_builtin_skills
 
         async with pg_manager.get_async_session_context() as session:
             await init_builtin_skills(session)
@@ -105,7 +105,7 @@ async def _startup(app: FastAPI) -> None:
     async def initialize_default_agents() -> None:
         """确保平台至少具有可用的默认 Agent 定义。"""
 
-        from yuxi.repositories.agent_repository import AgentRepository
+        from binizox.repositories.agent_repository import AgentRepository
 
         async with pg_manager.get_async_session_context() as session:
             repository = AgentRepository(session)
@@ -139,8 +139,8 @@ async def _startup(app: FastAPI) -> None:
     async def initialize_model_cache() -> None:
         """用 PostgreSQL 当前供应商事实重建进程内模型缓存。"""
 
-        from yuxi.models.providers.cache import model_cache
-        from yuxi.models.providers.service import get_all_model_providers
+        from binizox.models.providers.cache import model_cache
+        from binizox.models.providers.service import get_all_model_providers
 
         async with pg_manager.get_async_session_context() as session:
             providers = await get_all_model_providers(session)
@@ -162,7 +162,7 @@ async def _startup(app: FastAPI) -> None:
             "code": "lite_mode",
         }
     else:
-        from yuxi.knowledge.runtime import knowledge_base
+        from binizox.knowledge.runtime import knowledge_base
 
         await _initialize_startup_component(
             app,
@@ -198,7 +198,7 @@ async def _startup(app: FastAPI) -> None:
     ░██      ░█████░██ ░██    ░██ ░██  v{get_version()}
 
     """)
-    logger.info("Yuxi backend startup complete")
+    logger.info("Binizox backend startup complete")
 
 
 async def _shutdown_component(name: str, operation: Callable[[], object]) -> None:
@@ -215,7 +215,7 @@ async def _shutdown_component(name: str, operation: Callable[[], object]) -> Non
 def _close_neo4j_connection() -> object:
     """仅在完整运行模式关闭图数据库，避免 LITE 导入图谱依赖。"""
 
-    from yuxi.storage.neo4j import close_shared_neo4j_connection
+    from binizox.storage.neo4j import close_shared_neo4j_connection
 
     return close_shared_neo4j_connection()
 

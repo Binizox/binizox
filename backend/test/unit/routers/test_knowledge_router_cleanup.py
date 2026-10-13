@@ -5,7 +5,7 @@ import pytest
 from fastapi import HTTPException, UploadFile
 
 from server.routers import knowledge_router
-from yuxi.knowledge.read_models import KnowledgeBaseDetail
+from binizox.knowledge.read_models import KnowledgeBaseDetail
 
 pytestmark = pytest.mark.asyncio
 

@@ -2,7 +2,7 @@
 
 状态：implemented
 类型：bug-fix
-Owner：backend/package/yuxi/repositories/conversation_repository.py
+Owner：backend/package/binizox/repositories/conversation_repository.py
 
 ## 问题
 

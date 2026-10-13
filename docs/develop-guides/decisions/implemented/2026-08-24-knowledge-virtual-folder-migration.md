@@ -2,7 +2,7 @@
 
 状态：implemented
 类型：feature
-Owner：backend/package/yuxi/services/knowledge_folder_service.py
+Owner：backend/package/binizox/services/knowledge_folder_service.py
 
 ## 问题
 

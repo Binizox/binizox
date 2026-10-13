@@ -9,9 +9,9 @@ import uuid
 
 import pytest
 
-from yuxi.knowledge.eval.service import EvaluationService
-from yuxi.repositories.evaluation_repository import EvaluationRepository
-from yuxi.storage.postgres.manager import pg_manager
+from binizox.knowledge.eval.service import EvaluationService
+from binizox.repositories.evaluation_repository import EvaluationRepository
+from binizox.storage.postgres.manager import pg_manager
 
 pytestmark = [pytest.mark.asyncio, pytest.mark.integration]
 
@@ -67,7 +67,7 @@ async def test_resume_dataset_generation_enqueues_task(
         assert payload.get("data", {}).get("task_id")
         assert payload.get("data", {}).get("message") == "评估数据集生成任务已恢复"
     finally:
-        from yuxi.services.task_service import tasker
+        from binizox.services.task_service import tasker
 
         # Best-effort cleanup of any task enqueued during the test
         tasks = (await tasker.list_tasks()).get("tasks", [])
@@ -115,7 +115,7 @@ async def test_resume_dataset_generation_concurrent_calls_share_task(knowledge_d
         task_ids = {result["task_id"] for result in results}
         assert len(task_ids) == 1
     finally:
-        from yuxi.services.task_service import tasker
+        from binizox.services.task_service import tasker
 
         tasks = (await tasker.list_tasks()).get("tasks", [])
         for task in tasks:

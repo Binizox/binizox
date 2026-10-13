@@ -1,6 +1,6 @@
 # 配置模型
 
-Yuxi 在“智能体 → 模型供应商”中统一管理聊天、嵌入和重排模型。只有管理员可以新增或修改供应商；普通用户可以在有权限的地方选择已经启用的模型。
+Binizox 在“智能体 → 模型供应商”中统一管理聊天、嵌入和重排模型。只有管理员可以新增或修改供应商；普通用户可以在有权限的地方选择已经启用的模型。
 
 ## 配置顺序
 
@@ -29,7 +29,7 @@ docker compose up -d --force-recreate api worker
 
 ## 内置供应商
 
-系统启动时会同步内置供应商模板。模板提供供应商 ID、API 地址、凭证变量名和模型发现地址；是否可用取决于凭证、供应商状态和已启用模型。页面列出的内容是当前实例的实际配置，完整模板由 [`builtin.py`](https://github.com/xerrors/Yuxi/blob/main/backend/package/yuxi/models/providers/builtin.py) 维护。
+系统启动时会同步内置供应商模板。模板提供供应商 ID、API 地址、凭证变量名和模型发现地址；是否可用取决于凭证、供应商状态和已启用模型。页面列出的内容是当前实例的实际配置，完整模板由 [`builtin.py`](https://github.com/Binizox/binizox/blob/main/backend/package/binizox/models/providers/builtin.py) 维护。
 
 内置供应商模板的完整映射如下。表中类型是模板预置或当前常见用途；模型仍需在供应商中启用，实际可用性以当前实例配置和供应商接口为准。
 
@@ -89,7 +89,7 @@ siliconflow-cn:Pro/BAAI/bge-m3
 
 ## 配置聊天模型的请求参数
 
-OpenAI Completions API 兼容供应商的 `chat` 模型可以配置“模型请求参数 JSON”。Yuxi 会把它作为 OpenAI SDK 的 `extra_body` 合并到请求体顶层，用于支持不同供应商的思考或推理参数。
+OpenAI Completions API 兼容供应商的 `chat` 模型可以配置“模型请求参数 JSON”。Binizox 会把它作为 OpenAI SDK 的 `extra_body` 合并到请求体顶层，用于支持不同供应商的思考或推理参数。
 
 当前允许的顶层字段是：
 
@@ -110,7 +110,7 @@ OpenAI Completions API 兼容供应商的 `chat` 模型可以配置“模型请�
 }
 ```
 
-白名单只限制顶层字段，字段内部结构和可用取值由供应商校验。参数是否生效取决于模型和供应商接口，Yuxi 不会把不支持的字段转换成另一种格式。Anthropic、Gemini 等非 OpenAI 兼容供应商不能使用这组 `extra_body` 覆盖。
+白名单只限制顶层字段，字段内部结构和可用取值由供应商校验。参数是否生效取决于模型和供应商接口，Binizox 不会把不支持的字段转换成另一种格式。Anthropic、Gemini 等非 OpenAI 兼容供应商不能使用这组 `extra_body` 覆盖。
 
 ## 移除旧模型配置
 

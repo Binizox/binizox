@@ -9,14 +9,14 @@ import pytest
 
 sys.path.insert(0, os.getcwd())
 
-from yuxi.services.chat_service import (
+from binizox.services.chat_service import (
     _build_ask_user_question_payload,
     _build_tool_approval_payload,
     _normalize_interrupt_questions,
     stream_agent_resume,
 )
-from yuxi.services import chat_service as svc
-from yuxi.utils.question_utils import normalize_options
+from binizox.services import chat_service as svc
+from binizox.utils.question_utils import normalize_options
 
 
 class _FakeSession:

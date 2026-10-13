@@ -12,19 +12,19 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
-from yuxi.services.agent_run_service import (
+from binizox.services.agent_run_service import (
     AgentRunWaitTimeout,
     await_agent_run_result,
     get_agent_run_result,
     get_agent_run_view,
 )
-from yuxi.services.input_message_service import (
+from binizox.services.input_message_service import (
     AgentRunInputMessage,
     build_chat_input_message_from_openai_content,
 )
-from yuxi.services.run_submission_service import RunOrigin, RunSubmissionCommand, submit_run_command
-from yuxi.storage.postgres.models_business import User
-from yuxi.utils.hash_utils import hash_id
+from binizox.services.run_submission_service import RunOrigin, RunSubmissionCommand, submit_run_command
+from binizox.storage.postgres.models_business import User
+from binizox.utils.hash_utils import hash_id
 
 from server.utils.auth_middleware import get_db, get_required_user
 

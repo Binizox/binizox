@@ -4,9 +4,9 @@ import pytest
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from yuxi.config.options import ensure_options_in_db, update_option_value
-from yuxi.services import ocr_service
-from yuxi.storage.postgres.models_business import Base, ModelProvider
+from binizox.config.options import ensure_options_in_db, update_option_value
+from binizox.services import ocr_service
+from binizox.storage.postgres.models_business import Base, ModelProvider
 
 
 @pytest_asyncio.fixture

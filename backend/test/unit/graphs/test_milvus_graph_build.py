@@ -6,13 +6,13 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from yuxi.knowledge.graphs.extractors import (
+from binizox.knowledge.graphs.extractors import (
     GraphExtractorFactory,
     LLMGraphExtractor,
     normalize_extraction_result,
 )
-from yuxi.knowledge.graphs.milvus_graph_service import MilvusGraphService
-from yuxi.knowledge.graphs.milvus_graph_vector_store import MilvusGraphVectorStore
+from binizox.knowledge.graphs.milvus_graph_service import MilvusGraphService
+from binizox.knowledge.graphs.milvus_graph_vector_store import MilvusGraphVectorStore
 
 
 def _raw_graph_node(node_id: str, *, labels: list[str] | None = None, name: str | None = None) -> dict:
@@ -146,7 +146,7 @@ async def test_graph_extraction_retries_twice_before_third_attempt_succeeds(monk
     )
     service = MilvusGraphService(chunk_repo=chunk_repo)
     monkeypatch.setattr(
-        "yuxi.knowledge.graphs.milvus_graph_service.GRAPH_EXTRACTION_RETRY_DELAYS_SECONDS",
+        "binizox.knowledge.graphs.milvus_graph_service.GRAPH_EXTRACTION_RETRY_DELAYS_SECONDS",
         (0, 0),
     )
 
@@ -266,7 +266,7 @@ async def test_graph_build_keeps_extraction_concurrency_full_while_writes_are_bl
     extractor = Extractor()
     monkeypatch.setattr(GraphExtractorFactory, "create", lambda extractor_type, options: extractor)
     monkeypatch.setattr(
-        "yuxi.knowledge.graphs.milvus_graph_service.GRAPH_EXTRACTION_RETRY_DELAYS_SECONDS",
+        "binizox.knowledge.graphs.milvus_graph_service.GRAPH_EXTRACTION_RETRY_DELAYS_SECONDS",
         (0, 0),
     )
 

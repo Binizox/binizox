@@ -58,7 +58,7 @@ metadata 可以定义展示名称、说明、控件类型、选项和角色权�
 
 ```python
 from dataclasses import dataclass, field
-from yuxi.agents import BaseContext
+from binizox.agents import BaseContext
 
 
 @dataclass(kw_only=True)

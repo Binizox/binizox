@@ -2,8 +2,8 @@ from types import SimpleNamespace
 
 import pytest
 
-import yuxi.agents.skills.runtime as skill_runtime
-from yuxi.agents.skills.runtime import build_dependency_bundle, expand_skill_closure, resolve_runtime_skills_for_context
+import binizox.agents.skills.runtime as skill_runtime
+from binizox.agents.skills.runtime import build_dependency_bundle, expand_skill_closure, resolve_runtime_skills_for_context
 
 
 def _skill(tmp_path, slug: str, *, dependencies: list[str] | None = None, content: str | None = None):

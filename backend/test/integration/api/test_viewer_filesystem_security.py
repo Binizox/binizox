@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 from test.live_api_cleanup import make_test_conversation_metadata, make_test_conversation_title
-from yuxi.workspace.paths import user_workdir_host_dir
+from binizox.workspace.paths import user_workdir_host_dir
 
 pytestmark = [pytest.mark.asyncio, pytest.mark.integration]
 
@@ -58,7 +58,7 @@ async def test_viewer_upload_blocks_project_symlink_escape(test_client, standard
     thread_id, workdir_path = await _create_thread_for_user(test_client, headers)
 
     project_root = f"/home/gem/user-data/{workdir_path}"
-    outside_dir = tmp_path / f"yuxi-viewer-{uuid.uuid4().hex}"
+    outside_dir = tmp_path / f"binizox-viewer-{uuid.uuid4().hex}"
     outside_dir.mkdir()
     parent_path = f"{project_root}/escape-dir"
     (user_workdir_host_dir(uid, workdir_path) / "escape-dir").symlink_to(outside_dir)
@@ -97,7 +97,7 @@ async def test_viewer_upload_does_not_replace_hidden_target_symlink(test_client,
     uid = str(standard_user["user"]["uid"])
     thread_id, workdir_path = await _create_thread_for_user(test_client, headers)
 
-    outside = tmp_path / f"yuxi-viewer-target-{uuid.uuid4().hex}.txt"
+    outside = tmp_path / f"binizox-viewer-target-{uuid.uuid4().hex}.txt"
     outside.write_text("outside", encoding="utf-8")
     target = user_workdir_host_dir(uid, workdir_path) / "hidden.txt"
     target.symlink_to(outside)

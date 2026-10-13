@@ -1,5 +1,5 @@
-# Yuxi Initialization Script for PowerShell
-# This script helps set up the environment for the Yuxi project
+# Binizox Initialization Script for PowerShell
+# This script helps set up the environment for the Binizox project
 
 param([switch]$ValidateSecurityEnv)
 
@@ -102,6 +102,7 @@ function Assert-SecuritySecrets {
     $jwtSecret = Get-EnvValue "JWT_SECRET_KEY"
     $apiKeySecret = Get-EnvValue "API_KEY_DERIVATION_SECRET"
     $sandboxSecret = Get-EnvValue "SANDBOX_PROVISIONER_TOKEN"
+    $toolRunnerSecret = Get-EnvValue "BINIZOX_TOOL_RUNNER_TOKEN"
     if (-not (Test-SecuritySecretValue $jwtSecret)) {
         throw "JWT_SECRET_KEY must contain at least 32 non-whitespace characters."
     }
@@ -110,6 +111,9 @@ function Assert-SecuritySecrets {
     }
     if (-not (Test-SecuritySecretValue $sandboxSecret @($jwtSecret, $apiKeySecret))) {
         throw "SANDBOX_PROVISIONER_TOKEN must be at least 32 characters and independent from other security secrets."
+    }
+    if (-not (Test-SecuritySecretValue $toolRunnerSecret @($jwtSecret, $apiKeySecret, $sandboxSecret))) {
+        throw "BINIZOX_TOOL_RUNNER_TOKEN must be at least 32 characters and independent from other security secrets."
     }
 }
 
@@ -132,20 +136,23 @@ function Ensure-JwtEnv {
     Ensure-SecuritySecret "JWT_SECRET_KEY"
     Ensure-SecuritySecret "API_KEY_DERIVATION_SECRET" @("JWT_SECRET_KEY")
 
-    if (-not (Test-EnvValue "YUXI_INSTANCE_ID")) {
-        Write-Host "YUXI_INSTANCE_ID is missing in .env." -ForegroundColor Yellow
-        $YUXI_INSTANCE_ID = Read-Host "Please enter your YUXI_INSTANCE_ID (press Enter to auto-generate)"
-        if ([string]::IsNullOrEmpty($YUXI_INSTANCE_ID)) {
-            $YUXI_INSTANCE_ID = "instance-$(New-RandomHex 8)"
-            Write-Host "Generated YUXI_INSTANCE_ID and saved it to .env." -ForegroundColor Green
+    if (-not (Test-EnvValue "BINIZOX_INSTANCE_ID")) {
+        Write-Host "BINIZOX_INSTANCE_ID is missing in .env." -ForegroundColor Yellow
+        $BINIZOX_INSTANCE_ID = Read-Host "Please enter your BINIZOX_INSTANCE_ID (press Enter to auto-generate)"
+        if ([string]::IsNullOrEmpty($BINIZOX_INSTANCE_ID)) {
+            $BINIZOX_INSTANCE_ID = "instance-$(New-RandomHex 8)"
+            Write-Host "Generated BINIZOX_INSTANCE_ID and saved it to .env." -ForegroundColor Green
         }
 
-        Set-EnvValue "YUXI_INSTANCE_ID" $YUXI_INSTANCE_ID
+        Set-EnvValue "BINIZOX_INSTANCE_ID" $BINIZOX_INSTANCE_ID
     }
 }
 
 function Ensure-SandboxEnv {
     Ensure-SecuritySecret "SANDBOX_PROVISIONER_TOKEN" @("JWT_SECRET_KEY", "API_KEY_DERIVATION_SECRET")
+    Ensure-SecuritySecret "BINIZOX_TOOL_RUNNER_TOKEN" @(
+        "JWT_SECRET_KEY", "API_KEY_DERIVATION_SECRET", "SANDBOX_PROVISIONER_TOKEN"
+    )
 }
 
 if ($ValidateSecurityEnv) {
@@ -166,7 +173,7 @@ function Test-SkipExistingImage($ImageTag) {
     return $true
 }
 
-Write-Host "🚀 Initializing Yuxi project..." -ForegroundColor Cyan
+Write-Host "🚀 Initializing Binizox project..." -ForegroundColor Cyan
 Write-Host "==================================" -ForegroundColor Cyan
 
 # Check if .env file exists
@@ -220,15 +227,20 @@ if (Test-Path ".env") {
     $JWT_SECRET_KEY = Read-SecuritySecret "JWT_SECRET_KEY"
     $API_KEY_DERIVATION_SECRET = Read-SecuritySecret "API_KEY_DERIVATION_SECRET" @($JWT_SECRET_KEY)
 
-    $YUXI_INSTANCE_ID = Read-Host "Please enter your YUXI_INSTANCE_ID (press Enter to auto-generate)"
-    if ([string]::IsNullOrEmpty($YUXI_INSTANCE_ID)) {
-        $YUXI_INSTANCE_ID = "instance-$(New-RandomHex 8)"
-        Write-Host "Generated YUXI_INSTANCE_ID and saved it to .env." -ForegroundColor Green
+    $BINIZOX_INSTANCE_ID = Read-Host "Please enter your BINIZOX_INSTANCE_ID (press Enter to auto-generate)"
+    if ([string]::IsNullOrEmpty($BINIZOX_INSTANCE_ID)) {
+        $BINIZOX_INSTANCE_ID = "instance-$(New-RandomHex 8)"
+        Write-Host "Generated BINIZOX_INSTANCE_ID and saved it to .env." -ForegroundColor Green
     }
 
     $SANDBOX_PROVISIONER_TOKEN = Read-SecuritySecret "SANDBOX_PROVISIONER_TOKEN" @(
         $JWT_SECRET_KEY,
         $API_KEY_DERIVATION_SECRET
+    )
+    $BINIZOX_TOOL_RUNNER_TOKEN = Read-SecuritySecret "BINIZOX_TOOL_RUNNER_TOKEN" @(
+        $JWT_SECRET_KEY,
+        $API_KEY_DERIVATION_SECRET,
+        $SANDBOX_PROVISIONER_TOKEN
     )
 
     # Create .env file
@@ -254,8 +266,9 @@ SILICONFLOW_API_KEY=$apiKey
 # JWT security settings
 JWT_SECRET_KEY=$JWT_SECRET_KEY
 API_KEY_DERIVATION_SECRET=$API_KEY_DERIVATION_SECRET
-YUXI_INSTANCE_ID=$YUXI_INSTANCE_ID
+BINIZOX_INSTANCE_ID=$BINIZOX_INSTANCE_ID
 SANDBOX_PROVISIONER_TOKEN=$SANDBOX_PROVISIONER_TOKEN
+BINIZOX_TOOL_RUNNER_TOKEN=$BINIZOX_TOOL_RUNNER_TOKEN
 "@
 
     $envContent | Out-File -FilePath ".env" -Encoding UTF8
@@ -269,8 +282,9 @@ SANDBOX_PROVISIONER_TOKEN=$SANDBOX_PROVISIONER_TOKEN
     Remove-Variable -Name "TAVILY_API_KEY" -ErrorAction SilentlyContinue
     Remove-Variable -Name "JWT_SECRET_KEY" -ErrorAction SilentlyContinue
     Remove-Variable -Name "API_KEY_DERIVATION_SECRET" -ErrorAction SilentlyContinue
-    Remove-Variable -Name "YUXI_INSTANCE_ID" -ErrorAction SilentlyContinue
+    Remove-Variable -Name "BINIZOX_INSTANCE_ID" -ErrorAction SilentlyContinue
     Remove-Variable -Name "SANDBOX_PROVISIONER_TOKEN" -ErrorAction SilentlyContinue
+    Remove-Variable -Name "BINIZOX_TOOL_RUNNER_TOKEN" -ErrorAction SilentlyContinue
 }
 
 Write-Host ""

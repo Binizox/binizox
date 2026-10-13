@@ -6,13 +6,13 @@ import uuid
 
 import asyncpg
 import pytest
-from yuxi.services.run_queue_service import append_run_stream_event, get_redis_client
+from binizox.services.run_queue_service import append_run_stream_event, get_redis_client
 
 pytestmark = [pytest.mark.asyncio, pytest.mark.integration]
 
 
 def _postgres_dsn() -> str:
-    return os.getenv("POSTGRES_URL", "postgresql+asyncpg://postgres:postgres@postgres:5432/yuxi").replace(
+    return os.getenv("POSTGRES_URL", "postgresql+asyncpg://postgres:postgres@postgres:5432/binizox").replace(
         "+asyncpg", ""
     )
 
@@ -89,7 +89,7 @@ async def test_run_events_verbose_false_returns_compact_payload(test_client, sta
             run_id,
             "custom",
             {
-                "name": "yuxi.agent_state",
+                "name": "binizox.agent_state",
                 "chunk": {
                     "request_id": request_id,
                     "response": None,

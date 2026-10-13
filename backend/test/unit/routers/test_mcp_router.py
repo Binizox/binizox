@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from yuxi.agents.mcp.service import MCPServerNotFoundError
-from yuxi.storage.postgres.models_business import User
+from binizox.agents.mcp.service import MCPServerNotFoundError
+from binizox.storage.postgres.models_business import User
 
 from server.routers.mcp_router import mcp
 from server.utils.auth_middleware import get_admin_user, get_db, get_required_user

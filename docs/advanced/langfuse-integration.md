@@ -1,21 +1,21 @@
 # 接入 Langfuse
 
-Langfuse 是 Yuxi 的可选观测服务。它把一次 AgentRun 中的模型调用、工具调用、耗时和错误放到同一条 trace 中，方便按用户、线程、智能体和请求排查问题。
+Langfuse 是 Binizox 的可选观测服务。它把一次 AgentRun 中的模型调用、工具调用、耗时和错误放到同一条 trace 中，方便按用户、线程、智能体和请求排查问题。
 
-Langfuse 不拥有 Yuxi 的消息、运行状态或最终结果。即使 Langfuse 未配置、初始化失败或暂时不可用，聊天和 AgentRun 仍按本地业务链路运行。
+Langfuse 不拥有 Binizox 的消息、运行状态或最终结果。即使 Langfuse 未配置、初始化失败或暂时不可用，聊天和 AgentRun 仍按本地业务链路运行。
 
 ## 能看到什么
 
-Yuxi 会把本地运行信息映射到 Langfuse：
+Binizox 会把本地运行信息映射到 Langfuse：
 
-| Yuxi 信息 | Langfuse 字段 | 用途 |
+| Binizox 信息 | Langfuse 字段 | 用途 |
 | --- | --- | --- |
 | 用户 `uid` | `user_id` | 按用户筛选 |
 | 对话 `thread_id` | `session_id` | 查看同一线程的多轮运行 |
 | 一次请求 | trace | 查看模型、工具、耗时和错误 |
 | `agent_id`、operation 等 | metadata / tags | 按智能体和调用类型筛选 |
 
-对话中的助手消息支持点赞或点踩。Yuxi 先把反馈保存到本地业务表；消息有对应 trace 时，再向 Langfuse 写入 `user-feedback` score。点赞为 `1`，点踩为 `0`，点踩原因作为 comment 保存。
+对话中的助手消息支持点赞或点踩。Binizox 先把反馈保存到本地业务表；消息有对应 trace 时，再向 Langfuse 写入 `user-feedback` score。点赞为 `1`，点踩为 `0`，点踩原因作为 comment 保存。
 
 ## 配置
 
@@ -49,16 +49,16 @@ docker compose up -d --force-recreate api worker
 4. 核对 trace 中的模型调用、工具调用、metadata 和耗时。
 5. 对助手消息提交一次测试反馈，再检查 `user-feedback` score。
 
-超级管理员还可以在 Yuxi 的调试面板中开启对话 Debug，从消息对应的 Run 入口打开 Langfuse trace。Yuxi 会先检查当前用户是否能看到这个 Run，再读取同一 Run 输出消息中的 trace ID；没有持久化 trace、Langfuse 未配置或 URL 不在允许来源时，页面会提示不可用，不会从相邻 Run 推测结果。
+超级管理员还可以在 Binizox 的调试面板中开启对话 Debug，从消息对应的 Run 入口打开 Langfuse trace。Binizox 会先检查当前用户是否能看到这个 Run，再读取同一 Run 输出消息中的 trace ID；没有持久化 trace、Langfuse 未配置或 URL 不在允许来源时，页面会提示不可用，不会从相邻 Run 推测结果。
 
 ## 常见问题
 
 - **看不到 trace**：检查 API/worker 是否读取到两组密钥、Langfuse SDK 是否安装，以及 `LANGFUSE_BASE_URL` 是否可访问。
 - **聊天成功但没有 score**：本地反馈需要先保存；只有已关联 trace 的助手消息才会同步 score。
-- **控制台显示旧数据**：Langfuse 客户端有缓冲，运行结束后会刷新；业务结果仍以 Yuxi 的 PostgreSQL 记录为准。
+- **控制台显示旧数据**：Langfuse 客户端有缓冲，运行结束后会刷新；业务结果仍以 Binizox 的 PostgreSQL 记录为准。
 
 ## 代码和测试入口
 
-- [Langfuse 服务](https://github.com/xerrors/Yuxi/blob/main/backend/package/yuxi/services/langfuse_service.py)
-- [反馈服务](https://github.com/xerrors/Yuxi/blob/main/backend/package/yuxi/services/feedback_service.py)
-- [Langfuse 单元测试](https://github.com/xerrors/Yuxi/blob/main/backend/test/unit/services/test_langfuse_service.py)
+- [Langfuse 服务](https://github.com/Binizox/binizox/blob/main/backend/package/binizox/services/langfuse_service.py)
+- [反馈服务](https://github.com/Binizox/binizox/blob/main/backend/package/binizox/services/feedback_service.py)
+- [Langfuse 单元测试](https://github.com/Binizox/binizox/blob/main/backend/test/unit/services/test_langfuse_service.py)

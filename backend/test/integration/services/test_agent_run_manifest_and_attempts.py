@@ -13,10 +13,10 @@ from sqlalchemy import delete, select, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from yuxi.repositories.agent_run_repository import AgentRunRepository
-from yuxi.storage.postgres.manager import AGENT_RUN_FACT_SCHEMA_STATEMENTS
-from yuxi.storage.postgres.models_business import AgentRun, AgentRunAttempt, Conversation, Message, Project, User
-from yuxi.utils.datetime_utils import utc_now_naive
+from binizox.repositories.agent_run_repository import AgentRunRepository
+from binizox.storage.postgres.manager import AGENT_RUN_FACT_SCHEMA_STATEMENTS
+from binizox.storage.postgres.models_business import AgentRun, AgentRunAttempt, Conversation, Message, Project, User
+from binizox.utils.datetime_utils import utc_now_naive
 
 pytestmark = [pytest.mark.asyncio, pytest.mark.integration]
 

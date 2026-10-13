@@ -7,10 +7,10 @@ sys.path.append(os.getcwd())
 
 import pytest
 
-from yuxi.knowledge.chunking.ragflow_like.dispatcher import chunk_markdown
-from yuxi.knowledge.chunking.ragflow_like.nlp import bullets_category, count_tokens
-from yuxi.knowledge.chunking.ragflow_like.utils.semantic_utils import split_sentences_chinese
-from yuxi.knowledge.chunking.ragflow_like.presets import (
+from binizox.knowledge.chunking.ragflow_like.dispatcher import chunk_markdown
+from binizox.knowledge.chunking.ragflow_like.nlp import bullets_category, count_tokens
+from binizox.knowledge.chunking.ragflow_like.utils.semantic_utils import split_sentences_chinese
+from binizox.knowledge.chunking.ragflow_like.presets import (
     CHUNK_ENGINE_VERSION,
     CHUNK_PRESET_IDS,
     CHUNK_PRESETS,
@@ -19,7 +19,7 @@ from yuxi.knowledge.chunking.ragflow_like.presets import (
     map_to_internal_parser_id,
     resolve_chunk_processing_params,
 )
-from yuxi.knowledge.utils.kb_utils import resolve_processing_params, sanitize_processing_params
+from binizox.knowledge.utils.kb_utils import resolve_processing_params, sanitize_processing_params
 
 
 def test_general_maps_to_naive() -> None:

@@ -1,4 +1,4 @@
-"""Yuxi Schema 版本事实在真实 PostgreSQL 上的集成测试。"""
+"""Binizox Schema 版本事实在真实 PostgreSQL 上的集成测试。"""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ import pytest
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from yuxi.storage.postgres.manager import BUSINESS_SCHEMA_VERSION, PostgresManager
+from binizox.storage.postgres.manager import BUSINESS_SCHEMA_VERSION, PostgresManager
 
 pytestmark = [pytest.mark.asyncio, pytest.mark.integration]
 

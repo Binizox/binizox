@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # =============================================================================
-# Yuxi 版本号升级脚本
+# Binizox 版本号升级脚本
 # =============================================================================
 # 用法: ./scripts/bump-version.sh [--dev] <新版本号>
 # 示例: ./scripts/bump-version.sh 0.6.2
@@ -31,7 +31,7 @@ set -euo pipefail
 # 3. 脚本运行后必须检查:
 #    - git diff，确认只有预期版本文件变化。
 #    - backend/package/pyproject.toml、backend/pyproject.toml、web/package.json、
-#      docker-compose*.yml、backend/uv.lock 中的 Yuxi 版本一致。
+#      docker-compose*.yml、backend/uv.lock 中的 Binizox 版本一致。
 #    - dev 模式下 README.md、README.en.md、docs/intro/quick-start.md 和文档首页
 #      不应被更新。
 #
@@ -108,7 +108,7 @@ if [ "$DEV_MODE" = false ]; then
     echo "  - README.en.md"
     echo "  - docs/intro/quick-start.md"
     echo "  - docs/advanced/deployment.md"
-    echo "  - docs/.vitepress/theme/components/YuxiHome.vue"
+    echo "  - docs/.vitepress/theme/components/BinizoxHome.vue"
 fi
 echo ""
 read -rp "确认继续? [y/N] " confirm
@@ -142,22 +142,22 @@ perl -pi -e "s/\"version\": \"[^\"]+\"/\"version\": \"${NEW_VERSION}\"/" \
 # 4. 更新 Docker Compose 镜像标签默认值
 # -----------------------------------------------------------------------------
 echo "→ 更新 docker-compose.yml"
-perl -pi -e "s/\\\$\\{YUXI_VERSION:-[^}]+\\}/\\\${YUXI_VERSION:-${NEW_VERSION}}/g" \
+perl -pi -e "s/\\\$\\{BINIZOX_VERSION:-[^}]+\\}/\\\${BINIZOX_VERSION:-${NEW_VERSION}}/g" \
     "${PROJECT_ROOT}/docker-compose.yml"
 
 echo "→ 更新 docker-compose.prod.yml"
-perl -pi -e "s/\\\$\\{YUXI_VERSION:-[^}]+\\}/\\\${YUXI_VERSION:-${NEW_VERSION}}/g" \
+perl -pi -e "s/\\\$\\{BINIZOX_VERSION:-[^}]+\\}/\\\${BINIZOX_VERSION:-${NEW_VERSION}}/g" \
     "${PROJECT_ROOT}/docker-compose.prod.yml"
 
 # -----------------------------------------------------------------------------
 # 5. 更新 uv.lock 中的项目版本号
 # -----------------------------------------------------------------------------
 echo "→ 更新 backend/uv.lock"
-# yuxi 包版本
-perl -0pi -e "s/(^name = \"yuxi\"\nversion = \")[^\"]+/\${1}${NEW_VERSION}/m" \
+# binizox 包版本
+perl -0pi -e "s/(^name = \"binizox\"\nversion = \")[^\"]+/\${1}${NEW_VERSION}/m" \
     "${PROJECT_ROOT}/backend/uv.lock"
-# yuxi-workspace 版本
-perl -0pi -e "s/(^name = \"yuxi-workspace\"\nversion = \")[^\"]+/\${1}${NEW_VERSION}/m" \
+# binizox-workspace 版本
+perl -0pi -e "s/(^name = \"binizox-workspace\"\nversion = \")[^\"]+/\${1}${NEW_VERSION}/m" \
     "${PROJECT_ROOT}/backend/uv.lock"
 
 # -----------------------------------------------------------------------------
@@ -182,9 +182,9 @@ if [ "$DEV_MODE" = false ]; then
     perl -pi -e "s/(升级到当前 \`v)[0-9]+\\.[0-9]+\\.[0-9]+(\\.[a-zA-Z0-9]+)?/\${1}${NEW_VERSION}/g; s/(git checkout v)[0-9]+\\.[0-9]+\\.[0-9]+(\\.[a-zA-Z0-9]+)?/\${1}${NEW_VERSION}/g" \
         "${PROJECT_ROOT}/docs/advanced/deployment.md"
 
-    echo "→ 更新 docs/.vitepress/theme/components/YuxiHome.vue"
+    echo "→ 更新 docs/.vitepress/theme/components/BinizoxHome.vue"
     perl -pi -e "s/(git clone --branch v)[0-9]+\\.[0-9]+\\.[0-9]+(\\.[a-zA-Z0-9]+)?/\${1}${NEW_VERSION}/g" \
-        "${PROJECT_ROOT}/docs/.vitepress/theme/components/YuxiHome.vue"
+        "${PROJECT_ROOT}/docs/.vitepress/theme/components/BinizoxHome.vue"
 else
     echo "→ dev 模式，跳过 README、快速开始、部署指南和文档首页的发布版本更新"
 fi
@@ -206,10 +206,10 @@ echo "  web/package.json:"
 grep -E '"version"' "${PROJECT_ROOT}/web/package.json" | head -1 | sed 's/^/    /'
 
 echo "  docker-compose.yml (api):"
-grep -E "image: .*api:.*YUXI_VERSION" "${PROJECT_ROOT}/docker-compose.yml" | head -1 | sed 's/^/    /'
+grep -E "image: .*api:.*BINIZOX_VERSION" "${PROJECT_ROOT}/docker-compose.yml" | head -1 | sed 's/^/    /'
 
 echo "  docker-compose.prod.yml (web):"
-grep -E "image: yuxi-web:" "${PROJECT_ROOT}/docker-compose.prod.yml" | head -1 | sed 's/^/    /'
+grep -E "image: binizox-web:" "${PROJECT_ROOT}/docker-compose.prod.yml" | head -1 | sed 's/^/    /'
 
 echo ""
 echo "后续步骤:"

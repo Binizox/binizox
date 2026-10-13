@@ -4,11 +4,11 @@ from fastapi import Depends, Header, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from yuxi.storage.postgres.manager import pg_manager
-from yuxi.storage.postgres.models_business import APIKey, User
-from yuxi.utils.datetime_utils import utc_now_naive
+from binizox.storage.postgres.manager import pg_manager
+from binizox.storage.postgres.models_business import APIKey, User
+from binizox.utils.datetime_utils import utc_now_naive
 
-from yuxi.utils.auth_utils import AuthUtils
+from binizox.utils.auth_utils import AuthUtils
 
 # 定义OAuth2密码承载器，指定token URL
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/token", auto_error=False)
@@ -68,8 +68,8 @@ async def get_current_user(
     if not token:
         return None
 
-    # 根据 token 前缀判断认证方式
-    if token.startswith("yxkey_"):
+    # 根据 token 前缀判断认证方式；迁入数据库里的旧 Key 只做验证，不再新签发。
+    if AuthUtils.is_api_key(token):
         # API Key 认证
         user, api_key_obj = await _verify_api_key(token, db)
         if user is not None and api_key_obj is not None:

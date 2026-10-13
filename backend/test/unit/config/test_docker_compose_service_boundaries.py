@@ -12,21 +12,21 @@ REQUIRED_STORAGE_TARGETS = {
     "api": frozenset({"/app/user-data", "/app/skill-sources", "/app/skill-projections"}),
     "worker": frozenset({"/app/user-data", "/app/skill-sources", "/app/skill-projections"}),
 }
-FORBIDDEN_API_WORKER_ENV_KEYS = frozenset({"YUXI_DOCKER_API_BASE"})
+FORBIDDEN_API_WORKER_ENV_KEYS = frozenset({"BINIZOX_DOCKER_API_BASE"})
 EXPECTED_RUNTIME_DIRS = {"api": "/app/runtime/api", "worker": "/app/runtime/worker"}
 FORBIDDEN_DIRECT_DOCKER_ACCESS_MARKERS = frozenset(
-    {"--unix-socket", "/var/run/docker.sock", "YUXI_DOCKER_API_SOCKET", "docker.from_env(", "DockerClient("}
+    {"--unix-socket", "/var/run/docker.sock", "BINIZOX_DOCKER_API_SOCKET", "docker.from_env(", "DockerClient("}
 )
 SANDBOX_CLEANUP_OWNER_PATHS = (
     "backend/test/integration/conftest.py",
     "backend/test/live_api_cleanup.py",
 )
 WORKSPACE_PERMISSION_OWNER_PATHS = (
-    "backend/package/yuxi/utils/paths.py",
-    "backend/package/yuxi/workspace/paths.py",
-    "backend/package/yuxi/workspace/filesystem.py",
-    "backend/package/yuxi/services/workspace_service.py",
-    "backend/package/yuxi/storage_migrations/v071_workdirs.py",
+    "backend/package/binizox/utils/paths.py",
+    "backend/package/binizox/workspace/paths.py",
+    "backend/package/binizox/workspace/filesystem.py",
+    "backend/package/binizox/services/workspace_service.py",
+    "backend/package/binizox/storage_migrations/v071_workdirs.py",
     "docker/sandbox_provisioner/app.py",
 )
 LEGACY_WORKSPACE_PERMISSION_MARKERS = frozenset(
@@ -36,7 +36,7 @@ LEGACY_WORKSPACE_PERMISSION_MARKERS = frozenset(
 
 def _project_root() -> Path:
     """定位包含 Compose 文件的仓库根目录。"""
-    configured = os.environ.get("YUXI_PROJECT_ROOT")
+    configured = os.environ.get("BINIZOX_PROJECT_ROOT")
     if configured:
         return Path(configured)
 
@@ -94,7 +94,7 @@ def _runtime_directory_violations(compose: dict) -> set[tuple[str, str]]:
     violations: set[tuple[str, str]] = set()
     for service_name, expected in EXPECTED_RUNTIME_DIRS.items():
         environment = compose["services"][service_name].get("environment") or {}
-        actual = str(environment.get("YUXI_RUNTIME_DIR") or "")
+        actual = str(environment.get("BINIZOX_RUNTIME_DIR") or "")
         if actual != expected:
             violations.add((service_name, actual))
     return violations
@@ -159,7 +159,7 @@ def test_api_image_applies_owner_only_umask_before_dropping_to_runtime_identity(
     entrypoint = (root / "docker/api-entrypoint.sh").read_text()
 
     assert "USER 1000:1000" in dockerfile
-    assert 'ENTRYPOINT ["/usr/local/bin/yuxi-entrypoint"]' in dockerfile
+    assert 'ENTRYPOINT ["/usr/local/bin/binizox-entrypoint"]' in dockerfile
     assert "umask 077" in entrypoint
     assert 'exec "$@"' in entrypoint
 
@@ -180,16 +180,16 @@ def test_workspace_permission_guard_detects_reintroduced_world_writable_mode() -
 def test_storage_migrator_gates_every_shipping_file_consumer(filename: str) -> None:
     """文件 consumer 只能在一次性迁移成功后启动。"""
     compose = _load_compose(filename)
-    for service_name in ("api", "worker", "sandbox-provisioner"):
+    for service_name in ("api", "worker", "sandbox-provisioner", "binizox-tool-runner"):
         dependency = compose["services"][service_name]["depends_on"]["storage-migrator"]
         assert dependency["condition"] == "service_completed_successfully"
     migrator = compose["services"]["storage-migrator"]
-    assert "python -m yuxi.storage_migration" in migrator["command"]
+    assert "python -m binizox.storage_migration" in migrator["command"]
     migrator_targets = {_volume_target(volume) for volume in migrator.get("volumes") or []}
     assert "/app/legacy-saves" in migrator_targets
     assert "/app/legacy-projects" not in migrator_targets
     assert "/app/checkpoints" not in migrator_targets
-    assert "YUXI_LEGACY_PROJECTS_DIR" not in (migrator.get("environment") or {})
+    assert "BINIZOX_LEGACY_PROJECTS_DIR" not in (migrator.get("environment") or {})
     assert "minio" not in (migrator.get("depends_on") or {})
 
 
@@ -202,7 +202,7 @@ def test_storage_migration_script_quiesces_runtime_before_issuing_proof() -> Non
     assert source.index("stop api worker sandbox-provisioner") < source.index("/api/sandboxes/quiesce")
     provisioner_stop = source.rindex("stop sandbox-provisioner")
     assert source.index("/api/sandboxes/quiesce") < provisioner_stop
-    assert provisioner_stop < source.index("YUXI_STORAGE_MIGRATION_QUIESCENCE_TOKEN")
+    assert provisioner_stop < source.index("BINIZOX_STORAGE_MIGRATION_QUIESCENCE_TOKEN")
     assert 'compose=(docker compose "$@")' in source
     assert "up -d --no-deps --build --wait sandbox-provisioner" in source
     assert "mktemp" in source
@@ -212,9 +212,9 @@ def test_storage_migration_script_quiesces_runtime_before_issuing_proof() -> Non
 def test_v071_options_migration_is_not_part_of_normal_startup() -> None:
     """一次性配置迁移只能由 storage-migrator 装配。"""
     root = _project_root()
-    migration_source = (root / "backend/package/yuxi/storage_migration.py").read_text()
+    migration_source = (root / "backend/package/binizox/storage_migration.py").read_text()
     api_source = (root / "backend/server/utils/lifespan.py").read_text()
-    worker_source = (root / "backend/package/yuxi/services/run_worker.py").read_text()
+    worker_source = (root / "backend/package/binizox/services/run_worker.py").read_text()
 
     assert "migrate_system_options" in migration_source
     assert "storage_migrations" not in api_source
@@ -224,10 +224,10 @@ def test_v071_options_migration_is_not_part_of_normal_startup() -> None:
 def test_runtime_processes_only_validate_schema_version() -> None:
     """API 与 worker 不得重新取得建表、DDL 收敛或 checkpoint setup ownership。"""
     root = _project_root()
-    migration_source = (root / "backend/package/yuxi/storage_migration.py").read_text()
+    migration_source = (root / "backend/package/binizox/storage_migration.py").read_text()
     runtime_sources = {
         "api": (root / "backend/server/utils/lifespan.py").read_text(),
-        "worker": (root / "backend/package/yuxi/services/run_worker.py").read_text(),
+        "worker": (root / "backend/package/binizox/services/run_worker.py").read_text(),
     }
     ddl_markers = (
         "create_business_tables(",
@@ -293,7 +293,7 @@ def test_storage_migration_script_recovers_stopped_production_deployment(
         "run --rm" in command
         and "-v " in command
         and ":/app/legacy-saves/.storage-migration-quiesced:ro" in command
-        and "-e YUXI_STORAGE_MIGRATION_QUIESCENCE_TOKEN=" in command
+        and "-e BINIZOX_STORAGE_MIGRATION_QUIESCENCE_TOKEN=" in command
         for command in commands
     )
 
@@ -352,16 +352,16 @@ def test_mount_guard_detects_reintroduced_api_worker_host_dependencies(
 def test_environment_guard_detects_reintroduced_docker_api_configuration():
     """恢复旧 Docker API 环境变量时，边界 guard 必须报告对应服务。"""
     compose = deepcopy(_load_compose("docker-compose.yml"))
-    compose["services"]["api"]["environment"]["YUXI_DOCKER_API_BASE"] = "http://localhost"
+    compose["services"]["api"]["environment"]["BINIZOX_DOCKER_API_BASE"] = "http://localhost"
 
-    assert _forbidden_api_worker_env_keys(compose) == {("api", "YUXI_DOCKER_API_BASE")}
+    assert _forbidden_api_worker_env_keys(compose) == {("api", "BINIZOX_DOCKER_API_BASE")}
 
 
 @pytest.mark.parametrize("service_name", ["api", "worker"])
 def test_runtime_directory_guard_detects_shared_save_directory(service_name: str):
     """把运行目录恢复到共享 saves 时，边界 guard 必须报告对应服务。"""
     compose = deepcopy(_load_compose("docker-compose.yml"))
-    compose["services"][service_name]["environment"]["YUXI_RUNTIME_DIR"] = "/app/saves/runtime"
+    compose["services"][service_name]["environment"]["BINIZOX_RUNTIME_DIR"] = "/app/saves/runtime"
 
     assert _runtime_directory_violations(compose) == {(service_name, "/app/saves/runtime")}
 

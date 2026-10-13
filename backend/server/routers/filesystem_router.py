@@ -11,7 +11,7 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from server.utils.auth_middleware import get_db, get_required_user
-from yuxi.services.viewer_filesystem_service import (
+from binizox.services.viewer_filesystem_service import (
     create_viewer_directory,
     delete_viewer_file,
     download_viewer_file,
@@ -20,7 +20,7 @@ from yuxi.services.viewer_filesystem_service import (
     search_viewer_files,
     upload_viewer_files,
 )
-from yuxi.storage.postgres.models_business import User
+from binizox.storage.postgres.models_business import User
 
 filesystem_router = APIRouter(prefix="/viewer/filesystem", tags=["viewer-filesystem"])
 

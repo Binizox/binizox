@@ -2,7 +2,7 @@
 
 状态：implemented
 类型：feature
-Owner：backend/package/yuxi/agents/middlewares/memory.py
+Owner：backend/package/binizox/agents/middlewares/memory.py
 
 ## 问题
 
@@ -49,7 +49,7 @@ error allowlist，最多 10 条、单条 4 KiB、合计 16 KiB。所有截断遵
 image、附件、feedback、system/tool 内容和工具类型 Message 不进入响应。middleware 明确把 Memory 与历史
 标为低信任数据，历史指令不能覆盖当前系统约束，也不能触发长期记忆写入。
 
-UTF-8 字节预算截断由 `yuxi.utils.string_utils.truncate_utf8()` 提供；Conversation repository 继续拥有历史
+UTF-8 字节预算截断由 `binizox.utils.string_utils.truncate_utf8()` 提供；Conversation repository 继续拥有历史
 响应的字段选择、各级预算和截断标记策略，通用工具不接管协议结构或 JSON 响应裁剪。
 
 语义 Owner 分工如下：Memory middleware 拥有主 Agent prompt 和工具装配；Chat service、AgentRun

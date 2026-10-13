@@ -1,11 +1,11 @@
 # 参与贡献
 
-感谢你关注 Yuxi。欢迎提交 Issue、修复 Bug、补充测试、改进文档或贡献新功能。
+感谢你关注 Binizox。欢迎提交 Issue、修复 Bug、补充测试、改进文档或贡献新功能。
 
 ## 开始前
 
-- 先搜索 [Issues](https://github.com/xerrors/Yuxi/issues)，避免重复工作。
-- 较大的功能、公开接口、权限或架构变化，先在 Issue 或 [Discussions](https://github.com/xerrors/Yuxi/discussions) 讨论范围和方案。
+- 先搜索当前 Binizox 远程仓库的 Issues，避免重复工作。
+- 较大的功能、公开接口、权限或架构变化，先在当前远程仓库的 Issue 或 Discussions 讨论范围和方案。
 - 一个 PR 只解决一个明确问题，不混入无关重构、格式化或顺手优化。
 - 修改不熟悉的模块前，先阅读 [ARCHITECTURE.md](ARCHITECTURE.md)。
 
@@ -13,7 +13,7 @@
 
 ## 开发环境
 
-Yuxi 使用 Docker Compose 管理开发环境：
+Binizox 使用 Docker Compose 管理开发环境：
 
 ```bash
 docker compose up -d
@@ -50,5 +50,5 @@ git push -u origin docs/improve-guides
 
 ## 问题反馈
 
-- Bug 和功能建议：[GitHub Issues](https://github.com/xerrors/Yuxi/issues)
-- 方案讨论：[GitHub Discussions](https://github.com/xerrors/Yuxi/discussions)
+- Bug 和功能建议：使用当前 Binizox 远程仓库的 Issues。
+- 方案讨论：使用当前 Binizox 远程仓库的 Discussions。

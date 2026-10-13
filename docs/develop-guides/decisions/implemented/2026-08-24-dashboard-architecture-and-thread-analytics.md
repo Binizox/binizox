@@ -2,7 +2,7 @@
 
 状态：implemented
 类型：architecture
-Owner：backend/package/yuxi/services/dashboard_service.py
+Owner：backend/package/binizox/services/dashboard_service.py
 
 ## 问题
 
@@ -14,7 +14,7 @@ Owner：backend/package/yuxi/services/dashboard_service.py
 ## 决策
 
 1. **重构后端分层（Thin Router -> Service -> Repository）**：
-   - 新建 `yuxi.services.dashboard_service.DashboardService`，集中承载基础统计、调用时序、智能体分析、会话检索与会话多维分析用例。
+   - 新建 `binizox.services.dashboard_service.DashboardService`，集中承载基础统计、调用时序、智能体分析、会话检索与会话多维分析用例。
    - `dashboard_router.py` 保持轻量，仅负责依赖注入、参数校验与 Pydantic 模型装配。
    - 优化 `knowledge_dashboard_service.py`，由知识库与文件 repository 提供批量 SQL 聚合，service 只做业务展示映射；数据库层完成文件类型分布、节点数与存储容量计算，并将历史 `is_folder = NULL` 记录按普通文件处理。
 2. **新增会话多维分析统计与检索能力**：
@@ -43,6 +43,6 @@ Owner：backend/package/yuxi/services/dashboard_service.py
 | 验收主张 | 失败面 | 语义 Owner | 直接证据 / 命令 | 负向案例 | 当前结果 |
 |---|---|---|---|---|---|
 | Dashboard 路由仅作为薄适配层，业务逻辑下沉至 Service | 路由内出现直接仓库组装或跨表计算 | `backend/server/routers/dashboard_router.py` | `uv run --group test pytest test/unit/services/test_dashboard_service.py` | 路由抛出未捕获内部错误 | Passed |
-| 知识库统计使用 SQL 聚合且排除文件夹 | 虚拟目录被计入文件数或 N+1 循环回退 | `backend/package/yuxi/services/knowledge_dashboard_service.py` | `uv run --group test pytest test/integration/api/test_dashboard_router.py` | 文件夹记录计入 file_type 聚合 | Passed |
+| 知识库统计使用 SQL 聚合且排除文件夹 | 虚拟目录被计入文件数或 N+1 循环回退 | `backend/package/binizox/services/knowledge_dashboard_service.py` | `uv run --group test pytest test/integration/api/test_dashboard_router.py` | 文件夹记录计入 file_type 聚合 | Passed |
 | 会话多维分析统计与审计抽屉正常加载 | 时序或深度分布维度缺失或无法展开工具调用 | `web/src/components/dashboard/ThreadStatsComponent.vue` | `pnpm run lint:check`；`pnpm run build`；`node --test test/**/*.test.js` | 缺少必要字段或图表销毁泄漏 | Passed |
-| 会话趋势与分页不会随范围线性放大 SQL 或伪造总数 | 90 天趋势逐日查询；末页与下一页判断错误 | `backend/package/yuxi/repositories/dashboard_repository.py` | `uv run --group test pytest test/unit/services/test_dashboard_service.py`；真实 HTTP integration | 恢复逐日循环或数组响应后统计/契约测试失败 | Passed |
+| 会话趋势与分页不会随范围线性放大 SQL 或伪造总数 | 90 天趋势逐日查询；末页与下一页判断错误 | `backend/package/binizox/repositories/dashboard_repository.py` | `uv run --group test pytest test/unit/services/test_dashboard_service.py`；真实 HTTP integration | 恢复逐日循环或数组响应后统计/契约测试失败 | Passed |

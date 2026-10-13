@@ -6,11 +6,11 @@ import pytest
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from yuxi.repositories.conversation_repository import (
+from binizox.repositories.conversation_repository import (
     MEMORY_HISTORY_READ_RESPONSE_MAX_BYTES,
     ConversationRepository,
 )
-from yuxi.storage.postgres.models_business import Base, Conversation, Message, SubagentThread, ToolCall
+from binizox.storage.postgres.models_business import Base, Conversation, Message, SubagentThread, ToolCall
 
 pytestmark = pytest.mark.unit
 

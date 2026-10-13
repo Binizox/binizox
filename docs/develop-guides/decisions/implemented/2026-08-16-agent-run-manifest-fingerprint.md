@@ -2,7 +2,7 @@
 
 状态：implemented
 类型：architecture
-Owner：backend/package/yuxi/services/agent_run_manifest_service.py
+Owner：backend/package/binizox/services/agent_run_manifest_service.py
 
 ## 问题
 
@@ -12,7 +12,7 @@ Run 的结果、事件与 request/run 因果关系已有约束，但执行时实
 
 AgentRun 行拥有 `manifest`（JSONB）、`manifest_fingerprint`（VARCHAR 64）与 `manifest_recorded_at` 三列。worker 在取得执行所有权、完成输入校验后、真正构造 LangGraph 执行上下文前，通过 `agent_run_manifest_service.build_run_manifest` 从数据库解析本次运行实际采用的资产并构建 manifest，经 `AgentRunRepository.record_run_manifest` 以当前 lease owner 身份 write-once 写入；随后才进入流式执行。
 
-manifest 直接字段只包含稳定标识与非敏感摘要：agent slug/backend_id、派发时已解析的 model spec 与 tool_approval_mode（存于 input_payload）、规范化 context 中的 tools/mcps/skills 标识、Skill 的 version/content_hash、关键 limit（max_execution_steps、model_retry_times、摘要阈值组），以及完整规范化 context 的 SHA-256 `config_digest`（prompt 等内容只以摘要形式存在）。代码 revision 来自 `YUXI_CODE_REVISION` 环境变量，缺失时显式记为 `unresolved`。指纹为规范化 JSON（键排序、紧凑分隔符）的 SHA-256，字段顺序不影响结果。API key、token、用户正文与宿主机路径不进入 manifest。
+manifest 直接字段只包含稳定标识与非敏感摘要：agent slug/backend_id、派发时已解析的 model spec 与 tool_approval_mode（存于 input_payload）、规范化 context 中的 tools/mcps/skills 标识、Skill 的 version/content_hash、关键 limit（max_execution_steps、model_retry_times、摘要阈值组），以及完整规范化 context 的 SHA-256 `config_digest`（prompt 等内容只以摘要形式存在）。代码 revision 来自 `BINIZOX_CODE_REVISION` 环境变量，缺失时显式记为 `unresolved`。指纹为规范化 JSON（键排序、紧凑分隔符）的 SHA-256，字段顺序不影响结果。API key、token、用户正文与宿主机路径不进入 manifest。
 
 写入语义：`record_run_manifest` 要求调用者是仍持有有效 lease 的当前 owner（running 状态、worker 匹配、lease 未过期），已存在指纹时幂等跳过，保证配置后续变化不改写历史 Run。manifest 固化失败时 worker 将 Run 置为 `manifest_persist_failed` 失败终态，执行不开始。历史 Run 的 manifest 保持 NULL 表示 unknown，读取方不从当前配置反推。
 

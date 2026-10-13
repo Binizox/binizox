@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from yuxi.storage.minio.client import MinIOClient, normalize_public_minio_url
+from binizox.storage.minio.client import MinIOClient, normalize_public_minio_url
 
 
 class FakeMinio:

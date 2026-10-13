@@ -4,7 +4,7 @@ import asyncio
 from contextlib import asynccontextmanager
 
 import pytest
-import yuxi.services.run_queue_service as run_queue_service
+import binizox.services.run_queue_service as run_queue_service
 
 
 class _FakeStreamRedis:

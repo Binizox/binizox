@@ -1,13 +1,13 @@
 # 工具系统
 
-Yuxi 的工具分成三层：内置工具、知识库工具和 MCP 工具。Graph 创建时准备可执行工具，运行时再根据用户权限、Agent 配置和 Skill 激活状态决定模型能看到什么。
+Binizox 的工具分成三层：内置工具、知识库工具和 MCP 工具。Graph 创建时准备可执行工具，运行时再根据用户权限、Agent 配置和 Skill 激活状态决定模型能看到什么。
 
 ## 注册一个内置工具
 
 普通内置工具使用 `@tool` 注册：
 
 ```python
-from yuxi.agents.toolkits.registry import tool
+from binizox.agents.toolkits.registry import tool
 
 
 @tool(category="buildin", tags=["示例"], display_name="示例工具")
@@ -58,7 +58,7 @@ def example_tool(text: str) -> str:
 需要在 Python 中直接取得知识库工具时：
 
 ```python
-from yuxi.agents.toolkits.kbs import get_common_kb_tools
+from binizox.agents.toolkits.kbs import get_common_kb_tools
 
 kb_tools = get_common_kb_tools()
 ```

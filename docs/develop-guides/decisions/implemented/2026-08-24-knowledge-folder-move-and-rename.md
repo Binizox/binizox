@@ -2,7 +2,7 @@
 
 状态：implemented
 类型：feature
-Owner：backend/package/yuxi/knowledge/base.py
+Owner：backend/package/binizox/knowledge/base.py
 
 ## 问题
 

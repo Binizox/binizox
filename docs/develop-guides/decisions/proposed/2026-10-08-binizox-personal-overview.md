@@ -2,7 +2,7 @@
 
 状态：proposed
 类型：feature
-Owner：backend/package/yuxi/agents/skills/buildin/__init__.py
+Owner：backend/package/binizox/agents/skills/buildin/__init__.py
 
 ## 问题
 
@@ -24,10 +24,10 @@ Binizox 已经实现个人知识检索、受确认保护的笔记写入和独立
 
 | 验收主张 | 失败面 | 语义 Owner | 直接证据 / 命令 | 负向案例 | 当前结果 |
 |---|---|---|---|---|---|
-| 内置同步能够创建 Binizox Skill 并绑定两个工具 | 只有目录和提示词，shipping Skill 清单没有注册 | `backend/package/yuxi/agents/skills/buildin/__init__.py` | 后端契约测试 | 删除 Skill spec 后测试变红 | Passed |
-| 检索不能越过当前 Agent 的知识库范围 | 模型提交任意可猜测 ID 扩大检索范围 | `backend/package/yuxi/binizox/search_scope.py` | 后端正向与负向 unit | 请求不可见 ID 时结果为空 | Passed |
+| 内置同步能够创建 Binizox Skill 并绑定两个工具 | 只有目录和提示词，shipping Skill 清单没有注册 | `backend/package/binizox/agents/skills/buildin/__init__.py` | 后端契约测试 | 删除 Skill spec 后测试变红 | Passed |
+| 检索不能越过当前 Agent 的知识库范围 | 模型提交任意可猜测 ID 扩大检索范围 | `backend/package/binizox/personal/search_scope.py` | 后端正向与负向 unit | 请求不可见 ID 时结果为空 | Passed |
 | 登录用户能从侧栏进入 Binizox 总览 | 路由存在但未进入 shipping 导航 | `web/src/router/index.js`、`web/src/layouts/AppLayout.vue` | Vue router/unit 测试与真实页面检查 | 删除导航项后测试变红 | Passed |
-| 页面只展示后端声明的真实集成范围 | 前端硬编码把候选描述为已集成 | `backend/package/yuxi/binizox/integrations.py`、`web/src/apis/binizox_api.js` | 后端契约测试与前端状态映射 unit | 未知状态必须以保守文案展示 | Passed |
+| 页面只展示后端声明的真实集成范围 | 前端硬编码把候选描述为已集成 | `backend/package/binizox/personal/integrations.py`、`web/src/apis/binizox_api.js` | 后端契约测试与前端状态映射 unit | 未知状态必须以保守文案展示 | Passed |
 | 工具服务不可用时页面仍可恢复 | 请求失败导致白屏或把不可用显示为正常 | `web/src/views/BinizoxOverviewView.vue` | 前端组件/unit 测试 | 模拟 API rejection 后显示错误和重试入口 | Inspected |
 | 浏览器不接触工具服务内部地址 | 前端直接访问 8091 或显示内部 URL | `backend/server/routers/binizox_router.py` | 代码搜索、前端 API 测试 | 搜索禁止出现工具服务直连地址 | Passed |
 | 新页面遵循现有主题和响应式约束 | 固定浅色、溢出或不可操作 | 页面 LESS 与真实 DOM | lint、build、浅/深色及窄屏截图 | 375px 检查长文本与操作入口 | Not run |

@@ -6,9 +6,11 @@ build-backend = "setuptools.build_meta"
 name = "binizox-personal-tool-runner"
 version = "0.1.0"
 description = "Binizox 本地个人工具执行服务"
+license = "MIT"
+license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]
 requires-python = ">=3.12,<3.14"
 dependencies = [
-    # 与 Yuxi 主工程对齐；parser sidecar 使用独立 Conda 环境保留其固定版本。
+    # 与 Binizox 主工程对齐；parser sidecar 使用独立 Conda 环境保留其固定版本。
     "fastapi>=0.121,<1",
     "pydantic>=2.11,<3",
     "uvicorn[standard]>=0.34,<1",

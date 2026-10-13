@@ -6,10 +6,10 @@ import pytest
 import pytest_asyncio
 from sqlalchemy import select
 
-from yuxi.repositories.knowledge_chunk_repository import KnowledgeChunkRepository
-from yuxi.repositories.knowledge_graph_repository import KnowledgeGraphRepository
-from yuxi.storage.postgres.manager import pg_manager
-from yuxi.storage.postgres.models_knowledge import (
+from binizox.repositories.knowledge_chunk_repository import KnowledgeChunkRepository
+from binizox.repositories.knowledge_graph_repository import KnowledgeGraphRepository
+from binizox.storage.postgres.manager import pg_manager
+from binizox.storage.postgres.models_knowledge import (
     KnowledgeBase,
     KnowledgeChunk,
     KnowledgeFile,

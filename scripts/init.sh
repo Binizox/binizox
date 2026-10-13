@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Yuxi Initialization Script for Bash/Linux/macOS
-# This script helps set up the environment for the Yuxi project
+# Binizox Initialization Script for Bash/Linux/macOS
+# This script helps set up the environment for the Binizox project
 
 set -e
 umask 077
@@ -111,10 +111,11 @@ ensure_security_secret() {
 }
 
 validate_security_env() {
-    local jwt_secret api_key_secret sandbox_secret
+    local jwt_secret api_key_secret sandbox_secret tool_runner_secret
     jwt_secret=$(get_env_value "JWT_SECRET_KEY")
     api_key_secret=$(get_env_value "API_KEY_DERIVATION_SECRET")
     sandbox_secret=$(get_env_value "SANDBOX_PROVISIONER_TOKEN")
+    tool_runner_secret=$(get_env_value "BINIZOX_TOOL_RUNNER_TOKEN")
 
     security_secret_is_valid "$jwt_secret" || {
         echo "JWT_SECRET_KEY must contain at least 32 non-whitespace characters." >&2
@@ -126,6 +127,10 @@ validate_security_env() {
     }
     security_secret_is_valid "$sandbox_secret" "$jwt_secret" "$api_key_secret" || {
         echo "SANDBOX_PROVISIONER_TOKEN must be at least 32 characters and independent from other security secrets." >&2
+        return 1
+    }
+    security_secret_is_valid "$tool_runner_secret" "$jwt_secret" "$api_key_secret" "$sandbox_secret" || {
+        echo "BINIZOX_TOOL_RUNNER_TOKEN must be at least 32 characters and independent from other security secrets." >&2
         return 1
     }
 }
@@ -151,20 +156,22 @@ ensure_jwt_env() {
     ensure_security_secret "JWT_SECRET_KEY"
     ensure_security_secret "API_KEY_DERIVATION_SECRET" "JWT_SECRET_KEY"
 
-    if ! grep -Eq '^YUXI_INSTANCE_ID=.+' .env; then
-        echo "YUXI_INSTANCE_ID is missing in .env."
-        read -p "Please enter your YUXI_INSTANCE_ID (press Enter to auto-generate): " YUXI_INSTANCE_ID
-        if [ -z "$YUXI_INSTANCE_ID" ]; then
-            YUXI_INSTANCE_ID="instance-$(generate_hex 8)"
-            echo "Generated YUXI_INSTANCE_ID and saved it to .env."
+    if ! grep -Eq '^BINIZOX_INSTANCE_ID=.+' .env; then
+        echo "BINIZOX_INSTANCE_ID is missing in .env."
+        read -p "Please enter your BINIZOX_INSTANCE_ID (press Enter to auto-generate): " BINIZOX_INSTANCE_ID
+        if [ -z "$BINIZOX_INSTANCE_ID" ]; then
+            BINIZOX_INSTANCE_ID="instance-$(generate_hex 8)"
+            echo "Generated BINIZOX_INSTANCE_ID and saved it to .env."
         fi
 
-        set_env_value "YUXI_INSTANCE_ID" "$YUXI_INSTANCE_ID"
+        set_env_value "BINIZOX_INSTANCE_ID" "$BINIZOX_INSTANCE_ID"
     fi
 }
 
 ensure_sandbox_env() {
     ensure_security_secret "SANDBOX_PROVISIONER_TOKEN" "JWT_SECRET_KEY" "API_KEY_DERIVATION_SECRET"
+    ensure_security_secret "BINIZOX_TOOL_RUNNER_TOKEN" \
+        "JWT_SECRET_KEY" "API_KEY_DERIVATION_SECRET" "SANDBOX_PROVISIONER_TOKEN"
 }
 
 if [ "${1:-}" = "--validate-security-env" ]; then
@@ -187,7 +194,7 @@ skip_existing_image() {
     return 0
 }
 
-echo "🚀 Initializing Yuxi project..."
+echo "🚀 Initializing Binizox project..."
 echo "=================================="
 
 # Check if .env file exists
@@ -246,14 +253,18 @@ else
     read_security_secret "API_KEY_DERIVATION_SECRET" "$JWT_SECRET_KEY"
     API_KEY_DERIVATION_SECRET="$SECURITY_SECRET_VALUE"
 
-    read -p "Please enter your YUXI_INSTANCE_ID (press Enter to auto-generate): " YUXI_INSTANCE_ID
-    if [ -z "$YUXI_INSTANCE_ID" ]; then
-        YUXI_INSTANCE_ID="instance-$(generate_hex 8)"
-        echo "Generated YUXI_INSTANCE_ID and saved it to .env."
+    read -p "Please enter your BINIZOX_INSTANCE_ID (press Enter to auto-generate): " BINIZOX_INSTANCE_ID
+    if [ -z "$BINIZOX_INSTANCE_ID" ]; then
+        BINIZOX_INSTANCE_ID="instance-$(generate_hex 8)"
+        echo "Generated BINIZOX_INSTANCE_ID and saved it to .env."
     fi
 
     read_security_secret "SANDBOX_PROVISIONER_TOKEN" "$JWT_SECRET_KEY" "$API_KEY_DERIVATION_SECRET"
     SANDBOX_PROVISIONER_TOKEN="$SECURITY_SECRET_VALUE"
+
+    read_security_secret "BINIZOX_TOOL_RUNNER_TOKEN" \
+        "$JWT_SECRET_KEY" "$API_KEY_DERIVATION_SECRET" "$SANDBOX_PROVISIONER_TOKEN"
+    BINIZOX_TOOL_RUNNER_TOKEN="$SECURITY_SECRET_VALUE"
 
     # Create .env file
     cat > .env << EOF
@@ -278,8 +289,9 @@ EOF
 # JWT security settings
 JWT_SECRET_KEY=${JWT_SECRET_KEY}
 API_KEY_DERIVATION_SECRET=${API_KEY_DERIVATION_SECRET}
-YUXI_INSTANCE_ID=${YUXI_INSTANCE_ID}
+BINIZOX_INSTANCE_ID=${BINIZOX_INSTANCE_ID}
 SANDBOX_PROVISIONER_TOKEN=${SANDBOX_PROVISIONER_TOKEN}
+BINIZOX_TOOL_RUNNER_TOKEN=${BINIZOX_TOOL_RUNNER_TOKEN}
 EOF
 
     validate_security_env

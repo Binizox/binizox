@@ -10,7 +10,7 @@
 | Integration | `backend/test/integration` | 真实 HTTP、认证、事务、锁、Schema、lease 和服务副作用 | 依赖 Docker Compose |
 | E2E | `backend/test/e2e` | Run、SSE、worker、文件落盘和完整用户链路 | 依赖完整 Compose，数量少、速度慢 |
 | Web unit | `web/test/unit` | 前端状态、组件和交互逻辑 | 通过 `pnpm test:unit` |
-| CLI | `packages/yuxi-cli/tests` | CLI 配置、命令和客户端行为 | 独立 Python 包 |
+| CLI | `packages/binizox-cli/tests` | CLI 配置、命令和客户端行为 | 独立 Python 包 |
 
 同一个子项目只保留一个测试根目录，不要同时创建 `test` 和 `tests`。
 
@@ -112,7 +112,7 @@ docker compose exec web pnpm run build
 CLI：
 
 ```bash
-cd packages/yuxi-cli
+cd packages/binizox-cli
 uv run pytest
 ```
 
@@ -163,4 +163,4 @@ pwsh -NoProfile -File scripts/test_init_security.ps1
 - expected output、fixture 和 snapshot 的更新经过人工审阅。
 - PR 如实记录命令、结果和未验证范围。
 
-相关规范：[参与贡献](./contributing.md)、[工程信任系统](./engineering-trust.md)、[Yuxi Spec Loop](./spec-loop.md)。
+相关规范：[参与贡献](./contributing.md)、[工程信任系统](./engineering-trust.md)、[Binizox Spec Loop](./spec-loop.md)。

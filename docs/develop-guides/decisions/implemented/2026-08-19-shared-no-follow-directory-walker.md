@@ -2,7 +2,7 @@
 
 状态：implemented
 类型：simplification
-Owner：backend/package/yuxi/utils/paths.py
+Owner：backend/package/binizox/utils/paths.py
 
 ## 问题
 
@@ -10,7 +10,7 @@ Workdir、UserWorkspace 文件访问和个人 Skill 曾分别实现逐层 `dir_f
 
 ## 决策
 
-`yuxi.utils.paths.open_directory_fd` 是宿主进程中逐层打开目录的共享实现。函数从可信路径或调用方已经固定的目录 fd 开始，逐层打开已校验的单路径组件；`create=True` 时以 owner-only 的 `0o700` 创建缺失目录。函数返回由调用方关闭的 fd；传入目录 fd 时先复制，不接管原 fd。
+`binizox.utils.paths.open_directory_fd` 是宿主进程中逐层打开目录的共享实现。函数从可信路径或调用方已经固定的目录 fd 开始，逐层打开已校验的单路径组件；`create=True` 时以 owner-only 的 `0o700` 创建缺失目录。函数返回由调用方关闭的 fd；传入目录 fd 时先复制，不接管原 fd。
 
 共享函数拥有 fd 生命周期、目录创建和底层错误分类。Linux 可能把 symlink 与普通非目录组件都报告为 `ENOTDIR`，函数在父目录 fd 仍有效时以 no-follow `stat` 识别 symlink，并将其规范为 `OSError(ELOOP)`；真实非目录组件保留 `ENOTDIR`。Workdir、Workspace 与 Skills 的薄 wrapper 将底层 errno 翻译为各边界已有的 `ValueError`、`PermissionError` 或原始 `NotADirectoryError`。
 
@@ -35,7 +35,7 @@ Workdir、UserWorkspace 文件访问和个人 Skill 曾分别实现逐层 `dir_f
 
 | 验收主张 | 失败面 | 语义 Owner | 直接证据 / 命令 | 负向案例 | 当前结果 |
 |---|---|---|---|---|---|
-| 宿主侧目录遍历复用同一个 fd/no-follow 实现 | 仍保留可独立漂移的循环 | `yuxi.utils.paths` 与三个调用模块 | 源码负向搜索；相关 unit `187 passed` | 旧私有循环仍直接执行逐层 `mkdir + openat` | Passed |
+| 宿主侧目录遍历复用同一个 fd/no-follow 实现 | 仍保留可独立漂移的循环 | `binizox.utils.paths` 与三个调用模块 | 源码负向搜索；相关 unit `187 passed` | 旧私有循环仍直接执行逐层 `mkdir + openat` | Passed |
 | 共享函数在成功和失败时维持明确 fd 所有权 | 返回 fd 泄漏或误关调用方 fd | `open_directory_fd` | `test/unit/utils/test_paths.py`：`5 passed` | 中途打开失败、传入已有 fd | Passed |
 | symlink 与真实非目录组件保留底层分类和业务边界异常 | 两者均为 `ENOTDIR` 导致 symlink 被映射为 404 | shared helper 与各业务 wrapper | 全量非慢 unit：`1371 passed, 34 skipped`；Viewer HTTP integration：`3 passed`；Workdir integration：`3 passed`；deterministic Workdir/runtime E2E：`1 passed` | symlink 组件返回 403/`PermissionError`；普通文件组件返回 404/`NotADirectoryError` | Passed |
 | 独立运行时脚本保持自包含，目录权限由统一身份契约拥有 | 共享 helper 重构使独立镜像反向依赖 `yuxi`，或权限没有明确 Owner | 各调用点、独立脚本与统一运行身份决定 | diff、源码检查及 Sandbox/Skills/Workspace unit | 独立镜像导入 `yuxi`；重新出现跨 UID world-writable 补丁 | Passed；权限契约已由后续决定收敛 |

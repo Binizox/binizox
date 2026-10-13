@@ -1,6 +1,6 @@
 # 配置系统
 
-Yuxi 的配置分成两类：启动进程时读取的环境变量，以及运行中由管理员在页面维护的系统配置。区分这两类，可以判断修改后需要保存、清缓存还是重启服务。
+Binizox 的配置分成两类：启动进程时读取的环境变量，以及运行中由管理员在页面维护的系统配置。区分这两类，可以判断修改后需要保存、清缓存还是重启服务。
 
 ## 配置来源和优先级
 
@@ -22,7 +22,7 @@ docker compose up -d --force-recreate api worker
 
 ## 管理员系统配置
 
-管理员在“设置 → 基本设置”中修改系统配置。当前配置项由 [`options.py`](https://github.com/xerrors/Yuxi/blob/main/backend/package/yuxi/config/options.py) 定义，包含：
+管理员在“设置 → 基本设置”中修改系统配置。当前配置项由 [`options.py`](https://github.com/Binizox/binizox/blob/main/backend/package/binizox/config/options.py) 定义，包含：
 
 - 默认对话模型、快速响应模型、嵌入模型和重排模型；
 - 内容审查和 LLM 内容审查开关；

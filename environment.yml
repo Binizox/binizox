@@ -3,7 +3,7 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  # 与 Yuxi 0.7.2 的 requires-python 保持一致；Docker 最终也使用 3.12。
+  # 与 Binizox 0.7.2 的 requires-python 保持一致；Docker 最终也使用 3.12。
   - python=3.12
   - pip>=24
   - nodejs=22

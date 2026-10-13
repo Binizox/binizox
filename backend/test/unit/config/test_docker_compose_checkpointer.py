@@ -9,7 +9,7 @@ import yaml
 
 def _project_root() -> Path:
     """定位包含 Compose 文件的仓库根目录。"""
-    configured = os.environ.get("YUXI_PROJECT_ROOT")
+    configured = os.environ.get("BINIZOX_PROJECT_ROOT")
     if configured:
         return Path(configured)
 
@@ -25,7 +25,7 @@ def test_compose_does_not_expose_checkpoint_backend_or_local_storage():
     for filename in ("docker-compose.yml", "docker-compose.prod.yml"):
         compose = yaml.safe_load((project_root / filename).read_text())
         assert "LANGGRAPH_CHECKPOINTER_BACKEND" not in compose["x-api-worker-env"]
-        assert "YUXI_CHECKPOINT_DIR" not in compose["x-api-worker-env"]
+        assert "BINIZOX_CHECKPOINT_DIR" not in compose["x-api-worker-env"]
 
 
 def test_api_key_derivation_secret_is_required_for_api_and_worker():
@@ -56,6 +56,7 @@ def test_initialization_scripts_enforce_security_secret_contract():
         {"API_KEY_DERIVATION_SECRET": "short"},
         {"API_KEY_DERIVATION_SECRET": "jwt-secret-value-that-is-at-least-32-characters"},
         {"SANDBOX_PROVISIONER_TOKEN": "api-secret-value-that-is-at-least-32-characters"},
+        {"BINIZOX_TOOL_RUNNER_TOKEN": "sandbox-secret-value-that-is-at-least-32-characters"},
         {"JWT_SECRET_KEY": " padded-secret-value-that-is-at-least-32-characters "},
         {"JWT_SECRET_KEY": '"123456789012345678901234567890"'},
     ],
@@ -66,6 +67,7 @@ def test_shell_initialization_validation_rejects_short_reused_or_padded_secrets(
         "JWT_SECRET_KEY": "jwt-secret-value-that-is-at-least-32-characters",
         "API_KEY_DERIVATION_SECRET": "api-secret-value-that-is-at-least-32-characters",
         "SANDBOX_PROVISIONER_TOKEN": "sandbox-secret-value-that-is-at-least-32-characters",
+        "BINIZOX_TOOL_RUNNER_TOKEN": "tool-runner-secret-value-that-is-at-least-32-characters",
         **overrides,
     }
     (tmp_path / ".env").write_text("".join(f"{name}={value}\n" for name, value in values.items()))
@@ -87,6 +89,7 @@ def test_shell_initialization_validation_accepts_distinct_strong_secrets(tmp_pat
         "JWT_SECRET_KEY=jwt-secret-value-that-is-at-least-32-characters\n"
         "API_KEY_DERIVATION_SECRET=api-secret-value-that-is-at-least-32-characters\n"
         "SANDBOX_PROVISIONER_TOKEN=sandbox-secret-value-that-is-at-least-32-characters\n"
+        "BINIZOX_TOOL_RUNNER_TOKEN=tool-runner-secret-value-that-is-at-least-32-characters\n"
     )
 
     completed = subprocess.run(

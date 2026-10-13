@@ -6,7 +6,7 @@ repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$repo_root"
 
 compose=(docker compose "$@")
-proof_file="$(mktemp "${TMPDIR:-/tmp}/yuxi-quiescence.XXXXXX")"
+proof_file="$(mktemp "${TMPDIR:-/tmp}/binizox-quiescence.XXXXXX")"
 cleanup() {
   rm -f "$proof_file"
   "${compose[@]}" stop sandbox-provisioner >/dev/null 2>&1 || true
@@ -50,7 +50,7 @@ printf '%s\n' "$token" > "$proof_file"
 
 "${compose[@]}" run --rm \
   -v "$proof_file:/app/legacy-saves/.storage-migration-quiesced:ro" \
-  -e YUXI_STORAGE_MIGRATION_QUIESCENCE_TOKEN="$token" \
+  -e BINIZOX_STORAGE_MIGRATION_QUIESCENCE_TOKEN="$token" \
   storage-migrator
 
-echo "storage migration completed; restart Yuxi with the same Docker Compose options"
+echo "storage migration completed; restart Binizox with the same Docker Compose options"

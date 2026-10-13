@@ -10,8 +10,8 @@ import uuid
 import pytest
 from sqlalchemy import update
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
-from yuxi.config.runtime import knowledge_capability_enabled
-from yuxi.storage.postgres.models_business import Conversation
+from binizox.config.runtime import knowledge_capability_enabled
+from binizox.storage.postgres.models_business import Conversation
 
 from test.live_api_cleanup import make_test_conversation_metadata, make_test_conversation_title
 

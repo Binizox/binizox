@@ -1,6 +1,6 @@
 # 网页搜索
 
-Yuxi 可以为 Agent 注册 `web_search` 工具，从外部网页获取实时信息。当前支持豆包和 Tavily；搜索结果属于外部来源，不能自动替代知识库或人工核验。
+Binizox 可以为 Agent 注册 `web_search` 工具，从外部网页获取实时信息。当前支持豆包和 Tavily；搜索结果属于外部来源，不能自动替代知识库或人工核验。
 
 ## 配置供应商
 
@@ -41,4 +41,4 @@ docker compose up -d --force-recreate api worker
 
 没有工具时，检查 `WEB_SEARCH_PROVIDER` 拼写、对应 Key 是否存在，以及 API/worker 是否已经重新创建。调用失败时查看 worker 日志和供应商响应；不要把完整请求头或密钥贴出来。
 
-实现入口：[网页搜索工具](https://github.com/xerrors/Yuxi/blob/main/backend/package/yuxi/agents/toolkits/buildin/tools.py)。
+实现入口：[网页搜索工具](https://github.com/Binizox/binizox/blob/main/backend/package/binizox/agents/toolkits/buildin/tools.py)。

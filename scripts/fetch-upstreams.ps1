@@ -4,6 +4,7 @@ $UpstreamRoot = Join-Path $ProjectRoot 'upstreams'
 New-Item -ItemType Directory -Path $UpstreamRoot -Force | Out-Null
 
 $Repositories = @(
+    # 这里保留真实上游名称与 URL；它是来源快照，不是 Binizox 运行包。
     @{ Name = 'yuxi'; Url = 'https://github.com/xerrors/Yuxi.git'; Commit = '2def1d3ad8a7359168639acfc1494a481f6dd55d' },
     @{ Name = 'ragflow'; Url = 'https://github.com/infiniflow/ragflow.git'; Commit = '313ca90f6abd7682fe8523e16fd67b3653a3fa84' },
     @{ Name = 'weknora'; Url = 'https://github.com/Tencent/WeKnora.git'; Commit = '4df7ccbb4f650082331452a92b52854f8922da2a' },

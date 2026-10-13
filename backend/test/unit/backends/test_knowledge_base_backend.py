@@ -4,13 +4,13 @@ from types import SimpleNamespace
 
 import pytest
 
-import yuxi.agents.backends.knowledge_base_backend as knowledge_base_backend
-from yuxi.knowledge.read_models import KnowledgeBaseSummary
+import binizox.agents.backends.knowledge_base_backend as knowledge_base_backend
+from binizox.knowledge.read_models import KnowledgeBaseSummary
 
 
 @pytest.mark.asyncio
 async def test_resolve_visible_knowledge_bases_filters_by_kb_id(monkeypatch):
-    import yuxi.knowledge.runtime as knowledge_runtime
+    import binizox.knowledge.runtime as knowledge_runtime
 
     async def fake_get_databases_by_uid(_uid):
         return [

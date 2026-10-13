@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from yuxi.agents.middlewares import memory as memory_middleware
+from binizox.agents.middlewares import memory as memory_middleware
 
 pytestmark = pytest.mark.unit
 

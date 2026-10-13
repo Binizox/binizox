@@ -11,12 +11,12 @@ import pytest
 
 os.environ.setdefault("OPENAI_API_KEY", "test-key")
 os.environ.setdefault(
-    "YUXI_RUNTIME_DIR", os.path.join(os.environ.get("CLAUDE_JOB_DIR", tempfile.gettempdir()), "yuxi-test-saves")
+    "BINIZOX_RUNTIME_DIR", os.path.join(os.environ.get("CLAUDE_JOB_DIR", tempfile.gettempdir()), "binizox-test-saves")
 )
 
-from yuxi.agents.backends.paths import workdir_scope_from_runtime_path
-from yuxi.services import attachment_service as service
-from yuxi.services import workdir_service
+from binizox.agents.backends.paths import workdir_scope_from_runtime_path
+from binizox.services import attachment_service as service
+from binizox.services import workdir_service
 
 pytestmark = pytest.mark.unit
 

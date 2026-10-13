@@ -4,7 +4,7 @@
 类型：architecture
 Owner：docker-compose.yml
 
-日志与缓存路径由 `yuxi.config` 和 `logging_config.py` 拥有。本记录拥有 API、worker 与 provisioner 的
+日志与缓存路径由 `binizox.config` 和 `logging_config.py` 拥有。本记录拥有 API、worker 与 provisioner 的
 进程权限、日志和缓存解耦边界；当前文件边界由
 [Workdir 归属 UserWorkspace](2026-08-19-workdir-in-user-workspace.md)与
 [Workspace Owner 收敛](2026-08-21-workspace-owner-convergence.md)拥有。
@@ -19,7 +19,7 @@ outputs 在 Sandbox 重建、父子 Agent 与并发 Run 中也缺少明确的恢
 
 - API 与 worker 不再挂载 `/app/models` 或 Docker socket；只有 Docker sandbox-provisioner 持有
   Docker daemon 权限。测试清理通过 provisioner 的鉴权管理 API 完成。
-- API 与 worker 使用独立 `YUXI_RUNTIME_DIR`。日志和 Office 预览缓存位于各自容器本地运行目录，
+- API 与 worker 使用独立 `BINIZOX_RUNTIME_DIR`。日志和 Office 预览缓存位于各自容器本地运行目录，
   不写入共享 `saves`；管理端日志接口只读取 API 进程日志。
 - Conversation 附件与 outputs 直接使用 UserWorkspace 中的 Workdir。未确认的临时附件解析仍可使用
   用户隔离的 MinIO 前缀。

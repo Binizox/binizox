@@ -8,7 +8,7 @@ $PowerShellPath = (Get-Process -Id $PID).Path
 $InitScript = (Resolve-Path (Join-Path $PSScriptRoot "init.ps1")).Path
 
 function Invoke-SecurityValidation([string]$EnvContent) {
-    $caseDirectory = Join-Path ([IO.Path]::GetTempPath()) ("yuxi-init-security-" + [guid]::NewGuid().ToString("N"))
+    $caseDirectory = Join-Path ([IO.Path]::GetTempPath()) ("binizox-init-security-" + [guid]::NewGuid().ToString("N"))
     New-Item -ItemType Directory -Path $caseDirectory | Out-Null
     try {
         Set-Content -Path (Join-Path $caseDirectory ".env") -Value $EnvContent -Encoding utf8NoBOM
@@ -34,24 +34,32 @@ function Assert-SecurityValidation([string]$Name, [string]$EnvContent, [bool]$Sh
     }
 }
 
-function New-SecurityEnv([string]$JwtSecret, [string]$ApiSecret, [string]$SandboxSecret) {
+function New-SecurityEnv(
+    [string]$JwtSecret,
+    [string]$ApiSecret,
+    [string]$SandboxSecret,
+    [string]$ToolRunnerSecret
+) {
     return @(
         "JWT_SECRET_KEY=$JwtSecret",
         "API_KEY_DERIVATION_SECRET=$ApiSecret",
-        "SANDBOX_PROVISIONER_TOKEN=$SandboxSecret"
+        "SANDBOX_PROVISIONER_TOKEN=$SandboxSecret",
+        "BINIZOX_TOOL_RUNNER_TOKEN=$ToolRunnerSecret"
     ) -join [Environment]::NewLine
 }
 
 $validJwt = "jwt-secret-value-that-is-at-least-32-characters"
 $validApi = "api-secret-value-that-is-at-least-32-characters"
 $validSandbox = "sandbox-secret-value-that-is-at-least-32-characters"
+$validToolRunner = "tool-runner-secret-value-that-is-at-least-32-characters"
 
-Assert-SecurityValidation "valid distinct secrets" (New-SecurityEnv $validJwt $validApi $validSandbox) $true
-Assert-SecurityValidation "short JWT secret" (New-SecurityEnv "short" $validApi $validSandbox) $false
-Assert-SecurityValidation "reused API derivation secret" (New-SecurityEnv $validJwt $validJwt $validSandbox) $false
-Assert-SecurityValidation "reused sandbox secret" (New-SecurityEnv $validJwt $validApi $validApi) $false
-Assert-SecurityValidation "leading whitespace" (New-SecurityEnv " $validJwt" $validApi $validSandbox) $false
-Assert-SecurityValidation "trailing whitespace" (New-SecurityEnv $validJwt $validApi "$validSandbox ") $false
-Assert-SecurityValidation "quoted short value" (New-SecurityEnv '"123456789012345678901234567890"' $validApi $validSandbox) $false
+Assert-SecurityValidation "valid distinct secrets" (New-SecurityEnv $validJwt $validApi $validSandbox $validToolRunner) $true
+Assert-SecurityValidation "short JWT secret" (New-SecurityEnv "short" $validApi $validSandbox $validToolRunner) $false
+Assert-SecurityValidation "reused API derivation secret" (New-SecurityEnv $validJwt $validJwt $validSandbox $validToolRunner) $false
+Assert-SecurityValidation "reused sandbox secret" (New-SecurityEnv $validJwt $validApi $validApi $validToolRunner) $false
+Assert-SecurityValidation "reused tool runner secret" (New-SecurityEnv $validJwt $validApi $validSandbox $validSandbox) $false
+Assert-SecurityValidation "leading whitespace" (New-SecurityEnv " $validJwt" $validApi $validSandbox $validToolRunner) $false
+Assert-SecurityValidation "trailing whitespace" (New-SecurityEnv $validJwt $validApi "$validSandbox " $validToolRunner) $false
+Assert-SecurityValidation "quoted short value" (New-SecurityEnv '"123456789012345678901234567890"' $validApi $validSandbox $validToolRunner) $false
 
 Write-Host "PowerShell security environment validation matrix passed."

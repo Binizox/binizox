@@ -1,11 +1,11 @@
-# Yuxi Agent 开发约定
+# Binizox Agent 开发约定
 
-Yuxi 是基于 LangGraph、FastAPI、Vue 和多种持久化服务构建的知识库与多智能体平台。Docker Compose 是开发拓扑的事实来源；修改不熟悉的模块前先阅读 [ARCHITECTURE.md](ARCHITECTURE.md)，再用符号搜索确认真实实现。
+Binizox 是基于 LangGraph、FastAPI、Vue 和多种持久化服务构建的知识库与多智能体平台。Docker Compose 是开发拓扑的事实来源；修改不熟悉的模块前先阅读 [ARCHITECTURE.md](ARCHITECTURE.md)，再用符号搜索确认真实实现。
 
 ## 每次任务先加载什么
 
 - [ARCHITECTURE.md](ARCHITECTURE.md)：稳定边界、主链路和架构不变量。
-- [Yuxi Spec Loop](docs/develop-guides/spec-loop.md)：非平凡变更从提案、证据到收敛的流程。
+- [Binizox Spec Loop](docs/develop-guides/spec-loop.md)：非平凡变更从提案、证据到收敛的流程。
 - [工程信任系统](docs/develop-guides/engineering-trust.md)：语义 Owner、证据、决策记录、派生审计和 gate 规则。
 - [测试规范](docs/develop-guides/testing-guidelines.md)：unit、integration、E2E 的职责与命令。
 - [贡献指南](docs/develop-guides/contributing.md)：分支、独立 Review、commit 和 PR 流程。
@@ -24,7 +24,7 @@ Yuxi 是基于 LangGraph、FastAPI、Vue 和多种持久化服务构建的知识
 
 ## 不能破坏的系统事实
 
-- HTTP 路由保持薄；用例流程属于 `yuxi.services`，持久化查询属于 `yuxi.repositories`。
+- HTTP 路由保持薄；用例流程属于 `binizox.services`，持久化查询属于 `binizox.repositories`。
 - 普通请求先在 PostgreSQL 中持久化 Message 和 AgentRunRequest；只有 ready FIFO 队头创建 AgentRun，且每次投递 ARQ 前 owning transaction 都已提交。Redis 负责投递、短期事件、取消和缓存，不拥有最终业务状态。
 - 同一用户、Agent、线程的普通请求按 FIFO 串行派发；Request 和 Run 是不同状态模型。
 - AgentRun 的输出、事件、artifact 和错误必须绑定同一 request/run；禁止从相邻 Run 猜测结果。

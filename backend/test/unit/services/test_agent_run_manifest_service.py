@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from yuxi.services.agent_run_manifest_service import (
+from binizox.services.agent_run_manifest_service import (
     _manifest_skill_scope,
     build_manifest_payload,
     canonical_json,
@@ -211,8 +211,8 @@ def test_limits_captured_from_context(field, expected):
 
 
 def test_effective_limits_fill_schema_defaults_for_unset_fields():
-    from yuxi.agents.context import BaseContext
-    from yuxi.services.agent_run_manifest_service import _effective_limits
+    from binizox.agents.context import BaseContext
+    from binizox.services.agent_run_manifest_service import _effective_limits
 
     class FakeBackend:
         context_schema = BaseContext
